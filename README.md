@@ -20,7 +20,7 @@ Built using the **MERN Stack (TypeScript) + React Native**, this system strongly
 
 ---
 
-# 🛠️ Technology Stack
+## 🛠️ Technology Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -36,15 +36,15 @@ Built using the **MERN Stack (TypeScript) + React Native**, this system strongly
 
 ---
 
-# 🏗️ System Architecture
+## 🏗️ System Architecture
 
-## 🔹 Web Application (Admin & Staff)
+### 🔹 Web Application (Admin & Staff)
 - React SPA with protected routes
 - Role-based dashboard rendering
 - API integration via REST
 - Optimized state management
 
-## 🔹 Mobile Application (Customer)
+### 🔹 Mobile Application (Customer)
 - Built with React Native + Expo
 - Secure token storage
 - Real-time order tracking ready
@@ -52,52 +52,52 @@ Built using the **MERN Stack (TypeScript) + React Native**, this system strongly
 
 ---
 
-# ✨ Core Functionalities
+## ✨ Core Functionalities
 
-## 🧼 Full-Service Laundry
+### 🧼 Full-Service Laundry
 - Service selection (Wash, Dry, Iron, Dry Clean)
 - Order scheduling
 - Status tracking (Received → Processing → Ready → Completed)
 - Invoice generation
 
-## 🧺 Self-Service Laundry
+### 🧺 Self-Service Laundry
 - Machine availability tracking
 - Time-slot reservation
 - Smart queue allocation
 - Token generation
 
-## 💳 Payment & Billing
+### 💳 Payment & Billing
 - Online payment ready structure
 - Order-based billing
 - Payment status tracking
 - Invoice history
 
-## ⭐ Feedback System
+### ⭐ Feedback System
 - Customer rating submission
 - Service performance monitoring
 - Average rating analytics
 
 ---
 
-# 🔐 Security Architecture
+## 🔐 Security Architecture
 
 Security is a **core priority** in this system.
 
-## 🔑 Authentication & Authorization
+### 🔑 Authentication & Authorization
 - JWT Access & Refresh Token mechanism
 - Role-Based Access Control (RBAC)
 - Protected API routes
 - Token expiration handling
 - Secure logout mechanism
 
-## 🔒 Password & Data Security
+### 🔒 Password & Data Security
 - Password hashing using bcrypt
 - Environment variable protection (.env)
 - Sensitive data encryption ready
 - Secure HTTP headers (Helmet)
 - CORS policy configuration
 
-## 🛡️ API Protection
+### 🛡️ API Protection
 - Request validation middleware
 - Rate limiting
 - Input sanitization
@@ -108,18 +108,18 @@ Security is a **core priority** in this system.
   - CSRF
   - Token replay attacks
 
-## 📱 Secure Mobile Handling
+### 📱 Secure Mobile Handling
 - Secure token storage
 - No sensitive data in local storage
 - Auto logout on token expiration
 
 ---
 
-# ⚡ Cache Handling & Performance Optimization
+## ⚡ Cache Handling & Performance Optimization
 
 The system is designed for high performance and scalability.
 
-## 🚀 Caching Strategy
+### 🚀 Caching Strategy
 - Redis caching for:
   - Branch data
   - Service list
@@ -127,7 +127,7 @@ The system is designed for high performance and scalability.
 - In-memory caching fallback
 - Cache invalidation on update operations
 
-## 📊 Performance Optimizations
+### 📊 Performance Optimizations
 - Indexed MongoDB queries
 - Pagination implementation
 - Lean queries for read operations
@@ -136,7 +136,7 @@ The system is designed for high performance and scalability.
 
 ---
 
-# 🧪 Testing & Quality Assurance
+## 🧪 Testing & Quality Assurance
 
 - Unit Testing
 - Integration Testing
@@ -147,7 +147,7 @@ The system is designed for high performance and scalability.
 
 ---
 
-# 📈 Project Management Approach
+## 📈 Project Management Approach
 
 This project follows **Agile methodology**:
 
@@ -160,7 +160,7 @@ This project follows **Agile methodology**:
 
 ---
 
-# 🚀 Future Enhancements
+## 🚀 Future Enhancements
 
 - 🔔 Push Notifications
 - 📩 Email Integration
@@ -170,7 +170,7 @@ This project follows **Agile methodology**:
 
 ---
 
-# 📌 Key Highlights
+## 📌 Key Highlights
 
 ✔ Secure JWT Authentication  
 ✔ Role-Based Access Control  
