@@ -1,45 +1,41 @@
 import mongoose from 'mongoose';
 
-const paymentSchema = new mongoose.Schema(
+const feedbackSchema = new mongoose.Schema(
   {
     orderId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Order', 
         required: true, 
     },
-    amount: { 
+    userId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User', 
+        required: true, 
+    },
+    rating: { 
         type: Number, 
         required: true, 
-        min: 0, 
-    },
-    method: { 
-        type: String, 
-        required: true, 
-        trim: true, 
+        min: 1, 
+        max: 5, 
     },
     status: { 
         type: String, 
         required: true, 
         trim: true, 
     },
-    provider: { 
+    comment: { 
         type: String, 
         default: null, 
         trim: true, 
     },
-    transactionRef: { 
-        type: String, 
-        default: null, 
-        trim: true, 
-    },
-    paidAt: { 
-        type: Date, 
-        default: null, 
+    tags: { 
+        type: [String], 
+        default: [], 
     },
   },
   { 
     timestamps: true, 
-   },
+  },
 );
 
-export default mongoose.model('Payment', paymentSchema);
+export default mongoose.model('Feedback', feedbackSchema);

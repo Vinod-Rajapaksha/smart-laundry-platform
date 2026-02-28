@@ -1,38 +1,32 @@
 import mongoose from 'mongoose';
 
-const paymentSchema = new mongoose.Schema(
+const staffJobSchema = new mongoose.Schema(
   {
     orderId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Order', 
         required: true, 
     },
-    amount: { 
-        type: Number, 
-        required: true, 
-        min: 0, 
-    },
-    method: { 
+    jobType: { 
         type: String, 
         required: true, 
         trim: true, 
     },
-    status: { 
+    assignedStaffId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User', 
+        required: true, 
+    },
+    jobStatus: { 
         type: String, 
         required: true, 
         trim: true, 
     },
-    provider: { 
-        type: String, 
+    startedAt: { 
+        type: Date, 
         default: null, 
-        trim: true, 
     },
-    transactionRef: { 
-        type: String, 
-        default: null, 
-        trim: true, 
-    },
-    paidAt: { 
+    completedAt: { 
         type: Date, 
         default: null, 
     },
@@ -42,4 +36,4 @@ const paymentSchema = new mongoose.Schema(
    },
 );
 
-export default mongoose.model('Payment', paymentSchema);
+export default mongoose.model('StaffJob', staffJobSchema);
