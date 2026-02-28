@@ -33,6 +33,16 @@ const userSchema = new mongoose.Schema(
       enum: ['ADMIN', 'STAFF', 'CUSTOMER'],
       default: 'CUSTOMER',
     },
+    salary: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+    staffType: { 
+      type: String, 
+      enum: ['DELIVERY', 'STORE', 'BOTH'], 
+      default: null, 
+    },
     isActive: {
       type: Boolean,
       default: true,
