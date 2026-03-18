@@ -1,43 +1,92 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+    LayoutDashboard, 
+    Users, 
+    ShoppingBag, 
+    Landmark,
+    PackageSearch,
+    RefreshCcw,
+    Tag,
+    MessageSquare,
+    Truck,
+    BarChart2,
+    LogOut
+} from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    
     const menuItems = [
-        { name: 'Dashboard', icon: '🏠', path: '/admin-dashboard' },
-        { name: 'Orders', icon: '🧺' },
-        { name: 'Customers', icon: '👥' },
-        { name: 'Staff', icon: '👨‍💼', path: '/staff' },
-        { name: 'System Analysis', icon: '📊', path: '/system-analysis' },
-        { name: 'Services', icon: '🧾' },
-        { name: 'Settings', icon: '⚙️' },
+        { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin-dashboard' },
+        { name: 'Customers', icon: <Users size={20} />, path: '/customers' },
+        { name: 'Orders', icon: <ShoppingBag size={20} />, path: '/orders' },
+        { name: 'Bank Verification', icon: <Landmark size={20} />, path: '/bank-verification' },
+        { name: 'Inventory', icon: <PackageSearch size={20} />, path: '/inventory' },
+        { name: 'Update Status', icon: <RefreshCcw size={20} />, path: '/update-status' },
+        { name: 'Promotions', icon: <Tag size={20} />, path: '/promotions' },
+        { name: 'Feedbacks', icon: <MessageSquare size={20} />, path: '/feedbacks' },
+        { name: 'Deliveries', icon: <Truck size={20} />, path: '/deliveries' },
+        { name: 'Reports', icon: <BarChart2 size={20} />, path: '/reports' },
     ];
 
     return (
-        <aside className="w-[230px] h-screen bg-[#245b78] flex flex-col border-r border-white/10 shadow-xl overflow-hidden shrink-0">
-            {/* Top Logo Area (Mockup specific spacing) */}
-            <div className="h-24"></div>
+        <aside className="w-[260px] h-screen bg-white flex flex-col border-r border-gray-100 shadow-sm shrink-0">
+            {/* Top Logo Area */}
+            <div className="h-24 flex items-center px-6 border-b border-gray-50">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#3FA0F6] rounded-full flex items-center justify-center text-white">
+                        <ShoppingBag size={20} />
+                    </div>
+                    <div className="flex flex-col">
+                        <h1 className="text-sm font-bold text-[#1f2937] uppercase tracking-wider">B & W Laundry</h1>
+                        <span className="text-xs text-gray-500 font-medium tracking-wide">Admin Portal</span>
+                    </div>
+                </div>
+            </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 flex flex-col">
-                {menuItems.map((item) => (
-                    <div
-                        key={item.name}
-                        onClick={() => item.path && navigate(item.path)}
-                        className="bg-[#a5c0e0] border-b border-[#245b78]/30 px-6 py-4 flex items-center gap-4 cursor-pointer transition-all duration-300 hover:bg-[#8da8c5] group rounded-sm mx-1 mb-1"
-                    >
-                        <span className="text-2xl group-hover:scale-110 transition-transform">
-                            {item.icon}
-                        </span>
-                        <span className="text-lg font-semibold text-[#1a222d] whitespace-nowrap">
-                            {item.name}
-                        </span>
-                    </div>
-                ))}
+            <nav className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
+                {menuItems.map((item) => {
+                    // Check if current path matches, if no path match exact word Dashboard maybe?
+                    const isActive = location.pathname.includes(item.path?.toLowerCase() || 'dashboard');
+                    return (
+                        <div
+                            key={item.name}
+                            onClick={() => item.path && navigate(item.path)}
+                            className={`px-4 py-3 flex items-center gap-4 cursor-pointer rounded-xl transition-all duration-200 group ${
+                                isActive 
+                                    ? 'bg-[#eef5fd] text-[#3FA0F6] font-semibold' 
+                                    : 'text-[#4b5563] hover:bg-gray-50 hover:text-[#1f2937]'
+                            }`}
+                        >
+                            <span className={`${isActive ? 'text-[#3FA0F6]' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                                {item.icon}
+                            </span>
+                            <span className="text-[15px]">
+                                {item.name}
+                            </span>
+                        </div>
+                    );
+                })}
             </nav>
 
-            {/* Bottom Footer Area (Empty) */}
-            <div className="h-40 bg-[#1c2a35] opacity-20 mt-auto"></div>
+            {/* Bottom User Area */}
+            <div className="p-4 border-t border-gray-50 flex items-center justify-between mt-auto">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center border border-gray-100 overflow-hidden">
+                        <span className="text-xl">👨‍💼</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-[#1f2937]">BW Laundry</span>
+                        <span className="text-xs text-gray-400 font-medium">Admin</span>
+                    </div>
+                </div>
+                <button className="text-gray-400 hover:text-red-500 transition-colors p-2">
+                    <LogOut size={16} />
+                </button>
+            </div>
         </aside>
     );
 };

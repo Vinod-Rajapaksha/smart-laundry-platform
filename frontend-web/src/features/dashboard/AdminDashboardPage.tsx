@@ -1,8 +1,8 @@
-import AdminMainContent from './AdminMainContent';
+import DashboardPage from './pages/DashboardPage';
 
 const AdminDashboardPage: React.FC = () => {
     return (
-        <AdminMainContent />
+        <DashboardPage />
     );
 };
 
