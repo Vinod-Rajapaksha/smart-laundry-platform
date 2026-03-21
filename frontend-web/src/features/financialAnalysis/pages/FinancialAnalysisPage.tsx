@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, Banknote, Wallet, TrendingUp, MoveUpRight, ArrowUp, Plus, Minus } from 'lucide-react';
 
@@ -12,6 +12,26 @@ const FinancialAnalysisPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string|null>(null);
   const [error, setError] = useState<string|null>(null);
+  const [summary, setSummary] = useState<{
+    totalRevenue: number;
+    totalExpense: number;
+    netProfit: number;
+    growthPercent: number;
+    insights: string[];
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await fetch('/api/finance/summary');
+        const data = await res.json();
+        if (data.success) setSummary(data.data);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchSummary();
+  }, []);
 
   const handleRevenueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRevenueForm({ ...revenueForm, [e.target.name]: e.target.value });
@@ -109,13 +129,13 @@ const FinancialAnalysisPage: React.FC = () => {
           </div>
           <div className="relative z-10">
             <div className="flex items-end gap-2">
-              <span className="text-[44px] font-black tracking-tight text-[#111]">LKR 450,000</span>
+              <span className="text-[44px] font-black tracking-tight text-[#111]">LKR {summary ? summary.totalRevenue.toLocaleString() : '...'}</span>
               <ArrowUp className="w-8 h-8 text-[#1b8c4c] mb-2 font-black" strokeWidth={3} />
             </div>
           </div>
           <div className="relative z-10 flex items-center gap-2 text-[18px]">
             <MoveUpRight className="w-5 h-5 text-[#24904f]" strokeWidth={2.5} />
-            <span className="font-bold text-[#24904f]">+12%</span>
+            <span className="font-bold text-[#24904f]">{summary ? `${summary.growthPercent > 0 ? '+' : ''}${summary.growthPercent}%` : '...'}</span>
             <span className="text-gray-700">from last month</span>
           </div>
         </div>
@@ -131,11 +151,11 @@ const FinancialAnalysisPage: React.FC = () => {
             <span className="text-[22px] font-normal text-gray-800">Total Expenses</span>
           </div>
           <div className="relative z-10">
-            <span className="text-[44px] font-black tracking-tight text-[#111]">LKR 280,000</span>
+            <span className="text-[44px] font-black tracking-tight text-[#111]">LKR {summary ? summary.totalExpense.toLocaleString() : '...'}</span>
           </div>
           <div className="relative z-10 flex items-center gap-2 text-[18px]">
             <div className="w-4 h-4 bg-[#f89840] rounded-sm mr-1"></div>
-            <span className="font-bold text-[#e17b2b]">65%</span>
+            <span className="font-bold text-[#e17b2b]">{summary && summary.totalRevenue ? Math.round((summary.totalExpense / summary.totalRevenue) * 100) : 0}%</span>
             <span className="text-gray-700">of revenue</span>
           </div>
         </div>
@@ -151,7 +171,7 @@ const FinancialAnalysisPage: React.FC = () => {
             <span className="text-[22px] font-normal text-gray-800">Net Profit</span>
           </div>
           <div className="relative z-10">
-             <span className="text-[44px] font-black tracking-tight text-[#111]">LKR 170,000</span>
+             <span className="text-[44px] font-black tracking-tight text-[#111]">LKR {summary ? summary.netProfit.toLocaleString() : '...'}</span>
           </div>
           <div className="relative z-10 flex items-center gap-2 text-[18px]">
             <div className="w-4 h-4 rounded-full bg-[#4ba3f4] mr-1"></div>
@@ -246,18 +266,11 @@ const FinancialAnalysisPage: React.FC = () => {
         <h3 className="text-[24px] md:text-[28px] font-black text-black mb-10 tracking-tight">Financial Insights</h3>
         
         <ul className="list-disc pl-8 space-y-6">
-          <li className="text-[18px] md:text-[20px] font-bold text-black pl-2">
-            Revenue increased steadily over last 3 months.
-          </li>
-          <li className="text-[18px] md:text-[20px] font-bold text-black pl-2">
-            Staff salaries are the highest expense category.
-          </li>
-          <li className="text-[18px] md:text-[20px] font-bold text-black pl-2">
-            Profit margin is currently 38%.
-          </li>
-          <li className="text-[18px] md:text-[20px] font-bold text-black pl-2">
-            Consider reducing electricity consumption to improve margin.
-          </li>
+          {summary && summary.insights.map((insight, idx) => (
+            <li key={idx} className="text-[18px] md:text-[20px] font-bold text-black pl-2">
+              {insight}
+            </li>
+          ))}
         </ul>
       </div>
 
