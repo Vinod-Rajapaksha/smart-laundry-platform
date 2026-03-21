@@ -26,6 +26,7 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.1",
     "morgan": "^1.10.1",
+    "pdfkit": "^0.13.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.3.0",
+    "@types/pdfkit": "^0.17.5",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",

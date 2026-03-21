@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     BarChart,
     Bar,
@@ -33,35 +34,37 @@ const serviceUsageData = [
 ];
 
 const DashboardPage: React.FC = () => {
+    const navigate = useNavigate();
+    
     return (
-        <div className="flex-1 bg-[#f8f9fc] min-h-screen p-8 flex flex-col items-center">
+        <div className="flex-1 bg-[#f8f9fc] min-h-screen p-8 flex flex-col items-center justify-center">
             
             {/* Top Cards Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto mb-12">
                 {/* Total Orders */}
-                <div className="bg-[#3FA0F6] rounded-xl p-6 flex flex-col items-center justify-center text-white shadow-md shadow-[#3FA0F6]/20">
+                <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Total Orders</h3>
                     <p className="text-6xl font-extrabold">48</p>
                 </div>
                 {/* Total Customers */}
-                <div className="bg-[#3FA0F6] rounded-xl p-6 flex flex-col items-center justify-center text-white shadow-md shadow-[#3FA0F6]/20">
+                <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Total Customers</h3>
                     <p className="text-6xl font-extrabold">73</p>
                 </div>
                 {/* Pending Orders */}
-                <div className="bg-[#3FA0F6] rounded-xl p-6 flex flex-col items-center justify-center text-white shadow-md shadow-[#3FA0F6]/20">
+                <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Pending Orders</h3>
                     <p className="text-6xl font-extrabold">35</p>
                 </div>
                 {/* Completed Orders */}
-                <div className="bg-[#3FA0F6] rounded-xl p-6 flex flex-col items-center justify-center text-white shadow-md shadow-[#3FA0F6]/20">
+                <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Completed Orders</h3>
                     <p className="text-6xl font-extrabold">13</p>
                 </div>
             </div>
 
             {/* Charts Section */}
-            <div className="flex flex-col xl:flex-row gap-6 w-full max-w-7xl items-stretch mb-10">
+            <div className="flex flex-col xl:flex-row gap-6 w-full max-w-7xl mx-auto items-stretch mb-10">
                 {/* Left Chart (Revenue) */}
                 <div className="flex-grow xl:w-2/3 bg-[#f3f7fb] rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
                     <div className="text-center mb-8 relative z-10">
@@ -198,8 +201,11 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* Bottom Button */}
-            <div className="w-full max-w-7xl flex flex-col items-center">
-                <button className="bg-[#3FA0F6] hover:bg-[#2c8ee1] transition-colors text-white font-bold text-lg py-3 px-10 rounded-lg shadow-md w-full max-w-sm ml-auto mr-auto md:ml-[15%] md:mr-auto lg:mx-auto">
+            <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
+                <button 
+                  className="bg-[#3FA0F6] hover:bg-[#2c8ee1] transition-colors text-white font-bold text-lg py-3 px-10 rounded-lg shadow-md w-full max-w-sm mx-auto"
+                  onClick={() => navigate('/financial-analysis')}
+                >
                     Financial Analysis
                 </button>
             </div>
