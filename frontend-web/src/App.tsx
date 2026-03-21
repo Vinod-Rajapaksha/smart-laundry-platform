@@ -1,11 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import AdminDashboardPage from './features/dashboard/AdminDashboardPage';
 import SystemAnalysis from './features/systemAnalysis/SystemAnalysis';
 import AddStaff from './features/staff/AddStaff';
 import AdminSidebar from './features/dashboard/AdminSidebar';
-import ReportGenerationPage from './features/reports/ReportGenerationPage';
-import './App.css';
+import FinancialAnalysisPage from './features/financialAnalysis/pages/FinancialAnalysisPage';
+import AdminProfilePage from './pages/AdminProfilePage';
+
+import ReportPage from './features/report/pages/ReportPage';
 
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,10 +25,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AdminLayout><AdminDashboardPage /></AdminLayout>} />
+        <Route path="/" element={<Navigate to="/admin-dashboard" replace />} />
+        <Route path="/admin-dashboard" element={<AdminLayout><AdminDashboardPage /></AdminLayout>} />
+        <Route path="/admin-profile" element={<AdminLayout><AdminProfilePage /></AdminLayout>} />
         <Route path="/system-analysis" element={<AdminLayout><SystemAnalysis /></AdminLayout>} />
         <Route path="/staff" element={<AdminLayout><AddStaff /></AdminLayout>} />
-        <Route path="/reports" element={<AdminLayout><ReportGenerationPage /></AdminLayout>} />
+        <Route path="/financial-analysis" element={<AdminLayout><FinancialAnalysisPage /></AdminLayout>} />
+        <Route path="/report" element={<AdminLayout><ReportPage /></AdminLayout>} />
       </Routes>
     </Router>
   );

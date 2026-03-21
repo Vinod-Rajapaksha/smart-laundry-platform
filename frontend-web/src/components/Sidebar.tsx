@@ -6,6 +6,7 @@ const Sidebar: React.FC = () => {
     const navigate = useNavigate();
     const menuItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/admin-dashboard' },
+        { name: 'Reports', icon: Tag, path: '/reports' },
         { name: 'Feedbacks', icon: MessageSquare, path: '/feedbacks' },
         { name: 'Promotions', icon: Tag, path: '/promotions' },
         { name: 'Status Updates', icon: RefreshCw, path: '/status' },

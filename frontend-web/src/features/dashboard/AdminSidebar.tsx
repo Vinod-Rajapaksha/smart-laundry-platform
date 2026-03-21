@@ -28,7 +28,7 @@ const AdminSidebar: React.FC = () => {
         { name: 'Promotions', icon: <Tag size={20} />, path: '/promotions' },
         { name: 'Feedbacks', icon: <MessageSquare size={20} />, path: '/feedbacks' },
         { name: 'Deliveries', icon: <Truck size={20} />, path: '/deliveries' },
-        { name: 'Reports', icon: <BarChart2 size={20} />, path: '/reports' },
+        { name: 'Reports', icon: <BarChart2 size={20} />, path: '/report' },
     ];
 
     return (
@@ -74,7 +74,10 @@ const AdminSidebar: React.FC = () => {
 
             {/* Bottom User Area */}
             <div className="p-4 border-t border-gray-50 flex items-center justify-between mt-auto">
-                <div className="flex items-center gap-3">
+                <div 
+                    onClick={() => navigate('/admin-profile')}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-2 transition-colors flex-1"
+                >
                     <div className="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center border border-gray-100 overflow-hidden">
                         <span className="text-xl">👨‍💼</span>
                     </div>
