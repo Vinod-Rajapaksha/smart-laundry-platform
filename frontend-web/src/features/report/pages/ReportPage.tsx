@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Calendar } from 'lucide-react';
-import ReportPreview from '../components/ReportPreview';
+import FinancialReport from '../components/FinancialReport';
 import DownloadButton from '../components/DownloadButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { generateReport } from '../api/reportApi';
@@ -23,7 +23,7 @@ const ReportPage: React.FC = () => {
   const [from, setFrom] = useState('2026-01-01');
   const [to, setTo] = useState('2026-02-28');
   const [checkedOptions, setCheckedOptions] = useState<boolean[]>(checkboxOptions.map(() => false));
-  const [pdfBlob, setPdfBlob] = useState<Blob | undefined>();
+  const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fromInputRef = useRef<HTMLInputElement>(null);
@@ -41,12 +41,21 @@ const ReportPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setPdfBlob(undefined);
+    setReportData(null);
     const filters = { sections: checkboxOptions.filter((_, i) => checkedOptions[i]) };
     const payload: ReportRequestPayload = { dateRange: { from, to }, filters };
-    const res = await generateReport(payload);
-    if (res.error) setError(res.error);
-    else setPdfBlob(res.pdfBlob);
+    try {
+      const response = await fetch('/api/reportGen/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (data.success) setReportData(data.data);
+      else setError(data.message || 'Failed to generate report');
+    } catch (err: any) {
+      setError('Failed to generate report');
+    }
     setLoading(false);
   };
 
@@ -113,12 +122,7 @@ const ReportPage: React.FC = () => {
       </form>
       {loading && <LoadingSpinner />}
       {error && <div className="text-red-500 my-4">{error}</div>}
-      {pdfBlob && <>
-        <div className="my-6">
-          <ReportPreview pdfBlob={pdfBlob} />
-        </div>
-        <DownloadButton pdfBlob={pdfBlob} />
-      </>}
+      {reportData && <div className="my-8"><FinancialReport data={reportData} periodLabel={from + ' to ' + to} /></div>}
     </div>
   );
 };

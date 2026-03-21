@@ -1,3 +1,28 @@
+export const getFinanceSummary = async (req: Request, res: Response) => {
+  try {
+    const summary = await financeService.getFinanceSummary();
+    res.status(200).json({ success: true, data: summary });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const getAllRevenues = async (req: Request, res: Response) => {
+  try {
+    const revenues = await financeService.getAllRevenues();
+    res.status(200).json({ success: true, data: revenues });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAllExpenses = async (req: Request, res: Response) => {
+  try {
+    const expenses = await financeService.getAllExpenses();
+    res.status(200).json({ success: true, data: expenses });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 import { Request, Response } from 'express';
 import * as financeService from './financeService.js';
 

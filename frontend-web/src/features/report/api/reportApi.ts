@@ -4,7 +4,7 @@ import type { ReportRequestPayload, ReportResponse, ReportPreviewParams } from '
 // Generate a new report (returns PDF URL or Blob)
 export async function generateReport(payload: ReportRequestPayload): Promise<ReportResponse> {
   try {
-    const response = await axios.post('/api/reports/generate', payload, { responseType: 'blob' });
+    const response = await axios.post('/api/reportGen/generate', payload, { responseType: 'blob' });
     return { pdfBlob: response.data };
   } catch (error: any) {
     return { error: error?.message || 'Failed to generate report' };
