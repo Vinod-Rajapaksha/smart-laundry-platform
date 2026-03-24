@@ -7,6 +7,7 @@ import { useAppDispatch } from "../../../store/hooks";
 import { loginStart, loginSuccess, loginFail, logout } from "../../../store/slices/auth.slice";
 import { ADMIN_PORTAL_ROLES } from "../../../types/enums";
 import type { LoginRequest } from "../types";
+import toast from "react-hot-toast";
 
 export function useLogin() {
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +39,8 @@ export function useLogin() {
         })
       );
 
+      toast.success("Login successful!");
+
       navigate("/admin", { replace: true });
       return true;
     } catch (e) {
@@ -50,6 +53,9 @@ export function useLogin() {
       dispatch(logout());
 
       setError(message);
+
+      toast.error(message);
+
       return false;
     } finally {
       setSubmitting(false);
