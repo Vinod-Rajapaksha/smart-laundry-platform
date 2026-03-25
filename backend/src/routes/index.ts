@@ -3,6 +3,7 @@ import statusRoute from "./status.route.js";
 import authRoutes from '../modules/auth/routes.js';
 import financeRoutes from '../modules/finance/index.js';
 import reportGenRoutes from '../modules/reportGen/index.js';
+import userRoutes from '../modules/user/routes.js';
 
 const router = Router();
 
@@ -10,5 +11,6 @@ router.use("/status", statusRoute);
 router.use('/auth', authRoutes);
 router.use('/finance', financeRoutes);
 router.use('/reportGen', reportGenRoutes);
+router.use('/users', userRoutes);
 
 export default router;
