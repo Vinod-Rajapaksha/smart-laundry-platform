@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, 
@@ -13,13 +13,56 @@ import {
     BarChart2,
     LogOut
 } from 'lucide-react';
+import UserProfileModal from '../../features/user/pages/UserProfileModal';
+import type { User } from '../../features/user/types';
+import * as userAPI from '../../features/user/api/user.api';
 
 const AdminSidebar: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        // Load current user profile from localStorage or API
+        const loadUserProfile = async () => {
+            try {
+                const userIdStr = localStorage.getItem('userId') || localStorage.getItem('user');
+                if (userIdStr) {
+                    const userId = typeof userIdStr === 'string' ? JSON.parse(userIdStr).id || userIdStr : userIdStr;
+                    const user = await userAPI.getUserById(userId);
+                    setCurrentUser(user);
+                } else {
+                    // Fallback if no user in localStorage
+                    setCurrentUser({
+                        id: 'admin',
+                        name: 'BW Laundry',
+                        email: 'admin@bwlaundry.com',
+                        telephone: '+94770000000',
+                        role: 'ADMIN',
+                        isActive: true,
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                // Set default admin profile on error
+                setCurrentUser({
+                    id: 'admin',
+                    name: 'BW Laundry',
+                    email: 'admin@bwlaundry.com',
+                    telephone: '+94770000000',
+                    role: 'ADMIN',
+                    isActive: true,
+                });
+            }
+        };
+
+        loadUserProfile();
+    }, []);
     
     const menuItems = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin-dashboard' },
+        { name: 'Users', icon: <Users size={20} />, path: '/users' },
         { name: 'Customers', icon: <Users size={20} />, path: '/customers' },
         { name: 'Orders', icon: <ShoppingBag size={20} />, path: '/orders' },
         { name: 'Bank Verification', icon: <Landmark size={20} />, path: '/bank-verification' },
@@ -75,21 +118,40 @@ const AdminSidebar: React.FC = () => {
             {/* Bottom User Area */}
             <div className="p-4 border-t border-gray-50 flex items-center justify-between mt-auto">
                 <div 
-                    onClick={() => navigate('/admin-profile')}
+                    onClick={() => setIsProfileModalOpen(true)}
                     className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-2 transition-colors flex-1"
                 >
                     <div className="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center border border-gray-100 overflow-hidden">
                         <span className="text-xl">👨‍💼</span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-[#1f2937]">BW Laundry</span>
-                        <span className="text-xs text-gray-400 font-medium">Admin</span>
+                        <span className="text-sm font-semibold text-[#1f2937]">{currentUser?.name || 'Admin'}</span>
+                        <span className="text-xs text-gray-400 font-medium">{currentUser?.role || 'Admin'}</span>
                     </div>
                 </div>
-                <button className="text-gray-400 hover:text-red-500 transition-colors p-2">
+                <button 
+                    onClick={() => {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('userId');
+                        navigate('/login');
+                    }}
+                    className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                >
                     <LogOut size={16} />
                 </button>
             </div>
+
+            {/* User Profile Modal */}
+            <UserProfileModal 
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+                user={currentUser || undefined}
+                mode="edit"
+                onSave={(updatedUser) => {
+                    setCurrentUser(updatedUser);
+                    setIsProfileModalOpen(false);
+                }}
+            />
         </aside>
     );
 };
