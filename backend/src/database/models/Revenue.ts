@@ -1,17 +1,25 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IRevenue extends Document {
-  date: Date;
-  name: string;
-  amount: number;
-  type: 'revenue';
-}
+const revenueSchema = new mongoose.Schema(
+  {
+    amount: { 
+        type: Number, 
+        required: true, 
+        min: 0, 
+    },
+    date: { 
+        type: Date, 
+        required: true, 
+    },
+    sourceType: { 
+        type: String, 
+        required: true, 
+        trim: true, 
+    },
+  },
+  { 
+    timestamps: true, 
+  },
+);
 
-const RevenueSchema: Schema = new Schema({
-  date: { type: Date, required: true },
-  name: { type: String, required: true },
-  amount: { type: Number, required: true },
-  type: { type: String, enum: ['revenue'], default: 'revenue', required: true },
-}, { timestamps: true });
-
-export default mongoose.model<IRevenue>('Revenue', RevenueSchema, 'finance');
+export default mongoose.model('Revenue', revenueSchema);
