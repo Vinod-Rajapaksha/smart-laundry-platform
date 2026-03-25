@@ -7,6 +7,7 @@ export interface AuthUser {
   telephone: string;
   address?: string | null;
   role: ROLES;
+  avatar?: string | null;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;

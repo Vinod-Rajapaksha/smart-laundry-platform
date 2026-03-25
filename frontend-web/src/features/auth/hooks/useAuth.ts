@@ -6,6 +6,7 @@ export function useAuth(): {
   isAuthenticated: boolean;
   user: AuthUser | null;
   role: ROLES | null;
+  avatar: string | null;
   loading: boolean;
   error: string | null;
 } {
@@ -15,6 +16,7 @@ export function useAuth(): {
     isAuthenticated: auth.isAuthenticated,
     user: auth.user,
     role: auth.user?.role ?? null,
+    avatar: auth.user?.avatar ?? null,
     loading: auth.loading,
     error: auth.error,
   };
