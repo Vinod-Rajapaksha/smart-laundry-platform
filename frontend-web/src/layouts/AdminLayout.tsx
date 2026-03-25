@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
 import TopBar from "../components/common/TopBar";
+import PageFooter from "../components/common/PageFooter";
 import { pageConfig } from "../../src/app/config/pageConfig";
 
 export default function AdminLayout() {
@@ -33,6 +34,11 @@ export default function AdminLayout() {
         <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <div className="shrink-0 h-[69px]">
+          <PageFooter />
+        </div>
 
       </div>
     </div>
