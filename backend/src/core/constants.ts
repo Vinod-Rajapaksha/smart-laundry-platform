@@ -26,3 +26,20 @@ export const MESSAGES = {
   NOT_FOUND: 'Resource not found',
   INTERNAL_ERROR: 'Internal server error',
 } as const;
+
+// FEEDBACK STATUS
+export const FEEDBACK_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
+export const FEEDBACK_TAGS = {
+  GOOD_SERVICE: 'good service',
+  EXCELLENT_CUSTOMER_SERVICE: 'excellent customer service',
+  ON_TIME: 'on time',
+  REASONABLE_PRICES: 'reasonable prices',
+  RECOMMENDED: 'recommended',
+};
+
+
