@@ -33,6 +33,19 @@ const orderSchema = new mongoose.Schema(
     reservedDateTime: { 
       type: Date, 
       default: null, 
+      enum: [
+        'PENDING',
+        'PICKUP_ASSIGNED',
+        'PICKUP_ENROUTE',
+        'PICKED_UP',
+        'PROCESSING',
+        'READY',
+        'DELIVERY_ASSIGNED',
+        'DELIVERY_ENROUTE',
+        'DELIVERED',
+        'COMPLETED',
+        'CANCELLED',
+      ],
     },
     pickupAddress: { 
       type: String, 
@@ -83,6 +96,14 @@ const orderSchema = new mongoose.Schema(
       type: String, 
       required: true, 
       trim: true, 
+    },
+    riderLatitude: {
+      type: Number,
+      default: null,
+    },
+    riderLongitude: {
+      type: Number,
+      default: null,
     },
   },
   { 

@@ -7,20 +7,22 @@ const staffJobSchema = new mongoose.Schema(
         ref: 'Order', 
         required: true, 
     },
-    jobType: { 
-        type: String, 
-        required: true, 
-        trim: true, 
+    jobType: {
+        type: String,
+        required: true,
+        trim: true,
+        enum: ['PICKUP', 'DELIVERY'],
     },
     assignedStaffId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
         required: true, 
     },
-    jobStatus: { 
-        type: String, 
-        required: true, 
-        trim: true, 
+    jobStatus: {
+        type: String,
+        required: true,
+        trim: true,
+        enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'],
     },
     startedAt: { 
         type: Date, 
