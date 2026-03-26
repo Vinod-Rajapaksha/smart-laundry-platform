@@ -41,6 +41,15 @@ const inventorySchema = new mongoose.Schema(
         type: Boolean, 
         default: true, 
     },
+    supplierId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Supplier',
+        required: false, // Optional for existing items
+    },
+    lowStockEmailSent: {
+        type: Boolean,
+        default: false,
+    },
   },
   { 
     timestamps: true, 

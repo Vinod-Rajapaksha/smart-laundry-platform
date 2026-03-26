@@ -3,6 +3,7 @@ import app from "./app.js";
 import config from "./config/env.js";
 import { connectDB, closeDB } from "./config/db.js";
 import logger from "./config/logger.js";
+import { startCronJobs } from "./utils/cron.js";
 
 let server: http.Server | undefined;
 let isShuttingDown = false;
@@ -11,6 +12,9 @@ const startServer = async (): Promise<void> => {
   try {
     // Connect DB
     await connectDB();
+
+    // Start background jobs
+    startCronJobs();
 
     // Create server
     server = http.createServer(app);
