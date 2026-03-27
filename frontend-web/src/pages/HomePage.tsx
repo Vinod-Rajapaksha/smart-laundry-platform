@@ -1,7 +1,5 @@
+import LaundryHomepage from "../features/homepage/pages/LaundryHomepage";
+
 export default function HomePage() {
-  return (
-    <div style={{ padding: 24 }}>
-      <h1>B & W Laundry</h1>
-    </div>
-  );
+  return <LaundryHomepage />;
 }

@@ -16,6 +16,7 @@ import BankVerificationPage from "../../features/bank-verification/pages/BankVer
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
+  { path: "/homepage", element: <HomePage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/unauthorized", element: <UnauthorizedPage /> },
 
