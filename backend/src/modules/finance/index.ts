@@ -1,2 +1,2 @@
-import financeRoutes from './financeRoutes';
+import financeRoutes from './financeRoutes.js';
 export default financeRoutes;

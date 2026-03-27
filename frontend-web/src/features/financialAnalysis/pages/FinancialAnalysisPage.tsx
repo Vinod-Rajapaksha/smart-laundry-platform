@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, Banknote, Wallet, TrendingUp, MoveUpRight, ArrowUp, Plus, Minus } from 'lucide-react';
+import { env } from '../../../app/config/env';
 
 const FinancialAnalysisPage: React.FC = () => {
 
@@ -23,7 +24,7 @@ const FinancialAnalysisPage: React.FC = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch('/api/finance/summary');
+        const res = await fetch(`${env.API_URL}/finance/summary`);
         const data = await res.json();
         if (data.success) setSummary(data.data);
       } catch (err) {
@@ -44,7 +45,7 @@ const FinancialAnalysisPage: React.FC = () => {
     e.preventDefault();
     setLoading(true); setError(null); setMessage(null);
     try {
-      const res = await fetch('/api/finance/revenue', {
+      const res = await fetch(`${env.API_URL}/finance/revenue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...revenueForm, amount: Number(revenueForm.amount) })
@@ -67,7 +68,7 @@ const FinancialAnalysisPage: React.FC = () => {
     e.preventDefault();
     setLoading(true); setError(null); setMessage(null);
     try {
-      const res = await fetch('/api/finance/expense', {
+      const res = await fetch(`${env.API_URL}/finance/expense`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...expenseForm, amount: Number(expenseForm.amount) })
@@ -93,7 +94,7 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="flex items-start gap-6">
           <button 
             className="w-[60px] h-[60px] rounded-full border-[2px] border-black flex items-center justify-center bg-transparent shrink-0 hover:bg-gray-100 transition-colors"
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/admin-dashboard')}
           >
             <ArrowLeft className="w-10 h-10 text-black" strokeWidth={2.5} />
           </button>

@@ -8,6 +8,7 @@ import FinancialAnalysisPage from './features/financialAnalysis/pages/FinancialA
 import AdminProfilePage from './pages/AdminProfilePage';
 
 import ReportPage from './features/report/pages/ReportPage';
+import GeneratedReportsPage from './features/report/pages/GeneratedReportsPage';
 
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/staff" element={<AdminLayout><AddStaff /></AdminLayout>} />
         <Route path="/financial-analysis" element={<AdminLayout><FinancialAnalysisPage /></AdminLayout>} />
         <Route path="/report" element={<AdminLayout><ReportPage /></AdminLayout>} />
+        <Route path="/generated-reports" element={<AdminLayout><GeneratedReportsPage /></AdminLayout>} />
       </Routes>
     </Router>
   );
