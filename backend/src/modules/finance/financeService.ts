@@ -1,39 +1,66 @@
+import RevenueModel, { IRevenue } from '../../database/models/Revenue.js';
+import ExpenseModel, { IExpense } from '../../database/models/Expense.js';
+
+const revenueFilter = {
+  $or: [{ type: 'revenue' }, { sourceType: 'revenue' }],
+};
+
+const normalizeFinanceEntry = (entry: FinanceEntry) => {
+  const date = new Date(entry.date);
+  const name = entry.name?.trim();
+  const amount = Number(entry.amount);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error('Invalid date');
+  }
+
+  if (!name) {
+    throw new Error('Name is required');
+  }
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error('Amount must be a valid non-negative number');
+  }
+
+  return { date, name, amount };
+};
+
+
 export const getAllRevenues = async (): Promise<IRevenue[]> => {
-  // Find all documents in the 'finance' collection with type 'revenue'
-  return RevenueModel.find({ type: 'revenue' }).sort({ date: -1 });
+  return RevenueModel.find(revenueFilter).sort({ date: -1 });
 };
 
 export const getAllExpenses = async (): Promise<IExpense[]> => {
   // Find all documents in the 'finance' collection with type 'expense'
   return ExpenseModel.find({ type: 'expense' }).sort({ date: -1 });
 };
-import RevenueModel, { IRevenue } from '../../database/models/Revenue.js';
-import ExpenseModel, { IExpense } from '../../database/models/Expense.js';
+
 
 interface FinanceEntry {
-  date: string;
+  date: string | Date;
   name: string;
-  amount: number;
+  amount: number | string;
 }
 
 export const addRevenue = async (entry: FinanceEntry): Promise<IRevenue> => {
-  console.log('addRevenue payload:', entry);
+  const normalized = normalizeFinanceEntry(entry);
   const revenue = new RevenueModel({
-    date: new Date(entry.date),
-    name: entry.name,
-    amount: entry.amount,
+    date: normalized.date,
+    name: normalized.name,
+    amount: normalized.amount,
     type: 'revenue',
+    sourceType: 'revenue',
   });
   await revenue.save();
   return revenue;
 };
 
 export const addExpense = async (entry: FinanceEntry): Promise<IExpense> => {
-  console.log('addExpense payload:', entry);
+  const normalized = normalizeFinanceEntry(entry);
   const expense = new ExpenseModel({
-    date: new Date(entry.date),
-    name: entry.name,
-    amount: entry.amount,
+    date: normalized.date,
+    name: normalized.name,
+    amount: normalized.amount,
     type: 'expense',
   });
   await expense.save();
@@ -41,7 +68,7 @@ export const addExpense = async (entry: FinanceEntry): Promise<IExpense> => {
 };
 export const getFinanceSummary = async () => {
   // Get all revenues and expenses
-  const revenues = await RevenueModel.find({ type: 'revenue' }).sort({ date: -1 });
+  const revenues = await RevenueModel.find(revenueFilter).sort({ date: -1 });
   const expenses = await ExpenseModel.find({ type: 'expense' }).sort({ date: -1 });
 
   const totalRevenue = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);

@@ -1,3 +1,7 @@
+import { Request, Response } from 'express';
+import * as financeService from './financeService.js';
+import { validateFinanceEntryPayload } from './financeValidation.js';
+
 export const getFinanceSummary = async (req: Request, res: Response) => {
   try {
     const summary = await financeService.getFinanceSummary();
@@ -23,11 +27,14 @@ export const getAllExpenses = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-import { Request, Response } from 'express';
-import * as financeService from './financeService.js';
 
 export const addRevenue = async (req: Request, res: Response) => {
   try {
+    const validationError = validateFinanceEntryPayload(req.body);
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
+    }
+
     const { date, name, amount } = req.body;
     const revenue = await financeService.addRevenue({ date, name, amount });
     res.status(201).json({ success: true, data: revenue });
@@ -38,6 +45,11 @@ export const addRevenue = async (req: Request, res: Response) => {
 
 export const addExpense = async (req: Request, res: Response) => {
   try {
+    const validationError = validateFinanceEntryPayload(req.body);
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
+    }
+
     const { date, name, amount } = req.body;
     const expense = await financeService.addExpense({ date, name, amount });
     res.status(201).json({ success: true, data: expense });
