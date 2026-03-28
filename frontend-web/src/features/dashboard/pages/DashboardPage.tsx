@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     BarChart,
@@ -10,6 +10,8 @@ import {
     LabelList,
     Cell
 } from 'recharts';
+
+import { dashboardApi } from '../api/dashboard.api';
 
 const revenueData = [
     { month: 'JAN', revenue: 45 },
@@ -35,6 +37,42 @@ const serviceUsageData = [
 
 const DashboardPage: React.FC = () => {
     const navigate = useNavigate();
+    const [totalOrders, setTotalOrders] = useState<number | null>(null);
+    const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+    const [ordersError, setOrdersError] = useState<string | null>(null);
+    const [totalCustomers, setTotalCustomers] = useState<number | null>(null);
+    const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+    const [customersError, setCustomersError] = useState<string | null>(null);
+    const [pendingOrders, setPendingOrders] = useState<number | null>(null);
+    const [isLoadingPending, setIsLoadingPending] = useState(false);
+    const [pendingError, setPendingError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadDashboardStats = async () => {
+            setIsLoadingOrders(true);
+            setIsLoadingCustomers(true);
+            setIsLoadingPending(true);
+            setOrdersError(null);
+            setCustomersError(null);
+            setPendingError(null);
+            try {
+                const stats = await dashboardApi.getDashboardStats();
+                setTotalOrders(stats.totalOrders);
+                setTotalCustomers(stats.totalCustomers);
+                setPendingOrders(stats.pendingOrders);
+            } catch (error) {
+                setOrdersError('Failed to load total orders');
+                setCustomersError('Failed to load total customers');
+                setPendingError('Failed to load pending orders');
+            } finally {
+                setIsLoadingOrders(false);
+                setIsLoadingCustomers(false);
+                setIsLoadingPending(false);
+            }
+        };
+
+        loadDashboardStats();
+    }, []);
     
     return (
         <div className="flex-1 bg-[#f8f9fc] min-h-screen p-8 flex flex-col items-center justify-center">
@@ -44,17 +82,23 @@ const DashboardPage: React.FC = () => {
                 {/* Total Orders */}
                 <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Total Orders</h3>
-                    <p className="text-6xl font-extrabold">48</p>
+                    <p className="text-6xl font-extrabold">
+                        {isLoadingOrders ? '...' : (ordersError ? '-' : (totalOrders ?? 0))}
+                    </p>
                 </div>
                 {/* Total Customers */}
                 <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Total Customers</h3>
-                    <p className="text-6xl font-extrabold">73</p>
+                    <p className="text-6xl font-extrabold">
+                        {isLoadingCustomers ? '...' : (customersError ? '-' : (totalCustomers ?? 0))}
+                    </p>
                 </div>
                 {/* Pending Orders */}
                 <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
                     <h3 className="text-xl font-bold mb-2">Pending Orders</h3>
-                    <p className="text-6xl font-extrabold">35</p>
+                    <p className="text-6xl font-extrabold">
+                        {isLoadingPending ? '...' : (pendingError ? '-' : (pendingOrders ?? 0))}
+                    </p>
                 </div>
                 {/* Completed Orders */}
                 <div className="w-full max-w-[400px] h-[220px] bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-[24px] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">

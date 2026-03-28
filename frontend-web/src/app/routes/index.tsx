@@ -11,8 +11,9 @@ import RoleRoute from "./RoleRoute";
 import { ADMIN_PORTAL_ROLES } from "../../types/enums";
 
 import AdminLayout from "../../layouts/AdminLayout";
+import CustomersPage from "../../features/dashboard/pages/CustomersPage";
 
-import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
+// import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -30,8 +31,9 @@ export const router = createBrowserRouter([
             element: <RoleRoute allowed={ADMIN_PORTAL_ROLES} />,
             children: [
               { index: true, element: <HomePage /> },
+		      { path: "customers", element: <CustomersPage /> },
 
-              { path: "bank-verification", element: <BankVerificationPage /> },
+              // { path: "bank-verification", element: <BankVerificationPage /> },
             ],
           },
         ],
