@@ -4,7 +4,9 @@ import { validateFinanceEntryPayload } from './financeValidation.js';
 
 export const getFinanceSummary = async (req: Request, res: Response) => {
   try {
-    const summary = await financeService.getFinanceSummary();
+    const { month } = req.query;
+    // month is expected as 'YYYY-MM' string
+    const summary = await financeService.getFinanceSummary(typeof month === 'string' ? month : undefined);
     res.status(200).json({ success: true, data: summary });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
