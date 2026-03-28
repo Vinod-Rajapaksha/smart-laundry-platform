@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, Banknote, Wallet, TrendingUp, MoveUpRight, ArrowUp, Plus, Minus } from 'lucide-react';
 import { env } from '../../../app/config/env';
@@ -13,6 +14,9 @@ const FinancialAnalysisPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string|null>(null);
   const [error, setError] = useState<string|null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogMsg, setErrorDialogMsg] = useState('');
+
   const [summary, setSummary] = useState<{
     totalRevenue: number;
     totalExpense: number;
@@ -20,11 +24,38 @@ const FinancialAnalysisPage: React.FC = () => {
     growthPercent: number;
     insights: string[];
   } | null>(null);
+  // For manual refresh
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  // Month selection state
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<{ label: string; value: string }>(() => {
+    const now = new Date();
+    const value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const label = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    return { label, value };
+  });
+  const monthDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Generate last 12 months
+  const getLast12Months = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      months.push({ label, value });
+    }
+    return months;
+  };
+
+
+  // Fetch summary, refresh on refreshKey or selectedMonth
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch(`${env.API_URL}/finance/summary`);
+        const res = await fetch(`${env.API_URL}/finance/summary?month=${selectedMonth.value}`);
         const data = await res.json();
         if (data.success) setSummary(data.data);
       } catch (err) {
@@ -32,7 +63,19 @@ const FinancialAnalysisPage: React.FC = () => {
       }
     };
     fetchSummary();
-  }, []);
+  }, [selectedMonth, refreshKey]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showMonthDropdown) return;
+    const handleClick = (e: MouseEvent) => {
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(e.target as Node)) {
+        setShowMonthDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMonthDropdown]);
 
   const handleRevenueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRevenueForm({ ...revenueForm, [e.target.name]: e.target.value });
@@ -41,9 +84,27 @@ const FinancialAnalysisPage: React.FC = () => {
     setExpenseForm({ ...expenseForm, [e.target.name]: e.target.value });
   };
 
+  const validateRevenue = () => {
+    if (!revenueForm.date) return 'Date is required.';
+    if (!revenueForm.name.trim()) return 'Revenue name is required.';
+    if (revenueForm.amount === '' || isNaN(Number(revenueForm.amount))) return 'Amount is required and must be a number.';
+    const amount = Number(revenueForm.amount);
+    if (!Number.isFinite(amount)) return 'Amount must be a valid number.';
+    if (amount <= 0) return 'Amount must be greater than zero.';
+    if (!/^\d+(\.\d{1,2})?$/.test(revenueForm.amount)) return 'Amount must be a positive number with up to 2 decimal places.';
+    return null;
+  };
+
   const submitRevenue = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError(null); setMessage(null);
+    setError(null); setMessage(null);
+    const validationError = validateRevenue();
+    if (validationError) {
+      setErrorDialogMsg(validationError);
+      setShowErrorDialog(true);
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch(`${env.API_URL}/finance/revenue`, {
         method: 'POST',
@@ -55,6 +116,10 @@ const FinancialAnalysisPage: React.FC = () => {
         setMessage('Revenue added successfully!');
         setShowRevenueModal(false);
         setRevenueForm({ date: '', name: '', amount: '' });
+        setRefreshKey((k) => k + 1); // trigger refresh
+        setTimeout(() => {
+          setMessage(null);
+        }, 2000);
       } else {
         setError(data.message || 'Failed to add revenue');
       }
@@ -64,9 +129,27 @@ const FinancialAnalysisPage: React.FC = () => {
     setLoading(false);
   };
 
+  const validateExpense = () => {
+    if (!expenseForm.date) return 'Date is required.';
+    if (!expenseForm.name.trim()) return 'Expense name is required.';
+    if (expenseForm.amount === '' || isNaN(Number(expenseForm.amount))) return 'Amount is required and must be a number.';
+    const amount = Number(expenseForm.amount);
+    if (!Number.isFinite(amount)) return 'Amount must be a valid number.';
+    if (amount <= 0) return 'Amount must be greater than zero.';
+    if (!/^\d+(\.\d{1,2})?$/.test(expenseForm.amount)) return 'Amount must be a positive number with up to 2 decimal places.';
+    return null;
+  };
+
   const submitExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError(null); setMessage(null);
+    setError(null); setMessage(null);
+    const validationError = validateExpense();
+    if (validationError) {
+      setErrorDialogMsg(validationError);
+      setShowErrorDialog(true);
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch(`${env.API_URL}/finance/expense`, {
         method: 'POST',
@@ -78,6 +161,10 @@ const FinancialAnalysisPage: React.FC = () => {
         setMessage('Expense added successfully!');
         setShowExpenseModal(false);
         setExpenseForm({ date: '', name: '', amount: '' });
+        setRefreshKey((k) => k + 1); // trigger refresh
+        setTimeout(() => {
+          setMessage(null);
+        }, 2000);
       } else {
         setError(data.message || 'Failed to add expense');
       }
@@ -86,6 +173,16 @@ const FinancialAnalysisPage: React.FC = () => {
     }
     setLoading(false);
   };
+  {/* Error Dialog for Validation */}
+  <ConfirmDialog
+    open={showErrorDialog}
+    title="Invalid Input"
+    description={errorDialogMsg}
+    confirmText="OK"
+    cancelText=""
+    onConfirm={() => setShowErrorDialog(false)}
+    onCancel={() => setShowErrorDialog(false)}
+  />
 
   return (
     <div className="flex-1 bg-[#f8f9fc] min-h-screen p-8 md:p-12 flex flex-col font-sans">
@@ -107,11 +204,31 @@ const FinancialAnalysisPage: React.FC = () => {
             </h2>
           </div>
         </div>
-        <div>
-          <button className="flex items-center gap-6 bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-xl px-8 py-4 text-black font-bold text-[18px] hover:bg-[#b5cced] transition-colors shadow-sm">
-            This Month
+        <div className="relative" ref={monthDropdownRef}>
+          <button
+            type="button"
+            className="flex items-center gap-6 bg-[#eef7fd] border-[1px] border-[#bed7ed] rounded-xl px-8 py-4 text-black font-bold text-[18px] hover:bg-[#b5cced] transition-colors shadow-sm"
+            onClick={() => setShowMonthDropdown((v) => !v)}
+          >
+            {selectedMonth.label}
             <ChevronDown className="w-6 h-6" strokeWidth={3} />
           </button>
+          {showMonthDropdown && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#bed7ed] rounded-xl shadow-lg z-50">
+              {getLast12Months().map((month) => (
+                <button
+                  key={month.value}
+                  className={`w-full text-left px-6 py-3 hover:bg-[#eef7fd] text-[16px] font-semibold ${selectedMonth.value === month.value ? 'bg-[#e0eaff]' : ''}`}
+                  onClick={() => {
+                    setSelectedMonth(month);
+                    setShowMonthDropdown(false);
+                  }}
+                >
+                  {month.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

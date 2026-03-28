@@ -66,34 +66,48 @@ export const addExpense = async (entry: FinanceEntry): Promise<IExpense> => {
   await expense.save();
   return expense;
 };
-export const getFinanceSummary = async () => {
-  // Get all revenues and expenses
-  const revenues = await RevenueModel.find(revenueFilter).sort({ date: -1 });
-  const expenses = await ExpenseModel.find({ type: 'expense' }).sort({ date: -1 });
+export const getFinanceSummary = async (month?: string) => {
+  let revenueQuery: any = { ...revenueFilter };
+  let expenseQuery: any = { type: 'expense' };
+
+  let filterMonth: number | null = null;
+  let filterYear: number | null = null;
+  if (month) {
+    // month format: YYYY-MM
+    const [yearStr, monthStr] = month.split('-');
+    filterYear = parseInt(yearStr, 10);
+    filterMonth = parseInt(monthStr, 10) - 1; // JS months are 0-based
+    if (!isNaN(filterYear) && !isNaN(filterMonth)) {
+      // Set date range for the month
+      const start = new Date(filterYear, filterMonth, 1);
+      const end = new Date(filterYear, filterMonth + 1, 1);
+      revenueQuery.date = { $gte: start, $lt: end };
+      expenseQuery.date = { $gte: start, $lt: end };
+    }
+  }
+
+  const revenues = await RevenueModel.find(revenueQuery).sort({ date: -1 });
+  const expenses = await ExpenseModel.find(expenseQuery).sort({ date: -1 });
 
   const totalRevenue = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
   const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const netProfit = totalRevenue - totalExpense;
 
-  // Calculate growth percent (last month vs previous month)
+  // Calculate growth percent (previous month vs month before that)
   let growthPercent = 0;
-  if (revenues.length > 0) {
-    const now = new Date();
-    const lastMonth = now.getMonth();
-    const lastMonthYear = now.getFullYear();
-    const prevMonth = lastMonth === 0 ? 11 : lastMonth - 1;
-    const prevMonthYear = lastMonth === 0 ? lastMonthYear - 1 : lastMonthYear;
-
-    const lastMonthRevenue = revenues.filter(r => {
-      const d = new Date(r.date);
-      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-    }).reduce((sum, r) => sum + (r.amount || 0), 0);
-    const prevMonthRevenue = revenues.filter(r => {
-      const d = new Date(r.date);
-      return d.getMonth() === prevMonth && d.getFullYear() === prevMonthYear;
-    }).reduce((sum, r) => sum + (r.amount || 0), 0);
+  if (filterMonth !== null && filterYear !== null) {
+    // Calculate for selected month and previous month
+    const prevMonth = filterMonth === 0 ? 11 : filterMonth - 1;
+    const prevMonthYear = filterMonth === 0 ? filterYear - 1 : filterYear;
+    const prevStart = new Date(prevMonthYear, prevMonth, 1);
+    const prevEnd = new Date(prevMonthYear, prevMonth + 1, 1);
+    const prevMonthRevenues = await RevenueModel.find({
+      ...revenueFilter,
+      date: { $gte: prevStart, $lt: prevEnd },
+    });
+    const prevMonthRevenue = prevMonthRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
     if (prevMonthRevenue > 0) {
-      growthPercent = Math.round(((lastMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100);
+      growthPercent = Math.round(((totalRevenue - prevMonthRevenue) / prevMonthRevenue) * 100);
     }
   }
 
