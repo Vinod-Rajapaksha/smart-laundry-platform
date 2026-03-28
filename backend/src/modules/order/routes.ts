@@ -12,6 +12,7 @@ import {
   getMyJobs,
   updateJobStatus,
   updateLocation,
+  getDeliveryDashboard
 } from './controller.js';
 
 const router = Router();
@@ -61,6 +62,14 @@ router.patch(
   allowRoles('STAFF'),
   validateUpdateLocation,
   updateLocation
+);
+
+
+router.get(
+  '/admin/delivery-dashboard',
+  auth,
+  allowRoles('ADMIN', 'STAFF'),
+  getDeliveryDashboard
 );
 
 export default router;

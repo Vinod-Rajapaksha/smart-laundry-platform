@@ -171,3 +171,45 @@ export const updateLocation = async (
 
   return updatedOrder;
 };
+
+
+
+
+// ─────────────────────────────────────────
+// 7. Get all delivery orders for admin
+//    Returns orders grouped by status
+// ─────────────────────────────────────────
+export const getDeliveryDashboard = async () => {
+  const deliveryStatuses = [
+    'PENDING',
+    'PICKUP_ASSIGNED',
+    'PICKUP_ENROUTE',
+    'PICKED_UP',
+    'PROCESSING',
+    'READY',
+    'DELIVERY_ASSIGNED',
+    'DELIVERY_ENROUTE',
+    'DELIVERED',
+  ];
+
+  const orders = await Order.find({
+    status: { $in: deliveryStatuses },
+  })
+    .populate('userId', 'name email telephone')
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  // Group orders by status
+  const grouped = deliveryStatuses.reduce((acc, status) => {
+    acc[status] = orders.filter((o) => o.status === status);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  return {
+    orders,
+    grouped,
+    counts: Object.fromEntries(
+      deliveryStatuses.map((s) => [s, grouped[s].length])
+    ),
+  };
+};

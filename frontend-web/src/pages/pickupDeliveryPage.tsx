@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { pickupDeliveryApi } from '../api/pickupDelivery.api';
-import type { DeliveryDashboardData, DeliveryOrder, OrderStatus } from '../types';
+import { useCallback, useEffect, useState } from 'react';
+import { pickupDeliveryApi } from '../features/pickupDelivery/api/pickupDelivery.api';
+import type { DeliveryDashboardData, DeliveryOrder, OrderStatus } from '../features/pickupDelivery/types';
 import {
   Truck,
   ArrowUpCircle,
@@ -217,23 +217,27 @@ export default function PickupDeliveryPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setError(null);
       const result = await pickupDeliveryApi.getDeliveryDashboard();
       setData(result);
       setLastUpdated(new Date());
     } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch delivery data');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err ?? 'Failed to fetch delivery data'));
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch on mount
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Auto refresh every 30 seconds
   useEffect(() => {

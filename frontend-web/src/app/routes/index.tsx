@@ -12,7 +12,8 @@ import { ADMIN_PORTAL_ROLES } from "../../types/enums";
 
 import AdminLayout from "../../layouts/AdminLayout";
 
-import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
+// import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
+import PickupDeliveryPage from "../../features/pickupDelivery/pages/PickupDeliveryPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -31,7 +32,9 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomePage /> },
 
-              { path: "bank-verification", element: <BankVerificationPage /> },
+              // { path: "bank-verification", element: <BankVerificationPage /> },
+
+              { path: "deliveries", element: <PickupDeliveryPage /> },
             ],
           },
         ],

@@ -88,3 +88,16 @@ export const updateLocation = asyncHandler(
     return ApiResponse(res, 200, 'Location updated successfully', updatedOrder);
   }
 );
+
+
+
+// ─────────────────────────────────────────
+// 7. GET /orders/admin/delivery-dashboard
+//    Admin sees all delivery orders
+// ─────────────────────────────────────────
+export const getDeliveryDashboard = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const data = await orderService.getDeliveryDashboard();
+    return ApiResponse(res, 200, 'Delivery dashboard fetched', data);
+  }
+);
