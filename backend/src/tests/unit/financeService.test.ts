@@ -5,13 +5,13 @@ import { jest } from "@jest/globals";
 const mockRevenueFind = jest.fn();
 const mockExpenseFind = jest.fn();
 
-jest.unstable_mockModule("../../database/models/Revenue.js", () => ({
+jest.unstable_mockModule("../../database/models/Revenue.ts", () => ({
 	default: {
 		find: mockRevenueFind,
 	},
 }));
 
-jest.unstable_mockModule("../../database/models/Expense.js", () => ({
+jest.unstable_mockModule("../../database/models/Expense.ts", () => ({
 	default: {
 		find: mockExpenseFind,
 	},
