@@ -62,8 +62,8 @@ const AdminSidebar: React.FC = () => {
     
     const menuItems = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin-dashboard' },
-        { name: 'Users', icon: <Users size={20} />, path: '/users' },
-        { name: 'Customers', icon: <Users size={20} />, path: '/customers' },
+        { name: 'Users', icon: <Users size={20} />, path: '/admin/users' },
+        // { name: 'Customers', icon: <Users size={20} />, path: '/customers' },
         { name: 'Orders', icon: <ShoppingBag size={20} />, path: '/orders' },
         { name: 'Bank Verification', icon: <Landmark size={20} />, path: '/bank-verification' },
         { name: 'Inventory', icon: <PackageSearch size={20} />, path: '/inventory' },

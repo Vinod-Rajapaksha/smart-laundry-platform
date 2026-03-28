@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import AdminDashboardPage from './features/dashboard/AdminDashboardPage';
+import CustomersPage from './features/dashboard/pages/CustomersPage';
 import SystemAnalysis from './features/systemAnalysis/SystemAnalysis';
 import AddStaff from './features/staff/AddStaff';
 import AdminSidebar from './features/dashboard/AdminSidebar';
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/admin-dashboard" replace />} />
         <Route path="/admin-dashboard" element={<AdminLayout><AdminDashboardPage /></AdminLayout>} />
+        <Route path="/admin/users" element={<AdminLayout><CustomersPage /></AdminLayout>} />
         <Route path="/admin-profile" element={<AdminLayout><AdminProfilePage /></AdminLayout>} />
         <Route path="/system-analysis" element={<AdminLayout><SystemAnalysis /></AdminLayout>} />
         <Route path="/staff" element={<AdminLayout><AddStaff /></AdminLayout>} />

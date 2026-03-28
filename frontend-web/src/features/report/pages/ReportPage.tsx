@@ -1,11 +1,12 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, Download, MoreHorizontal } from 'lucide-react';
+import { AlertCircle, Calendar, Download, MoreHorizontal } from 'lucide-react';
 import FinancialReport from '../components/FinancialReport';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { type ReportRequestPayload } from '../types';
 import { env } from '../../../app/config/env';
 import { apiFetch } from '../../../services/http/interceptors';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 
 const checkboxOptions = [
@@ -128,6 +129,7 @@ const ReportPage: React.FC = () => {
   const [fromError, setFromError] = useState<string | null>(null);
   const [toError, setToError] = useState<string | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [showNoSectionDialog, setShowNoSectionDialog] = useState(false);
   const fromInputRef = useRef<HTMLInputElement>(null);
   const toInputRef = useRef<HTMLInputElement>(null);
 
@@ -175,11 +177,17 @@ const ReportPage: React.FC = () => {
       return;
     }
 
+    const selectedSections = checkboxOptions.filter((_, i) => checkedOptions[i]);
+    if (selectedSections.length === 0) {
+      setShowNoSectionDialog(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setReportData(null);
     setGeneratedReportMeta(null);
-    const filters = { sections: checkboxOptions.filter((_, i) => checkedOptions[i]) };
+    const filters = { sections: selectedSections };
     const payload: ReportRequestPayload = { dateRange: { from, to }, filters };
 
     try {
@@ -302,13 +310,24 @@ const ReportPage: React.FC = () => {
             ))}
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={!isDateRangeValid || loading}
-          className={`bg-[#2196f3] text-white font-bold text-[18px] py-3 px-16 rounded-2xl border-[1px] border-[#1e3b8a] shadow-sm transform transition-all active:scale-95 ${(!isDateRangeValid || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1976d2]'}`}
-        >
-          {loading ? 'Generating...' : 'Generate'}
-        </button>
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <button
+            type="submit"
+            disabled={!isDateRangeValid || loading}
+            className={`bg-[#2196f3] text-white font-bold text-[18px] py-3 px-16 rounded-2xl border-[1px] border-[#1e3b8a] shadow-sm transform transition-all active:scale-95 ${(!isDateRangeValid || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1976d2]'}`}
+          >
+            {loading ? 'Generating...' : 'Generate'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenMoreReports}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#1e3b8a] bg-white px-6 py-3 font-semibold text-[#1e3b8a] hover:bg-[#e0ebff] transition-colors text-[16px]"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+            View Generated Reports
+          </button>
+        </div>
       </form>
       {loading && <LoadingSpinner />}
       {error && <div className="text-red-500 my-4">{error}</div>}
@@ -336,6 +355,17 @@ const ReportPage: React.FC = () => {
           <FinancialReport data={reportData} periodLabel={from + ' to ' + to} />
         </div>
       )}
+
+      <ConfirmDialog
+        open={showNoSectionDialog}
+        title="Select at least one report section"
+        description="Please choose at least one option from the list before generating a report."
+        confirmText="Got it"
+        cancelText="Cancel"
+        onConfirm={() => setShowNoSectionDialog(false)}
+        onCancel={() => setShowNoSectionDialog(false)}
+        icon={<AlertCircle className="w-10 h-10" />}
+      />
     </div>
   );
 };

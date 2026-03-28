@@ -4,6 +4,8 @@ import authRoutes from '../modules/auth/routes.js';
 import financeRoutes from '../modules/finance/index.js';
 import reportGenRoutes from '../modules/reportGen/index.js';
 import userRoutes from '../modules/user/routes.js';
+import feedbackRoutes from '../modules/feedback/routes.js';
+import dataRoutes from "../modules/data/routes.js";
 
 const router = Router();
 
@@ -12,5 +14,7 @@ router.use('/auth', authRoutes);
 router.use('/finance', financeRoutes);
 router.use('/reportGen', reportGenRoutes);
 router.use('/users', userRoutes);
+router.use('/feedback', feedbackRoutes);
+router.use('/data', dataRoutes);
 
 export default router;
