@@ -54,11 +54,12 @@ export function ItemTable({
 
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
                 <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between bg-white border-b border-gray-100 rounded-t-xl gap-4">
-                    <div className="relative w-full sm:w-72 border border-gray-200 rounded-lg shadow-sm">
+                    <h2 className="text-xl font-extrabold text-[#111827] hidden sm:block">Current Inventory</h2>
+                    <div className="relative w-full sm:w-72 border border-gray-200 rounded-lg shadow-sm sm:ml-auto">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <input
                             type="text"
-                            placeholder="Search by ID or Name..."
+                            placeholder="Search items..."
                             className="pl-10 pr-4 py-2 bg-transparent text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full font-medium transition-all"
                             value={searchQuery}
                             onChange={(e) => onSearchChange(e.target.value)}
@@ -66,7 +67,7 @@ export function ItemTable({
                     </div>
                     <button
                         onClick={onRegisterClick}
-                        className="group relative flex items-center justify-center space-x-2 bg-gradient-to-tr from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto"
+                        className="group relative flex items-center justify-center space-x-2 bg-[#2563EB] hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-[13px] font-bold transition-all duration-300 w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 transition-transform group-hover:rotate-90 duration-300" />
                         <span>Register New Item</span>
@@ -77,54 +78,58 @@ export function ItemTable({
                     <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr className="bg-white">
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Item ID</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Item Name</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Category</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Price (Rs.)</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Current Stock</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap">Threshold</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-r border-gray-200 whitespace-nowrap text-center">Status</th>
-                                <th className="px-5 py-4 font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap text-center">Actions</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">ITEM ID</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">NAME</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">CATEGORY</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">PRICE</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">STOCK</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">THRESHOLD</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap text-center">STATUS</th>
+                                <th className="px-5 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap text-center">ACTIONS</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm bg-white">
+                        <tbody className="text-[13px] bg-white">
                             {filteredItems.length > 0 ? (
                                 filteredItems.map((item) => {
                                     const isLowStock = parseNum(item.stock) <= parseNum(item.threshold);
 
                                     return (
-                                        <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-5 py-4 font-medium text-gray-900 border-r border-gray-200">{item.id}</td>
-                                            <td className="px-5 py-4 text-gray-700 border-r border-gray-200">{item.name}</td>
-                                            <td className="px-5 py-4 text-gray-700 border-r border-gray-200">{item.category}</td>
-                                            <td className="px-5 py-4 text-gray-700 border-r border-gray-200">{item.price}</td>
-                                            <td className="px-5 py-4 border-r border-gray-200">
-                                                <span className="font-semibold text-gray-800">{item.stock}</span>
+                                        <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-5 py-5 font-bold text-[#111827]">{item.id}</td>
+                                            <td className="px-5 py-5 font-medium text-gray-500">{item.name}</td>
+                                            <td className="px-5 py-5">
+                                                <span className="inline-flex items-center px-3 py-1 bg-gray-100/80 text-gray-600 rounded-full text-[11px] font-bold">
+                                                    {item.category}
+                                                </span>
                                             </td>
-                                            <td className="px-5 py-4 border-r border-gray-200">
-                                                <span className="font-semibold text-gray-500">{item.threshold}</span>
+                                            <td className="px-5 py-5 font-medium text-gray-500">${item.price}</td>
+                                            <td className="px-5 py-5">
+                                                <span className="font-bold text-gray-900">{item.stock}</span>
                                             </td>
-                                            <td className="px-5 py-4 border-r border-gray-200 text-center">
+                                            <td className="px-5 py-5">
+                                                <span className="font-medium text-gray-500">{item.threshold}</span>
+                                            </td>
+                                            <td className="px-5 py-5 text-center">
                                                 {isLowStock ? (
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-600">
                                                         Low Stock
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600 border border-green-100">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600">
                                                         In Stock
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-5 py-4 space-x-3 text-center">
-                                                <button onClick={() => onEditClick(item)} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Edit</button>
-                                                <button onClick={() => onDeleteClick(item.id)} className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">Delete</button>
+                                            <td className="px-5 py-5 space-x-4 text-center">
+                                                <button onClick={() => onEditClick(item)} className="text-[12px] font-bold text-[#2563EB] hover:text-blue-800 transition-colors">Edit</button>
+                                                <button onClick={() => onDeleteClick(item.id)} className="text-[12px] font-bold text-[#EF4444] hover:text-red-800 transition-colors">Delete</button>
                                             </td>
                                         </tr>
                                     )
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 border-b border-gray-200">
+                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 border-b border-gray-100">
                                         <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
                                         <p>No inventory items found.</p>
                                     </td>

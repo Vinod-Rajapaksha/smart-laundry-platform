@@ -88,4 +88,57 @@ export class InventoryController {
             next(error);
         }
     }
+
+    static async deductStock(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = req.params.id as string;
+            const { amount, unit } = req.body;
+
+            if (amount === undefined || !unit) {
+                throw new ApiError(400, "amount and unit are required");
+            }
+
+            const item = await InventoryService.deductStock(id, Number(amount), String(unit));
+            return ApiResponse(res, 200, "Stock deducted successfully", { ...item.toObject(), id: item.itemId });
+        } catch (error: any) {
+            if (error.message.includes("Insufficient stock") || error.message.includes("Unit mismatch") || error.message.includes("Unknown unit")) {
+                next(new ApiError(400, error.message));
+            } else if (error.message.includes("Item not found")) {
+                next(new ApiError(404, error.message));
+            } else {
+                next(error);
+            }
+        }
+    }
+
+    static async restockItem(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = req.params.id as string;
+            const { amount, unit } = req.body;
+
+            if (amount === undefined || !unit) {
+                throw new ApiError(400, "amount and unit are required");
+            }
+
+            const item = await InventoryService.restockItem(id, Number(amount), String(unit));
+            return ApiResponse(res, 200, "Item restocked successfully", { ...item.toObject(), id: item.itemId });
+        } catch (error: any) {
+            if (error.message.includes("Unit mismatch") || error.message.includes("Unknown unit")) {
+                next(new ApiError(400, error.message));
+            } else if (error.message.includes("Item not found")) {
+                next(new ApiError(404, error.message));
+            } else {
+                next(error);
+            }
+        }
+    }
+
+    static async getRecentDeductionsCount(_req: Request, res: Response, next: NextFunction) {
+        try {
+            const count = await InventoryService.getRecentDeductionsCount();
+            return ApiResponse(res, 200, "Recent deductions count retrieved", { count });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
