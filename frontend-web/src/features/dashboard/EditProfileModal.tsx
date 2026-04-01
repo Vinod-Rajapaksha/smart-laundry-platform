@@ -18,67 +18,60 @@ const EditProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div
-                className="bg-[#242c38] w-full max-w-md rounded-3xl p-8 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+        <div className="flex min-h-screen w-full items-center justify-center bg-[#f8f9fc] px-4 py-10">
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg border border-gray-100 p-10 flex flex-col items-center">
+                <h2 className="text-3xl font-black text-[#1f2937] mb-8 flex items-center gap-3">
                     <span className="text-3xl">📝</span> Edit Profile Details
                 </h2>
-
-                <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+                <form className="w-full space-y-6" onSubmit={e => { e.preventDefault(); onClose(); }}>
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Display Name</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Display Name</label>
                         <input
                             type="text"
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full bg-[#1c222d] border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3FA0F6] focus:border-transparent transition-all text-gray-900 font-medium bg-white"
                         />
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Email Address</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                         <input
                             type="email"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full bg-[#1c222d] border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3FA0F6] focus:border-transparent transition-all text-gray-900 font-medium bg-white"
                         />
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Phone Number</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                         <input
                             type="text"
                             value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full bg-[#1c222d] border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3FA0F6] focus:border-transparent transition-all text-gray-900 font-medium bg-white"
                         />
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Role</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Role</label>
                         <input
                             type="text"
                             value={formData.role}
                             readOnly
-                            className="w-full bg-[#1c222d]/50 border border-white/5 rounded-xl px-4 py-3 text-white/50 cursor-not-allowed font-medium"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed font-medium"
                         />
+                        <p className="text-xs text-gray-500 mt-1">Role cannot be changed</p>
                     </div>
-
-                    <div className="flex gap-4 mt-8">
+                    <div className="flex gap-4 pt-6 border-t border-gray-100">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all active:scale-95"
+                            className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold rounded-lg transition-all active:scale-95"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 py-3 px-4 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                            className="flex-1 px-6 py-3 bg-[#3FA0F6] hover:bg-[#2563eb] text-white font-semibold rounded-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                         >
                             Save Changes
                         </button>

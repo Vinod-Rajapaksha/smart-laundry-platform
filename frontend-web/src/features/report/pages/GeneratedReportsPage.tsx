@@ -63,7 +63,7 @@ const GeneratedReportsPage: React.FC = () => {
         throw new Error('Download failed');
       }
       const blob = await response.blob();
-      downloadBlob(blob, `${reportCode}.json`);
+      downloadBlob(blob, `${reportCode}.pdf`);
     } catch (err) {
       setError('Failed to download report.');
     }
@@ -74,7 +74,7 @@ const GeneratedReportsPage: React.FC = () => {
       <div className="flex items-center gap-4 mb-8">
         <button
           className="w-[46px] h-[46px] rounded-full border-[2px] border-black flex items-center justify-center hover:bg-gray-100 transition-colors"
-          onClick={() => navigate('/report')}
+          onClick={() => navigate('/admin/reports')}
         >
           <ArrowLeft className="w-7 h-7 text-black" strokeWidth={2.5} />
         </button>

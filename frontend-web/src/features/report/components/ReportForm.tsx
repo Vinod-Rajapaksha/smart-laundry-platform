@@ -9,7 +9,7 @@ interface ReportFormProps {
 const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, loading }) => {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters] = useState<Record<string, any>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

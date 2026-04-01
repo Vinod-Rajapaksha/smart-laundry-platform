@@ -191,7 +191,7 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="flex items-start gap-6">
           <button 
             className="w-[60px] h-[60px] rounded-full border-[2px] border-black flex items-center justify-center bg-transparent shrink-0 hover:bg-gray-100 transition-colors"
-            onClick={() => navigate('/admin-dashboard')}
+            onClick={() => navigate('/admin')}
           >
             <ArrowLeft className="w-10 h-10 text-black" strokeWidth={2.5} />
           </button>

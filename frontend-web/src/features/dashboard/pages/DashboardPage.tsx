@@ -248,7 +248,7 @@ const DashboardPage: React.FC = () => {
             <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
                 <button 
                   className="bg-[#3FA0F6] hover:bg-[#2c8ee1] transition-colors text-white font-bold text-lg py-3 px-10 rounded-lg shadow-md w-full max-w-sm mx-auto"
-                  onClick={() => navigate('/financial-analysis')}
+                  onClick={() => navigate('/admin/financial-analysis')}
                 >
                     Financial Analysis
                 </button>
