@@ -8,6 +8,7 @@ import {
   removeSupplier 
 } from './service.js';
 import Inventory from '../../database/models/Inventory.js';
+import { sendLowStockEmail } from '../../utils/email.js';
 
 export const createSupplier = async (req: Request, res: Response) => {
   try {
@@ -72,14 +73,13 @@ export const confirmRestock = async (req: Request, res: Response) => {
       return res.status(400).send('<h1>Invalid Request. Missing Parameters.</h1>');
     }
     
-    const inventoryItem = await Inventory.findById(itemId);
+    const inventoryItem = await Inventory.findByIdAndUpdate(itemId, { 
+      $set: { lowStockEmailSent: false } 
+    }, { new: true });
+    
     if (!inventoryItem) {
       return res.status(404).send('<h1>Item not found.</h1>');
     }
-
-    // Reset low stock email flag since supplier confirmed restock
-    inventoryItem.lowStockEmailSent = false;
-    await inventoryItem.save();
 
     return res.status(200).send(`
       <html>
@@ -102,5 +102,30 @@ export const confirmRestock = async (req: Request, res: Response) => {
     `);
   } catch (err: any) {
     return res.status(500).send('<h1>An error occurred processing your request.</h1>');
+  }
+};
+
+export const notifyLowStock = async (req: Request, res: Response) => {
+  try {
+    const { supplierId, itemId, itemName, currentStock, reorderLevel } = req.body;
+    const supplier = await fetchSupplierById(supplierId);
+    
+    if (!supplier) {
+      return res.status(404).json({ success: false, message: 'Supplier not found' });
+    }
+
+    await sendLowStockEmail(
+      supplier.email,
+      supplier.name,
+      itemName,
+      currentStock,
+      reorderLevel,
+      supplierId,
+      itemId
+    );
+
+    return res.status(200).json({ success: true, message: 'Notification sent' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
