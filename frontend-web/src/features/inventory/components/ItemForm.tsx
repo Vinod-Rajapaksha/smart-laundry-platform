@@ -19,9 +19,25 @@ export function ItemForm({
 }: ItemFormProps) {
     const [newItem, setNewItem] = useState<Partial<InventoryItem>>(initialItem);
     const [errors, setErrors] = useState<InventoryErrors>({});
+    const [suppliers, setSuppliers] = useState<{_id: string, name: string}[]>([]);
 
     const parseAmount = (str = '') => { const m = str.match(/[\d.]+/); return m ? m[0] : ''; };
     const parseUnit = (str = '') => { const m = str.match(/[a-zA-Z]+/); return m ? m[0] : 'units'; };
+
+    useEffect(() => {
+        const fetchSuppliers = async () => {
+            try {
+                const res = await fetch('http://localhost:5001/api/suppliers');
+                if (res.ok) {
+                    const data = await res.json();
+                    setSuppliers(data.data || []);
+                }
+            } catch (err) {
+                console.error('Failed to fetch suppliers', err);
+            }
+        };
+        fetchSuppliers();
+    }, []);
 
     useEffect(() => {
         setNewItem(initialItem);
@@ -30,6 +46,32 @@ export function ItemForm({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        const newErrors: InventoryErrors = {};
+        if (!newItem.id?.trim()) newErrors.id = 'Item ID is required';
+        if (!newItem.name?.trim()) newErrors.name = 'Item Name is required';
+        if (!newItem.category) newErrors.category = 'Category is required';
+        
+        const priceNum = parseFloat(newItem.price || '');
+        if (!newItem.price || isNaN(priceNum) || priceNum < 0) {
+            newErrors.price = 'Valid price is required';
+        }
+        
+        const stockNum = parseFloat(parseAmount(newItem.stock) || '');
+        if (!newItem.stock || isNaN(stockNum) || stockNum < 0) {
+            newErrors.stock = 'Valid stock is required';
+        }
+        
+        const thresholdNum = parseFloat(parseAmount(newItem.threshold) || '');
+        if (!newItem.threshold || isNaN(thresholdNum) || thresholdNum < 0) {
+            newErrors.threshold = 'Valid threshold is required';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
         const saveErrors = await onSave(newItem);
         if (saveErrors) {
             setErrors((prev) => ({ ...prev, ...saveErrors }));
@@ -90,6 +132,21 @@ export function ItemForm({
                             </select>
                             {errors.category && <p className="text-[12px] text-red-500 font-medium mt-1 pl-1 flex items-center"><AlertTriangle className="h-3.5 w-3.5 mr-1" />{errors.category}</p>}
                         </div>
+                        
+                        <div className="col-span-2 space-y-2">
+                            <label className="text-sm font-bold text-gray-700">Supplier (Optional)</label>
+                            <select
+                                className={`w-full px-4 py-3 bg-white border border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl text-sm focus:ring-4 outline-none transition-all font-medium text-gray-900 shadow-sm hover:border-gray-300 appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2em_1.2em] bg-[right_1rem_center] bg-no-repeat`}
+                                value={newItem.supplierId || ''}
+                                onChange={e => setNewItem({ ...newItem, supplierId: e.target.value })}
+                            >
+                                <option value="">No Supplier Selected</option>
+                                {suppliers.map(sup => (
+                                    <option key={sup._id} value={sup._id}>{sup.name}</option>
+                                ))}
+                            </select>
+                            <p className="text-[12px] text-gray-500 font-medium mt-1 pl-1">Selecting a supplier enables automatic restock emails.</p>
+                        </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">Price (Rs.) <span className="text-red-500">*</span></label>
@@ -124,9 +181,16 @@ export function ItemForm({
                                     className={`w-1/3 px-2 py-3 bg-white border ${errors.stock ? 'border-red-400 focus:ring-red-500/20' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20'} rounded-xl text-sm focus:ring-4 outline-none transition-all font-medium text-gray-900 shadow-sm hover:border-gray-300`}
                                     value={parseUnit(newItem.stock)}
                                     onChange={e => {
+                                        const unit = e.target.value;
                                         const val = parseAmount(newItem.stock);
-                                        setNewItem({ ...newItem, stock: val ? `${val} ${e.target.value}` : `0 ${e.target.value}` });
+                                        const threshVal = parseAmount(newItem.threshold);
+                                        setNewItem({ 
+                                            ...newItem, 
+                                            stock: val ? `${val} ${unit}` : `0 ${unit}`,
+                                            threshold: threshVal ? `${threshVal} ${unit}` : `0 ${unit}`
+                                        });
                                         if (errors.stock) setErrors({ ...errors, stock: undefined });
+                                        if (errors.threshold) setErrors({ ...errors, threshold: undefined });
                                     }}
                                 >
                                     <option value="L">L</option>
@@ -156,21 +220,9 @@ export function ItemForm({
                                         if (errors.threshold) setErrors({ ...errors, threshold: undefined });
                                     }}
                                 />
-                                <select
-                                    className={`w-1/3 px-2 py-3 bg-white border ${errors.threshold ? 'border-red-400 focus:ring-red-500/20' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20'} rounded-xl text-sm focus:ring-4 outline-none transition-all font-medium text-gray-900 shadow-sm hover:border-gray-300`}
-                                    value={parseUnit(newItem.threshold)}
-                                    onChange={e => {
-                                        const val = parseAmount(newItem.threshold);
-                                        setNewItem({ ...newItem, threshold: val ? `${val} ${e.target.value}` : `0 ${e.target.value}` });
-                                        if (errors.threshold) setErrors({ ...errors, threshold: undefined });
-                                    }}
-                                >
-                                    <option value="L">L</option>
-                                    <option value="mL">mL</option>
-                                    <option value="Kg">Kg</option>
-                                    <option value="g">g</option>
-                                    <option value="units">units</option>
-                                </select>
+                                <div className={`w-1/3 px-4 py-3 bg-gray-50 border ${errors.threshold ? 'border-red-400' : 'border-gray-200'} rounded-xl text-sm font-medium text-gray-500 flex items-center`}>
+                                    {parseUnit(newItem.stock)}
+                                </div>
                             </div>
                             {errors.threshold && <p className="text-[12px] text-red-500 font-medium mt-1 pl-1 flex items-center"><AlertTriangle className="h-3.5 w-3.5 mr-1" />{errors.threshold}</p>}
                         </div>
