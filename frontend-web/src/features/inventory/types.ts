@@ -5,6 +5,7 @@ export interface InventoryItem {
     price: string;
     stock: string;
     threshold: string;
+    supplierId?: string;
 }
 
 export type InventoryErrors = Partial<Record<keyof InventoryItem, string>>;

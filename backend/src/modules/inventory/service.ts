@@ -78,6 +78,34 @@ export class InventoryService {
             type: 'deduction'
         });
 
+        const thresholdParts = item.threshold.trim().split(/\s+/);
+        const thresholdVal = parseFloat(thresholdParts[0]);
+        const thresholdUnit = thresholdParts[1] || 'units';
+
+        try {
+            const thresholdNorm = normalize(thresholdVal, thresholdUnit);
+            if (newBaseValue <= thresholdNorm.base && !item.lowStockEmailSent && item.supplierId) {
+                // Set the flag to prevent duplicate emails
+                item.lowStockEmailSent = true;
+                await item.save();
+
+                // Trigger the Supplier Management webhook
+                fetch('http://localhost:5001/api/suppliers/notify-low-stock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        supplierId: item.supplierId,
+                        itemId: item.id,
+                        itemName: item.name,
+                        currentStock: newBaseValue,
+                        reorderLevel: thresholdNorm.base
+                    })
+                }).catch(err => console.error('Failed to trigger supplier webhook:', err));
+            }
+        } catch (err) {
+            console.error('Failed to parse threshold or trigger email', err);
+        }
+
         return item;
     }
 
