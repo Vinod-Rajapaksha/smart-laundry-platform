@@ -86,20 +86,6 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: str
   },
 };
 
-// ─────────────────────────────────────────
-// Status sections to display on the page
-// ─────────────────────────────────────────
-const DISPLAY_STATUSES: OrderStatus[] = [
-  'PENDING',
-  'PICKUP_ASSIGNED',
-  'PICKUP_ENROUTE',
-  'PICKED_UP',
-  'PROCESSING',
-  'READY',
-  'DELIVERY_ASSIGNED',
-  'DELIVERY_ENROUTE',
-  'DELIVERED',
-];
 
 // ─────────────────────────────────────────
 // Order Card Component
@@ -171,7 +157,7 @@ function OrderCard({ order }: { order: DeliveryOrder }) {
 // ─────────────────────────────────────────
 // Status Section Component
 // ─────────────────────────────────────────
-function StatusSection({
+function PipelineColumn({
   status,
   orders,
 }: {
@@ -181,24 +167,26 @@ function StatusSection({
   const config = STATUS_CONFIG[status];
 
   return (
-    <div className="mb-8">
-      {/* Section Header */}
-      <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-lg ${config.bg} border ${config.border}`}>
-        <span className={`text-sm font-semibold ${config.color}`}>
+    <div>
+      <div
+        className={`flex items-center justify-between px-3 py-2 rounded-lg mb-3 ${config.bg} border ${config.border}`}
+      >
+        <span className={`text-xs font-semibold ${config.color}`}>
           {config.label}
         </span>
-        <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}>
+        <span
+          className={`text-xs font-bold px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}
+        >
           {orders.length}
         </span>
       </div>
 
-      {/* Orders Grid */}
       {orders.length === 0 ? (
-        <div className="flex items-center justify-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
+        <div className="flex items-center justify-center py-6 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl">
           No orders
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="flex flex-col gap-3">
           {orders.map((order) => (
             <OrderCard key={order._id} order={order} />
           ))}
@@ -216,6 +204,7 @@ export default function PickupDeliveryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<'pickup' | 'delivery' | 'processing'>('pickup');
 
   const fetchData = async () => {
     try {
@@ -358,17 +347,57 @@ export default function PickupDeliveryPage() {
         </button>
       </div>
 
-      {/* Status Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {DISPLAY_STATUSES.map((status) => (
-          <StatusSection
-            key={status}
-            status={status}
-            orders={data?.grouped[status] ?? []}
-          />
-        ))}
-      </div>
+      {/* Tabs */}
+<div className="flex gap-1 border-b border-slate-200 mb-6">
+  {[
+    { key: 'pickup', label: 'Pickup pipeline' },
+    { key: 'delivery', label: 'Delivery pipeline' },
+    { key: 'processing', label: 'Processing' },
+  ].map((tab) => (
+    <button
+      key={tab.key}
+      onClick={() => setActiveTab(tab.key as typeof activeTab)}
+      className={`px-4 py-2 text-sm transition border-b-2 -mb-px ${
+        activeTab === tab.key
+          ? 'border-blue-500 text-blue-600 font-semibold'
+          : 'border-transparent text-slate-500 hover:text-slate-700'
+      }`}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+
+{/* Pickup Pipeline */}
+{activeTab === 'pickup' && (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <PipelineColumn status="PENDING" orders={data?.grouped['PENDING'] ?? []} />
+    <PipelineColumn status="PICKUP_ASSIGNED" orders={data?.grouped['PICKUP_ASSIGNED'] ?? []} />
+    <PipelineColumn status="PICKUP_ENROUTE" orders={data?.grouped['PICKUP_ENROUTE'] ?? []} />
+  </div>
+)}
+
+{/* Delivery Pipeline */}
+{activeTab === 'delivery' && (
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <PipelineColumn status="READY" orders={data?.grouped['READY'] ?? []} />
+    <PipelineColumn status="DELIVERY_ASSIGNED" orders={data?.grouped['DELIVERY_ASSIGNED'] ?? []} />
+    <PipelineColumn status="DELIVERY_ENROUTE" orders={data?.grouped['DELIVERY_ENROUTE'] ?? []} />
+    <PipelineColumn status="DELIVERED" orders={data?.grouped['DELIVERED'] ?? []} />
+  </div>
+)}
+
+{/* Processing */}
+{activeTab === 'processing' && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <PipelineColumn status="PICKED_UP" orders={data?.grouped['PICKED_UP'] ?? []} />
+    <PipelineColumn status="PROCESSING" orders={data?.grouped['PROCESSING'] ?? []} />
+  </div>
+)}
 
     </div>
   );
 }
+
+
+

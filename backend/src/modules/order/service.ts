@@ -2,9 +2,8 @@ import Order from '../../database/models/Order.js';
 import StaffJob from '../../database/models/StaffJob.js';
 import ApiError from '../../core/apiError.js';
 
-// ─────────────────────────────────────────
+
 // 1. Get all orders available for pickup
-// ─────────────────────────────────────────
 export const getAvailablePickups = async () => {
   const orders = await Order.find({ status: 'PENDING' })
     .populate('userId', 'name email telephone')
@@ -14,9 +13,7 @@ export const getAvailablePickups = async () => {
   return orders;
 };
 
-// ─────────────────────────────────────────
 // 2. Get all orders available for delivery
-// ─────────────────────────────────────────
 export const getAvailableDeliveries = async () => {
   const orders = await Order.find({ status: 'READY' })
     .populate('userId', 'name email telephone')
@@ -26,9 +23,7 @@ export const getAvailableDeliveries = async () => {
   return orders;
 };
 
-// ─────────────────────────────────────────
 // 3. Assign a job to the rider
-// ─────────────────────────────────────────
 export const assignJob = async (
   orderId: string,
   staffId: string,
@@ -77,9 +72,7 @@ export const assignJob = async (
   return job;
 };
 
-// ─────────────────────────────────────────
 // 4. Get all active jobs for this rider
-// ─────────────────────────────────────────
 export const getMyJobs = async (staffId: string) => {
   const jobs = await StaffJob.find({
     assignedStaffId: staffId,
@@ -97,9 +90,7 @@ export const getMyJobs = async (staffId: string) => {
   return jobs;
 };
 
-// ─────────────────────────────────────────
 // 5. Update the status of a job
-// ─────────────────────────────────────────
 export const updateJobStatus = async (
   orderId: string,
   staffId: string,
@@ -141,9 +132,7 @@ export const updateJobStatus = async (
   return updatedOrder;
 };
 
-// ─────────────────────────────────────────
 // 6. Update GPS location
-// ─────────────────────────────────────────
 export const updateLocation = async (
   orderId: string,
   staffId: string,
@@ -174,11 +163,8 @@ export const updateLocation = async (
 
 
 
-
-// ─────────────────────────────────────────
 // 7. Get all delivery orders for admin
 //    Returns orders grouped by status
-// ─────────────────────────────────────────
 export const getDeliveryDashboard = async () => {
   const deliveryStatuses = [
     'PENDING',

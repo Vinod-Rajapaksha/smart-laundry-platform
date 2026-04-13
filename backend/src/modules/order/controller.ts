@@ -4,9 +4,7 @@ import asyncHandler from '../../utils/asyncHandler.js';
 import { ApiResponse } from '../../core/apiResponse.js';
 import * as orderService from './service.js';
 
-// ─────────────────────────────────────────
 // 1. GET /orders/available-pickups
-// ─────────────────────────────────────────
 export const getAvailablePickups = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const orders = await orderService.getAvailablePickups();
@@ -14,9 +12,7 @@ export const getAvailablePickups = asyncHandler(
   }
 );
 
-// ─────────────────────────────────────────
 // 2. GET /orders/available-deliveries
-// ─────────────────────────────────────────
 export const getAvailableDeliveries = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const orders = await orderService.getAvailableDeliveries();
@@ -24,9 +20,7 @@ export const getAvailableDeliveries = asyncHandler(
   }
 );
 
-// ─────────────────────────────────────────
 // 3. POST /orders/:id/assign
-// ─────────────────────────────────────────
 export const assignJob = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const orderId = req.params.id as string;
@@ -38,9 +32,7 @@ export const assignJob = asyncHandler(
   }
 );
 
-// ─────────────────────────────────────────
 // 4. GET /orders/my-jobs
-// ─────────────────────────────────────────
 export const getMyJobs = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const staffId = req.user!.id;
@@ -49,9 +41,7 @@ export const getMyJobs = asyncHandler(
   }
 );
 
-// ─────────────────────────────────────────
 // 5. PATCH /orders/:id/status
-// ─────────────────────────────────────────
 export const updateJobStatus = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const orderId = req.params.id as string;
@@ -67,9 +57,7 @@ export const updateJobStatus = asyncHandler(
   }
 );
 
-// ─────────────────────────────────────────
 // 6. PATCH /orders/:id/location
-// ─────────────────────────────────────────
 export const updateLocation = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const orderId = req.params.id as string;
@@ -91,10 +79,8 @@ export const updateLocation = asyncHandler(
 
 
 
-// ─────────────────────────────────────────
 // 7. GET /orders/admin/delivery-dashboard
 //    Admin sees all delivery orders
-// ─────────────────────────────────────────
 export const getDeliveryDashboard = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const data = await orderService.getDeliveryDashboard();
