@@ -1,0 +1,20 @@
+﻿src/modules/data/service.ts(84,9): error TS2352: Conversion of type '(Document<unknown, {}, { role: "ADMIN" | "STAFF" | "CUSTOMER"; name: string; email: string; password: string; telephone: string; isActive: boolean; address?: string | null | undefined; salary?: number | null | undefined; staffType?: "DELIVERY" | ... 3 more ... | undefined; refreshToken?: string | ... 1 more ... | un...' to type 'DashboardUser[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Document<unknown, {}, { role: "ADMIN" | "STAFF" | "CUSTOMER"; name: string; email: string; password: string; telephone: string; isActive: boolean; address?: string | null | undefined; salary?: number | null | undefined; staffType?: "DELIVERY" | ... 3 more ... | undefined; refreshToken?: string | ... 1 more ... | und...' is not comparable to type 'DashboardUser'.
+    Types of property '_id' are incompatible.
+      Type 'ObjectId' is not comparable to type 'string'.
+src/modules/service/controller.ts(2,10): error TS2305: Module '"express-validator"' has no exported member 'validationResult'.
+src/modules/service/controller.ts(2,34): error TS2497: This module can only be referenced with ECMAScript imports/exports by turning on the 'allowSyntheticDefaultImports' flag and referencing its default export.
+src/modules/service/controller.ts(30,69): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/controller.ts(43,69): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/controller.ts(79,60): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/controller.ts(92,60): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/controller.ts(135,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/controller.ts(148,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/service/validation.ts(1,10): error TS2305: Module '"express-validator"' has no exported member 'body'.
+src/modules/service/validation.ts(1,22): error TS2497: This module can only be referenced with ECMAScript imports/exports by turning on the 'allowSyntheticDefaultImports' flag and referencing its default export.
