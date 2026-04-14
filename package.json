@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "expo-constants": "^55.0.14",
     "pdfkit": "^0.18.0",
     "react-native-svg": "^15.15.4"
   },

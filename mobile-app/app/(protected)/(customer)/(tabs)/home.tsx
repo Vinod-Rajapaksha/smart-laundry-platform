@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '../../../../src/hooks/useAuth';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
 import { COLORS } from '../../../../src/theme/colors';
 import { SPACING } from '../../../../src/theme/spacing';
 import { TYPOGRAPHY } from '../../../../src/theme/typography';
@@ -10,10 +10,10 @@ import { useRouter } from 'expo-router';
 
 
 const services = [
-	{ key: '1', title: 'House Cleaning', desc: 'Deep cleaning & sanitizing' },
-	{ key: '2', title: 'AC Repair', desc: 'Maintenance & fixing' },
-	{ key: '3', title: 'Grocery Delivery', desc: 'Fresh items to door' },
-	{ key: '4', title: 'Laundry Service', desc: 'Wash, fold & iron' },
+	{ key: '1', title: 'Wash', desc: 'Professional washing & folding' },
+	{ key: '2', title: 'Dry Clean', desc: 'Gentle dry cleaning for delicates' },
+	{ key: '3', title: 'Ironing', desc: 'Crisp ironing & finishing' },
+	{ key: '4', title: 'Express Laundry', desc: 'Same-day wash & delivery' },
 ];
 
 const pros = [
@@ -23,106 +23,102 @@ const pros = [
 ];
 
 export default function HomeScreen() {
-	const { user } = useAuth();
-	const router = useRouter();
-	return (
-		<View style={styles.container}>
-			{/* Header */}
-			<View style={styles.header}>
-				<TouchableOpacity>
-					<Text style={styles.menuIcon}>☰</Text>
-				</TouchableOpacity>
-				<Text style={styles.headerTitle}>Editorial Service</Text>
-				<TouchableOpacity onPress={() => router.push('/(protected)/(customer)/profile/edit-profile')}>
-					<Text style={styles.avatar}>👤</Text>
-				</TouchableOpacity>
-			</View>
+   const { user } = useAuth();
+   const router = useRouter();
+   return (
+	   <SafeAreaView style={styles.container}>
+		   {/* Header */}
+		   <View style={styles.header}>
+			   <View style={styles.headerTitleWrapper}>
+				   <Text style={styles.headerTitle}>B & W Laundry Services</Text>
+			   </View>
+		   </View>
 
-		       <ScrollView showsVerticalScrollIndicator={false}>
-			       {/* Welcome Section */}
-			       <View style={styles.welcomeSection}>
-				       <Text style={styles.welcomeTitle}>
-					       {`Welcome ${user?.name || 'Customer'}!`}
-				       </Text>
-				       <Text style={styles.welcomeSubtitle}>Your concierge is ready to assist.</Text>
-			       </View>
+		   <ScrollView showsVerticalScrollIndicator={false}>
+			   {/* Welcome Section */}
+			   <View style={styles.welcomeSection}>
+				   <Text style={styles.welcomeTitle}>
+					   {`Welcome ${user?.name || 'Customer'}!`}
+				   </Text>
+				   <Text style={styles.welcomeSubtitle}>Your concierge is ready to assist.</Text>
+			   </View>
 
-				{/* Promo Card */}
-				<View style={styles.promoCard}>
-					<View style={styles.badge}><Text style={styles.badgeText}>SUMMER SPECIAL</Text></View>
-					<Text style={styles.promoTitle}>Professional{"\n"}AC Deep Cleaning</Text>
-					<Text style={styles.promoDesc}>Breathe purer air with our expert sanitization service.</Text>
-					<TouchableOpacity style={styles.promoButton}>
-						<Text style={styles.promoButtonText}>Book Now</Text>
-					</TouchableOpacity>
-				</View>
+			   {/* Promo Card
+			   <View style={styles.promoCard}>
+				   <View style={styles.badge}><Text style={styles.badgeText}>SUMMER SPECIAL</Text></View>
+				   <Text style={styles.promoTitle}>Professional{"\n"}AC Deep Cleaning</Text>
+				   <Text style={styles.promoDesc}>Breathe purer air with our expert sanitization service.</Text>
+				   <TouchableOpacity style={styles.promoButton}>
+					   <Text style={styles.promoButtonText}>Book Now</Text>
+				   </TouchableOpacity>
+			   </View> */}
 
-				{/* Service Catalog */}
-				<View style={styles.sectionRow}>
-					<Text style={styles.sectionTitle}>Service Catalog</Text>
-					<TouchableOpacity><Text style={styles.sectionAction}>View All</Text></TouchableOpacity>
-				</View>
-				<View style={styles.serviceGrid}>
-					{services.map(service => (
-						<View key={service.key} style={styles.serviceCard}>
-							<Text style={styles.serviceTitle}>{service.title}</Text>
-							<Text style={styles.serviceDesc}>{service.desc}</Text>
-						</View>
-					))}
-				</View>
+			   {/* Service Catalog */}
+			   <View style={styles.sectionRow}>
+				   <Text style={styles.sectionTitle}>Service Catalog</Text>
+				   <TouchableOpacity><Text style={styles.sectionAction}>View All</Text></TouchableOpacity>
+			   </View>
+			   <View style={styles.serviceGrid}>
+				   {services.map(service => (
+					   <View key={service.key} style={styles.serviceCard}>
+						   <Text style={styles.serviceTitle}>{service.title}</Text>
+						   <Text style={styles.serviceDesc}>{service.desc}</Text>
+					   </View>
+				   ))}
+			   </View>
 
-				{/* Book a Pro */}
-				<View style={styles.bookProCard}>
-					<Text style={styles.bookProTitle}>Can’t find what you need?</Text>
-					<Text style={styles.bookProDesc}>Tell us your requirements and we will match you with a verified professional in minutes.</Text>
-					<TouchableOpacity style={styles.bookProButton}>
-						<Text style={styles.bookProButtonText}>+  Book a Pro</Text>
-					</TouchableOpacity>
-				</View>
+			   {/* Book a Pro */}
+			   <View style={styles.bookProCard}>
+				   <Text style={styles.bookProTitle}>Can’t find what you need?</Text>
+				   <Text style={styles.bookProDesc}>Tell us your requirements and we will match you with a verified professional in minutes.</Text>
+				   <TouchableOpacity style={styles.bookProButton}>
+					   <Text style={styles.bookProButtonText}>+  Book a Pro</Text>
+				   </TouchableOpacity>
+			   </View>
 
-				{/* Top Rated Pros */}
-				<Text style={styles.sectionTitle}>Top Rated Pros</Text>
-				<FlatList
-					data={pros}
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					keyExtractor={item => item.key}
-					style={{ marginTop: SPACING.LG }}
-					contentContainerStyle={{ paddingHorizontal: SPACING.SCREEN_HORIZONTAL }}
-					renderItem={({ item }) => (
-						<View style={styles.proCard}>
-							<Text style={styles.proName}>{item.name}</Text>
-							<View style={styles.proRatingRow}>
-								<Text style={styles.starIcon}>★</Text>
-								<Text style={styles.proRating}>{item.rating}</Text>
-							</View>
-						</View>
-					)}
-				/>
-				<View style={{ height: SPACING.SCREEN_VERTICAL + 40 }} />
-			</ScrollView>
+			   {/* Top Rated Pros */}
+			   <Text style={styles.sectionTitle}>Top Rated Pros</Text>
+			   <FlatList
+				   data={pros}
+				   horizontal
+				   showsHorizontalScrollIndicator={false}
+				   keyExtractor={item => item.key}
+				   style={{ marginTop: SPACING.LG }}
+				   contentContainerStyle={{ paddingHorizontal: SPACING.SCREEN_HORIZONTAL }}
+				   renderItem={({ item }) => (
+					   <View style={styles.proCard}>
+						   <Text style={styles.proName}>{item.name}</Text>
+						   <View style={styles.proRatingRow}>
+							   <Text style={styles.starIcon}>★</Text>
+							   <Text style={styles.proRating}>{item.rating}</Text>
+						   </View>
+					   </View>
+				   )}
+			   />
+			   <View style={{ height: SPACING.SCREEN_VERTICAL + 40 }} />
+		   </ScrollView>
 
-			{/* Bottom Tab Bar Placeholder */}
-			       <View style={styles.tabBar}>
-				       <TouchableOpacity style={styles.tabItem}>
-					       <Text style={styles.tabIconActive}>🏠</Text>
-					       <Text style={styles.tabLabelActive}>Home</Text>
-				       </TouchableOpacity>
-				       <TouchableOpacity style={styles.tabItem}>
-					       <Text style={styles.tabIcon}>🛒</Text>
-					       <Text style={styles.tabLabel}>Orders</Text>
-				       </TouchableOpacity>
-				       <TouchableOpacity style={styles.tabItem}>
-					       <Text style={styles.tabIcon}>💰</Text>
-					       <Text style={styles.tabLabel}>Wallet</Text>
-				       </TouchableOpacity>
-				       <TouchableOpacity style={styles.tabItem}>
-					       <Text style={styles.tabIcon}>👤</Text>
-					       <Text style={styles.tabLabel}>Profile</Text>
-				       </TouchableOpacity>
-			       </View>
-		</View>
-	);
+		   {/* Bottom Tab Bar Placeholder */}
+		   <View style={styles.tabBar}>
+			   <TouchableOpacity style={styles.tabItem}>
+				   <Text style={styles.tabIconActive}>🏠</Text>
+				   <Text style={styles.tabLabelActive}>Home</Text>
+			   </TouchableOpacity>
+			   <TouchableOpacity style={styles.tabItem}>
+				   <Text style={styles.tabIcon}>🛒</Text>
+				   <Text style={styles.tabLabel}>Orders</Text>
+			   </TouchableOpacity>
+			   <TouchableOpacity style={styles.tabItem}>
+				   <Text style={styles.tabIcon}>💰</Text>
+				   <Text style={styles.tabLabel}>Wallet</Text>
+			   </TouchableOpacity>
+			   <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(protected)/(customer)/(tabs)/profile')}>
+				   <Text style={styles.avatar}>👤</Text>
+				   <Text style={styles.tabLabel}>Profile</Text>
+			   </TouchableOpacity>
+		   </View>
+	   </SafeAreaView>
+   );
 }
 
 const styles = StyleSheet.create({
@@ -130,17 +126,26 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: COLORS.BACKGROUND,
 	},
-	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingHorizontal: SPACING.SCREEN_HORIZONTAL,
-		paddingTop: 48,
-		paddingBottom: 16,
-		backgroundColor: COLORS.WHITE,
-		borderBottomWidth: 1,
-		borderBottomColor: COLORS.BORDER_LIGHT,
-	},
+	   header: {
+		   flexDirection: 'row',
+		   alignItems: 'center',
+		   justifyContent: 'center',
+		   paddingHorizontal: SPACING.SCREEN_HORIZONTAL,
+		   paddingTop: 48,
+		   paddingBottom: 16,
+		   backgroundColor: COLORS.WHITE,
+		   borderBottomWidth: 1,
+		   borderBottomColor: COLORS.BORDER_LIGHT,
+		   position: 'relative',
+	   },
+	   headerTitleWrapper: {
+		   position: 'absolute',
+		   left: 0,
+		   right: 0,
+		   alignItems: 'center',
+		   justifyContent: 'center',
+		   pointerEvents: 'none',
+	   },
 	menuIcon: {
 		width: 28,
 		height: 28,
