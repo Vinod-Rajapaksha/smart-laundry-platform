@@ -1,6 +1,7 @@
 import Service from '../../database/models/Service.js';
 import ServiceCategory from '../../database/models/ServiceCategory.js';
 import Order from '../../database/models/Order.js';
+import ApiError from '../../core/apiError.js';
 
 // Service Categories
 export const createServiceCategory = async (data: any) => {
@@ -100,4 +101,41 @@ export const updateOrder = async (id: string, data: any) => {
 
 export const deleteOrder = async (id: string) => {
     return await Order.findByIdAndDelete(id);
+};
+
+export const pricingUpdated = async (orderId: string, data: any) => {
+    const order: any = await Order.findById(orderId);
+    if (!order) throw new ApiError(404, 'Order not found');
+
+    if (order.paymentStatus !== 'UNPAID' || order.status !== 'PENDING') {
+        throw new ApiError(400, 'Order is not editable');
+    }
+
+    // Reset old promotion fields
+    order.voucherId = null;
+    order.voucherCode = null;
+    order.voucherDiscountAmount = 0;
+    order.loyaltyTierApplied = null;
+    order.loyaltyDiscountAmount = 0;
+    order.appliedPromotionType = null;
+
+    // Write new pricing values from the incoming data
+    if (data.subtotal !== undefined) order.subtotal = data.subtotal;
+    if (data.extraFee !== undefined) order.extraFee = data.extraFee;
+    if (data.discountTotal !== undefined) order.discountTotal = data.discountTotal;
+    if (data.totalAmount !== undefined) order.totalAmount = data.totalAmount;
+
+    if (data.voucherId !== undefined) order.voucherId = data.voucherId;
+    if (data.voucherCode !== undefined) order.voucherCode = data.voucherCode;
+    if (data.voucherDiscountAmount !== undefined) order.voucherDiscountAmount = data.voucherDiscountAmount;
+    
+    if (data.loyaltyTierApplied !== undefined) order.loyaltyTierApplied = data.loyaltyTierApplied;
+    if (data.loyaltyDiscountAmount !== undefined) order.loyaltyDiscountAmount = data.loyaltyDiscountAmount;
+    
+    if (data.appliedPromotionType !== undefined) order.appliedPromotionType = data.appliedPromotionType;
+
+    order.pricingUpdatedAt = new Date();
+
+    await order.save();
+    return order;
 };

@@ -84,6 +84,40 @@ const orderSchema = new mongoose.Schema(
       required: true, 
       trim: true, 
     },
+    voucherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Voucher',
+      default: null,
+    },
+    voucherCode: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    voucherDiscountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyTierApplied: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    loyaltyDiscountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    pricingUpdatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    appliedPromotionType: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   { 
     timestamps: true, 

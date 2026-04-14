@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import * as serviceService from './service.js';
+import { ApiResponse } from '../../core/apiResponse.js';
+import ApiError from '../../core/apiError.js';
 
 export const createServiceCategory = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -152,6 +154,19 @@ export const deleteOrder = async (req: Request, res: Response): Promise<void> =>
         }
         res.json({ message: 'Deleted successfully' });
     } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updatePricing = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const order = await serviceService.pricingUpdated(req.params.orderId as string, req.body);
+        ApiResponse(res, 200, 'Pricing updated successfully', order);
+    } catch (error: any) {
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({ message: error.message });
+            return;
+        }
         res.status(500).json({ message: error.message });
     }
 };

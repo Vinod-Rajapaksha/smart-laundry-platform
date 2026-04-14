@@ -14,6 +14,7 @@ router.delete('/categories/:id', controller.deleteServiceCategory);
 router.post('/orders', validation.validateOrder, controller.createOrder);
 router.get('/orders', controller.getOrders);
 router.put('/orders/:id', validation.validateOrderUpdate, controller.updateOrder);
+router.patch('/orders/:orderId/pricing-update', controller.updatePricing);
 router.delete('/orders/:id', controller.deleteOrder);
 
 // Services Routes
