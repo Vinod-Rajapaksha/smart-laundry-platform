@@ -45,6 +45,7 @@
     "autoprefixer": "^10.4.23",
     "babel-preset-expo": "^54.0.9",
     "postcss": "^8.5.6",
+    "react-native-dotenv": "^3.4.11",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.2"
   },
