@@ -4,8 +4,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "expo-router": "~6.0.21",
     "expo-status-bar": "~3.0.9",
     "lucide-react-native": "^0.562.0",
+    "metro-react-native-babel-transformer": "^0.77.0",
     "nativewind": "^4.2.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -33,11 +34,13 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-svg-transformer": "^1.5.3",
     "react-native-web": "^0.21.0",
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
+    "@svgr/webpack": "^8.1.0",
     "@types/react": "~19.1.0",
     "autoprefixer": "^10.4.23",
     "babel-preset-expo": "^54.0.9",
