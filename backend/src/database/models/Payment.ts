@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PAYMENT_METHODS, PAYMENT_STATUS } from '../../core/constants.js';
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -15,12 +16,13 @@ const paymentSchema = new mongoose.Schema(
     method: { 
         type: String, 
         required: true, 
-        trim: true, 
+        enum: Object.values(PAYMENT_METHODS),
     },
     status: { 
         type: String, 
         required: true, 
-        trim: true, 
+        enum: Object.values(PAYMENT_STATUS),
+        default: PAYMENT_STATUS.PENDING,
     },
     provider: { 
         type: String, 
