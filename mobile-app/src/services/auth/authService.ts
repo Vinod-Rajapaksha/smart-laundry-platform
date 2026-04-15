@@ -9,11 +9,13 @@ export const login = async (
   const response = await api.post("/auth/login", { email, password });
   const { user, accessToken, refreshToken } = response.data.data;
 
-  await AsyncStorage.setItem("accessToken", accessToken);
-  await AsyncStorage.setItem("token", accessToken); // Ensure compatibility with api.ts
+
+  // Store using the correct key for compatibility with storage.ts and the rest of the app
+  await AsyncStorage.setItem("access_token", accessToken);
+
 
   if (refreshToken) {
-    await AsyncStorage.setItem("refreshToken", refreshToken);
+    await AsyncStorage.setItem("refresh_token", refreshToken);
   }
 
   return { user, accessToken, refreshToken };
@@ -25,6 +27,6 @@ export const register = async (data: RegisterData): Promise<AuthUser> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await AsyncStorage.removeItem("accessToken");
-  await AsyncStorage.removeItem("refreshToken");
+  await AsyncStorage.removeItem("access_token");
+  await AsyncStorage.removeItem("refresh_token");
 };

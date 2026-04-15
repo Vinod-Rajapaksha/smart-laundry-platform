@@ -1,0 +1,389 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons, MaterialIcons, FontAwesome5, Feather } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+
+
+type DatasetKey =
+	| 'totalRevenue'
+	| 'totalExpenses'
+	| 'netProfit'
+	| 'revenueByMonth'
+	| 'expenseCategory'
+	| 'profitTrend'
+	| 'staffSalary';
+
+const DATASETS: { key: DatasetKey; label: string; desc: string; icon: string; color: string }[] = [
+	{ key: 'totalRevenue', label: 'Total Revenue', desc: 'FINANCIAL METRIC', icon: 'cash', color: '#3FA0F6' },
+	{ key: 'totalExpenses', label: 'Total Expenses', desc: 'OUTFLOW ANALYSIS', icon: 'credit-card', color: '#B0BEC5' },
+	{ key: 'netProfit', label: 'Net Profit', desc: 'GROWTH INDICATOR', icon: 'trending-up', color: '#F6C244' },
+	{ key: 'revenueByMonth', label: 'Revenue by Month', desc: 'CYCLICAL VIEW', icon: 'bar-chart', color: '#3FA0F6' },
+	{ key: 'expenseCategory', label: 'Expense Category Breakdown', desc: 'ALLOCATION MAP', icon: 'pie-chart', color: '#B0BEC5' },
+	{ key: 'profitTrend', label: 'Profit Trend', desc: 'LINEAR FORECAST', icon: 'activity', color: '#3FA0F6' },
+	{ key: 'staffSalary', label: 'Staff Salary Summary', desc: 'PAYROLL OVERVIEW', icon: 'users', color: '#3FA0F6' },
+];
+
+
+const BASE_URL = 'http://192.168.8.193:5000'; // <-- CHANGE THIS to your computer's LAN IP and port
+
+export default function ReportGen() {
+	const [fromDate, setFromDate] = useState(new Date());
+	const [toDate, setToDate] = useState(new Date());
+	const [showFromPicker, setShowFromPicker] = useState(false);
+	const [showToPicker, setShowToPicker] = useState(false);
+	const [selected, setSelected] = useState<Record<DatasetKey, boolean>>({
+		totalRevenue: true,
+		totalExpenses: true,
+		netProfit: true,
+		revenueByMonth: false,
+		expenseCategory: false,
+		profitTrend: false,
+		staffSalary: false,
+	});
+
+
+	const handleSelect = (key: DatasetKey) => {
+		setSelected((prev) => ({ ...prev, [key]: !prev[key] }));
+	};
+
+	const handleGenerateReport = async () => {
+		const reportId = 'RI-0010';
+		const generatedBy = 'Admin';
+		const generatedDate = new Date().toISOString().slice(0, 10);
+		const periodFrom = fromDate.toISOString().slice(0, 10);
+		const periodTo = toDate.toISOString().slice(0, 10);
+		const selectedKeys = Object.keys(selected).filter((k) => selected[k as DatasetKey]);
+		const selectedSections = selectedKeys.map((key) => {
+			const ds = DATASETS.find((d) => d.key === key);
+			return ds ? ds.label : key;
+		}).join(', ');
+
+		// Fetch report data from backend
+		let totalRevenue = '';
+		let totalExpenses = '';
+		let netProfit = '';
+		let revenueItems: { name: string; date: string; amount: string }[] = [];
+
+		try {
+			const payload = {
+				dateRange: { from: periodFrom, to: periodTo },
+				filters: { sections: selectedKeys.map(key => {
+					const ds = DATASETS.find(d => d.key === key);
+					return ds ? ds.label : key;
+				}) },
+			};
+			// IMPORTANT: Replace with your computer's LAN IP if testing on a device
+			const response = await fetch(`${BASE_URL}/api/reportGen/generate`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					// 'Authorization': `Bearer ${yourToken}`,
+				},
+				body: JSON.stringify(payload),
+			});
+			if (!response.ok) throw new Error('Failed to fetch report data');
+			const result = await response.json();
+			const data = result.data || result;
+			totalRevenue = data.totalRevenue?.toLocaleString?.() ?? data.totalRevenue ?? '-';
+			totalExpenses = data.totalExpense?.toLocaleString?.() ?? data.totalExpense ?? '-';
+			netProfit = data.netProfit?.toLocaleString?.() ?? data.netProfit ?? '-';
+			revenueItems = (data.revenueList || []).map((item: any) => ({
+				name: item.name,
+				date: item.date,
+				amount: item.amount?.toLocaleString?.() ?? item.amount,
+			}));
+		} catch (err) {
+			Alert.alert('Error', 'Failed to fetch report data. Using empty values.');
+			totalRevenue = '-';
+			totalExpenses = '-';
+			netProfit = '-';
+			revenueItems = [];
+		}
+
+		let html = `
+			<html>
+			<head>
+				<meta charset="UTF-8" />
+				<style>
+					body { font-family: Arial, sans-serif; margin: 32px; }
+					h1 { font-size: 2em; margin-bottom: 0.2em; }
+					.meta, .summary, .section, .revenue { margin-bottom: 1.2em; }
+					.meta, .summary { font-size: 1em; color: #222; }
+					.meta span { display: block; }
+					.section-title { font-weight: bold; margin-bottom: 0.4em; font-size: 1.1em; }
+					ul, ol { margin: 0 0 0 1.2em; }
+					.summary span { display: block; }
+					.selected { margin-bottom: 0.8em; }
+				</style>
+			</head>
+			<body>
+				<h1>Financial Report</h1>
+				<div class="meta">
+					<span>Report ID: ${reportId}</span>
+					<span>Generated By: ${generatedBy}</span>
+					<span>Generated Date: ${generatedDate}</span>
+					<span>Period: ${periodFrom} to ${periodTo}</span>
+				</div>
+				<div class="summary">
+					<span><b>Total Revenue:</b> ${totalRevenue}</span>
+					<span><b>Total Expenses:</b> ${totalExpenses}</span>
+					<span><b>Net Profit:</b> ${netProfit}</span>
+				</div>
+				<div class="section selected">
+					<div class="section-title">Selected Sections</div>
+					<div>${selectedSections}</div>
+				</div>
+				<div class="section revenue">
+					<div class="section-title">Revenue Items</div>
+					<ol>
+						${revenueItems.map((item, idx) => `<li>${item.name} | ${item.date} | ${item.amount}</li>`).join('')}
+					</ol>
+				</div>
+			</body>
+			</html>
+		`;
+
+		try {
+			const { uri } = await Print.printToFileAsync({ html });
+			if (!(await Sharing.isAvailableAsync())) {
+				Alert.alert('Report Generated', 'PDF generated at:\n' + uri);
+				return;
+			}
+			await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+		} catch (e) {
+			Alert.alert('Error', 'Failed to generate PDF.');
+		}
+	};
+
+	return (
+		<SafeAreaView style={{ flex: 1, backgroundColor: '#f8f9fc' }}>
+			<ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+				<Text style={styles.suiteLabel}>ANALYTICS SUITE</Text>
+				<Text style={styles.title}>Report Generation</Text>
+				<Text style={styles.subtitle}>Curate your operational insights by selecting the parameters below.</Text>
+
+				{/* Timeframe Card */}
+				<View style={styles.card}>
+					<Text style={styles.cardTitle}>Timeframe</Text>
+					<View style={styles.dateRow}>
+						<View style={styles.dateCol}>
+							<Text style={styles.dateLabel}>FROM</Text>
+							<TouchableOpacity style={styles.dateInput} onPress={() => setShowFromPicker(true)}>
+								<Feather name="calendar" size={18} color="#3FA0F6" />
+								<Text style={styles.dateText}>{fromDate.toISOString().slice(0, 10)}</Text>
+							</TouchableOpacity>
+							{showFromPicker && (
+								<DateTimePicker
+									value={fromDate}
+									mode="date"
+									display="default"
+									onChange={(_, date) => {
+										setShowFromPicker(false);
+										if (date) setFromDate(date);
+									}}
+								/>
+							)}
+						</View>
+						<View style={styles.dateCol}>
+							<Text style={styles.dateLabel}>TO</Text>
+							<TouchableOpacity style={styles.dateInput} onPress={() => setShowToPicker(true)}>
+								<Feather name="calendar" size={18} color="#3FA0F6" />
+								<Text style={styles.dateText}>{toDate.toISOString().slice(0, 10)}</Text>
+							</TouchableOpacity>
+							{showToPicker && (
+								<DateTimePicker
+									value={toDate}
+									mode="date"
+									display="default"
+									onChange={(_, date) => {
+										setShowToPicker(false);
+										if (date) setToDate(date);
+									}}
+								/>
+							)}
+						</View>
+					</View>
+				</View>
+
+				<Text style={styles.datasetsLabel}>Selected Datasets</Text>
+				{/* Datasets List */}
+				{DATASETS.map((ds) => (
+					<TouchableOpacity
+						key={ds.key}
+						style={[styles.datasetCard, selected[ds.key] && styles.datasetCardActive]}
+						onPress={() => handleSelect(ds.key)}
+						activeOpacity={0.8}
+					>
+						<View style={[styles.datasetIconWrap, { backgroundColor: ds.color + '22' }]}> 
+							<Feather name={ds.icon as any} size={22} color={ds.color} />
+						</View>
+						<View style={{ flex: 1 }}>
+							<Text style={styles.datasetLabel}>{ds.label}</Text>
+							<Text style={styles.datasetDesc}>{ds.desc}</Text>
+						</View>
+						<View style={selected[ds.key] ? styles.checkWrap : styles.checkWrapInactive}>
+							{selected[ds.key] && <Ionicons name="checkmark" size={18} color="#fff" />}
+						</View>
+					</TouchableOpacity>
+				))}
+
+				{/* Generate Report Button */}
+				<TouchableOpacity style={styles.generateBtn} onPress={handleGenerateReport}>
+					<FontAwesome5 name="file-alt" size={18} color="#fff" style={{ marginRight: 8 }} />
+					<Text style={styles.generateBtnText}>Generate Report</Text>
+				</TouchableOpacity>
+			</ScrollView>
+		</SafeAreaView>
+	);
+}
+
+const styles = StyleSheet.create({
+	container: {
+		padding: 20,
+		paddingBottom: 40,
+		backgroundColor: '#f8f9fc',
+	},
+	suiteLabel: {
+		color: '#3FA0F6',
+		fontWeight: 'bold',
+		fontSize: 14,
+		letterSpacing: 1.2,
+		marginBottom: 6,
+		marginTop: 8,
+	},
+	title: {
+		fontSize: 28,
+		fontWeight: 'bold',
+		color: '#222',
+		marginBottom: 4,
+	},
+	subtitle: {
+		color: '#7B8AAB',
+		fontSize: 15,
+		marginBottom: 18,
+	},
+	card: {
+		backgroundColor: '#fff',
+		borderRadius: 18,
+		padding: 18,
+		marginBottom: 18,
+		shadowColor: '#000',
+		shadowOpacity: 0.04,
+		shadowRadius: 8,
+		elevation: 1,
+	},
+	cardTitle: {
+		fontWeight: 'bold',
+		fontSize: 16,
+		marginBottom: 12,
+		color: '#222',
+	},
+	dateRow: {
+		flexDirection: 'row',
+		gap: 18,
+	},
+	dateCol: {
+		flex: 1,
+	},
+	dateLabel: {
+		color: '#7B8AAB',
+		fontSize: 12,
+		fontWeight: 'bold',
+		marginBottom: 4,
+	},
+	dateInput: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: '#eef7fd',
+		borderRadius: 10,
+		paddingVertical: 10,
+		paddingHorizontal: 12,
+		marginBottom: 8,
+	},
+	dateText: {
+		marginLeft: 8,
+		color: '#222',
+		fontWeight: 'bold',
+		fontSize: 15,
+	},
+	datasetsLabel: {
+		fontWeight: 'bold',
+		fontSize: 15,
+		color: '#222',
+		marginBottom: 10,
+	},
+	datasetCard: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: '#f5f7fa',
+		borderRadius: 16,
+		padding: 16,
+		marginBottom: 12,
+		borderWidth: 1,
+		borderColor: '#f5f7fa',
+	},
+	datasetCardActive: {
+		borderColor: '#3FA0F6',
+		backgroundColor: '#eef7fd',
+	},
+	datasetIconWrap: {
+		width: 40,
+		height: 40,
+		borderRadius: 12,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginRight: 14,
+	},
+	datasetLabel: {
+		fontWeight: 'bold',
+		fontSize: 16,
+		color: '#222',
+	},
+	datasetDesc: {
+		color: '#7B8AAB',
+		fontSize: 12,
+		marginTop: 2,
+	},
+	checkWrap: {
+		width: 28,
+		height: 28,
+		borderRadius: 14,
+		backgroundColor: '#3FA0F6',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginLeft: 10,
+	},
+	checkWrapInactive: {
+		width: 28,
+		height: 28,
+		borderRadius: 14,
+		backgroundColor: '#e5e7eb',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginLeft: 10,
+	},
+	   // AI Insights styles removed
+	generateBtn: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: '#3FA0F6',
+		borderRadius: 12,
+		paddingVertical: 16,
+		justifyContent: 'center',
+		marginTop: 8,
+		marginBottom: 8,
+		shadowColor: '#3FA0F6',
+		shadowOpacity: 0.12,
+		shadowRadius: 8,
+		elevation: 2,
+	},
+	generateBtnText: {
+		color: '#fff',
+		fontWeight: 'bold',
+		fontSize: 17,
+	},
+});

@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
-// Mock data
-const stats = [
-  { key: 'orders', label: 'TOTAL ORDERS', value: 48, icon: 'shopping-bag', color: '#2176FF', bg: '#E6F0FF' },
-  { key: 'customers', label: 'TOTAL CUSTOMERS', value: 73, icon: 'person', color: '#6C7A89', bg: '#F5F7FA' },
-  { key: 'pending', label: 'PENDING ORDERS', value: 35, icon: 'pending-actions', color: '#B68900', bg: '#FFF8E1' },
-  { key: 'completed', label: 'COMPLETED', value: 13, icon: 'check-circle', color: '#3CB371', bg: '#F0FFF0' },
+import { router } from 'expo-router';
+import { apiFetch } from '../../../services/apiFetch';
+
+
+const statsConfig = [
+  { key: 'totalOrders', label: 'TOTAL ORDERS', icon: 'shopping-bag', color: '#2176FF', bg: '#E6F0FF' },
+  { key: 'totalCustomers', label: 'TOTAL CUSTOMERS', icon: 'person', color: '#6C7A89', bg: '#F5F7FA' },
+  { key: 'pendingOrders', label: 'PENDING ORDERS', icon: 'pending-actions', color: '#B68900', bg: '#FFF8E1' },
+  { key: 'completed', label: 'COMPLETED', icon: 'check-circle', color: '#3CB371', bg: '#F0FFF0' },
 ];
 
 const revenueData = [5, 7, 6, 8, 5, 12, 8, 10, 9, 11, 10, 9];
@@ -21,6 +24,41 @@ const usage = [
 ];
 
 export default function StaffHomeScreen() {
+  const [stats, setStats] = useState({
+    totalOrders: null,
+    totalCustomers: null,
+    pendingOrders: null,
+    completed: null, // Placeholder if you want to add completed orders
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+    apiFetch('/data/dashboard')
+      .then((data) => {
+        console.log('Dashboard API data:', data);
+        if (isMounted) {
+          setStats({
+            totalOrders: data.data.totalOrders,
+            totalCustomers: data.data.totalCustomers,
+            pendingOrders: data.data.pendingOrders,
+            completed: null, // Set this if your API returns completed orders
+          });
+        }
+      })
+      .catch((err) => {
+        if (isMounted) setError('Failed to load dashboard stats');
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={["top", "right", "bottom", "left"]}>
       <View style={styles.header}>
@@ -38,27 +76,37 @@ export default function StaffHomeScreen() {
         {/* Stats Cards */}
         <View style={styles.statsRow}>
           <View style={styles.statsCol}>
-            <View style={[styles.statCard, { backgroundColor: stats[0].bg }]}> 
-              <FontAwesome name="shopping-bag" size={24} color={stats[0].color} style={styles.statIcon} />
-              <Text style={[styles.statValue, { color: stats[0].color }]}>{stats[0].value}</Text>
-              <Text style={styles.statLabel}>{stats[0].label}</Text>
+            {/* Total Orders */}
+            <View style={[styles.statCard, { backgroundColor: statsConfig[0].bg }]}> 
+              <FontAwesome name="shopping-bag" size={24} color={statsConfig[0].color} style={styles.statIcon} />
+              <Text style={[styles.statValue, { color: statsConfig[0].color }]}>
+                {loading ? '...' : error ? '-' : stats.totalOrders ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>{statsConfig[0].label}</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: stats[2].bg }]}> 
-              <MaterialIcons name="pending-actions" size={24} color={stats[2].color} style={styles.statIcon} />
-              <Text style={[styles.statValue, { color: stats[2].color }]}>{stats[2].value}</Text>
-              <Text style={styles.statLabel}>{stats[2].label}</Text>
+            {/* Pending Orders */}
+            <View style={[styles.statCard, { backgroundColor: statsConfig[2].bg }]}> 
+              <MaterialIcons name="pending-actions" size={24} color={statsConfig[2].color} style={styles.statIcon} />
+              <Text style={[styles.statValue, { color: statsConfig[2].color }]}>
+                {loading ? '...' : error ? '-' : stats.pendingOrders ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>{statsConfig[2].label}</Text>
             </View>
           </View>
           <View style={styles.statsCol}>
-            <View style={[styles.statCard, { backgroundColor: stats[1].bg }]}> 
-              <Ionicons name="person" size={24} color={stats[1].color} style={styles.statIcon} />
-              <Text style={[styles.statValue, { color: stats[1].color }]}>{stats[1].value}</Text>
-              <Text style={styles.statLabel}>{stats[1].label}</Text>
+            {/* Total Customers */}
+            <View style={[styles.statCard, { backgroundColor: statsConfig[1].bg }]}> 
+              <Ionicons name="person" size={24} color={statsConfig[1].color} style={styles.statIcon} />
+              <Text style={[styles.statValue, { color: statsConfig[1].color }]}>
+                {loading ? '...' : error ? '-' : stats.totalCustomers ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>{statsConfig[1].label}</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: stats[3].bg }]}> 
-              <MaterialIcons name="check-circle" size={24} color={stats[3].color} style={styles.statIcon} />
-              <Text style={[styles.statValue, { color: stats[3].color }]}>{stats[3].value}</Text>
-              <Text style={styles.statLabel}>{stats[3].label}</Text>
+            {/* Completed Orders (placeholder) */}
+            <View style={[styles.statCard, { backgroundColor: statsConfig[3].bg }]}> 
+              <MaterialIcons name="check-circle" size={24} color={statsConfig[3].color} style={styles.statIcon} />
+              <Text style={[styles.statValue, { color: statsConfig[3].color }]}>13</Text>
+              <Text style={styles.statLabel}>{statsConfig[3].label}</Text>
             </View>
           </View>
         </View>
@@ -111,11 +159,17 @@ export default function StaffHomeScreen() {
           <Ionicons name="cash" size={22} color="#B0BEC5" />
           <Text style={styles.navLabel}>FINANCE</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="document-text" size={22} color="#B0BEC5" />
-          <Text style={styles.navLabel}>REPORTS</Text>
+        <TouchableOpacity
+          style={[styles.navItem, styles.navItemActive]}
+          onPress={() => router.replace('/(protected)/(staff)/(tabs)/reports')}
+        >
+          <Ionicons name="document-text" size={22} color="#3FA0F6" />
+          <Text style={[styles.navLabel, styles.navLabelActive]}>REPORTS</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.replace('/(protected)/(staff)/(tabs)/users')}
+        >
           <Ionicons name="people" size={22} color="#B0BEC5" />
           <Text style={styles.navLabel}>STAFF</Text>
         </TouchableOpacity>
