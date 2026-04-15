@@ -34,6 +34,16 @@ export const BANK_VERIFICATION_STATUS = {
 
 export type BankVerificationStatus = typeof BANK_VERIFICATION_STATUS[keyof typeof BANK_VERIFICATION_STATUS];
 
+// OCR Status
+export const OCR_STATUS = {
+  MATCHED: 'MATCHED',
+  MISMATCHED: 'MISMATCHED',
+  FAILED: 'FAILED',
+  PENDING: 'PENDING',
+} as const;
+
+export type OCRStatus = typeof OCR_STATUS[keyof typeof OCR_STATUS];
+
 // FEEDBACK STATUS
 export const FEEDBACK_STATUS = {
   PENDING: 'pending',
