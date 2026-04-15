@@ -29,11 +29,7 @@ const orderSchema = new mongoose.Schema(
       default: null, 
     },
     status: { 
-      type: String, required: true, trim: true },
-    reservedDateTime: { 
-      type: Date, 
-      default: null, 
-      enum: [
+      type: String, required: true, trim: true, enum: [
         'PENDING',
         'PICKUP_ASSIGNED',
         'PICKUP_ENROUTE',
@@ -45,7 +41,10 @@ const orderSchema = new mongoose.Schema(
         'DELIVERED',
         'COMPLETED',
         'CANCELLED',
-      ],
+      ], },
+    reservedDateTime: { 
+      type: Date, 
+      default: null, 
     },
     pickupAddress: { 
       type: String, 
