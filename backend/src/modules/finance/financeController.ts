@@ -1,3 +1,24 @@
+// Get monthly revenue totals for the last 12 months
+export const getMonthlyRevenue = async (req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const months: { month: string; year: number; total: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const total = await financeService.getRevenueTotalForRange(start, end);
+      months.push({
+        month: start.toLocaleString('default', { month: 'short' }).toUpperCase(),
+        year: start.getFullYear(),
+        total,
+      });
+    }
+    res.status(200).json({ success: true, data: months });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 import { Request, Response } from 'express';
 import * as financeService from './financeService.js';
 import { validateFinanceEntryPayload } from './financeValidation.js';

@@ -13,20 +13,8 @@ import {
 
 import { dashboardApi } from '../api/dashboard.api';
 
-const revenueData = [
-    { month: 'JAN', revenue: 45 },
-    { month: 'FEB', revenue: 50 },
-    { month: 'MAR', revenue: 65 },
-    { month: 'APR', revenue: 60 },
-    { month: 'MAY', revenue: 72 },
-    { month: 'JUN', revenue: 80 },
-    { month: 'JUL', revenue: 95 },
-    { month: 'AUG', revenue: 90 },
-    { month: 'SEP', revenue: 105 },
-    { month: 'OCT', revenue: 112 },
-    { month: 'NOV', revenue: 98 },
-    { month: 'DEC', revenue: 118 },
-];
+
+
 
 const serviceUsageData = [
     { name: 'Iron Express\nService', usage: 10, label: 'Iron Express Service' },
@@ -35,8 +23,13 @@ const serviceUsageData = [
     { name: 'Wash & Iron', usage: 40, label: 'Wash & Iron' },
 ];
 
+
 const DashboardPage: React.FC = () => {
     const navigate = useNavigate();
+    // Move revenue-related state hooks inside the component
+    const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
+    const [isLoadingRevenue, setIsLoadingRevenue] = useState(false);
+    const [revenueError, setRevenueError] = useState<string | null>(null);
     const [totalOrders, setTotalOrders] = useState<number | null>(null);
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
     const [ordersError, setOrdersError] = useState<string | null>(null);
@@ -71,7 +64,28 @@ const DashboardPage: React.FC = () => {
             }
         };
 
+        const loadRevenueData = async () => {
+            setIsLoadingRevenue(true);
+            setRevenueError(null);
+            try {
+                const res = await fetch('/api/finance/revenue/monthly');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    setRevenueData(data.data.map((item: any) => ({
+                        month: item.month,
+                        revenue: Math.round(item.total / 1000), // convert to thousands for chart
+                    })));
+                } else {
+                    setRevenueError('Failed to load revenue data');
+                }
+            } catch (err) {
+                setRevenueError('Failed to load revenue data');
+            }
+            setIsLoadingRevenue(false);
+        };
+
         loadDashboardStats();
+        loadRevenueData();
     }, []);
     
     return (
@@ -116,8 +130,8 @@ const DashboardPage: React.FC = () => {
                         <p className="text-gray-600 text-sm">(Simple Vertical Bar Chart | Values in LKR '000)</p>
                     </div>
                     
-                    <div className="h-[350px] w-full relative z-10">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-[350px] min-h-[350px] w-full relative z-10">
+                        <ResponsiveContainer width="100%" height={350} minHeight={350}>
                             <BarChart data={revenueData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                 <XAxis 
@@ -143,9 +157,6 @@ const DashboardPage: React.FC = () => {
                                 <Bar dataKey="revenue" radius={[6, 6, 6, 6]} barSize={28}>
                                     {
                                         revenueData.map((_entry, index) => {
-                                            // Create a subtle gradient effect by changing colors slightly based on index
-                                            // The image looks to transition from lighter blue to slightly deeper blue
-                                            // For simplicity I'll use a single solid blue that matches exactly, or slightly darkens towards the end
                                             const opacity = 0.5 + (index * 0.045);
                                             return <Cell key={`cell-${index}`} fill={`rgba(14, 128, 235, ${opacity})`} />;
                                         })
@@ -158,6 +169,8 @@ const DashboardPage: React.FC = () => {
                                         style={{ fontSize: 11, fontWeight: 'bold', fill: '#1f2937' }}
                                         dy={-5}
                                     />
+                                                    {isLoadingRevenue && <div className="text-center text-gray-500 mt-2">Loading revenue chart...</div>}
+                                                    {revenueError && <div className="text-center text-red-500 mt-2">{revenueError}</div>}
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -167,7 +180,7 @@ const DashboardPage: React.FC = () => {
                 {/* Right Chart (Service Usage) */}
                 <div className="flex-shrink-0 xl:w-[400px] bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col">
                     <div className="text-center mb-8">
-                        <h2 className="text-[#1a1a1a] text-xl font-bold">Service Usage Breakdown (%)</h2>
+                        <h2 className="text-[#1a1a1a] text-xl font-bold"></h2>
                     </div>
                     
                     <div className="h-[350px] w-full">

@@ -1,3 +1,11 @@
+// Get total revenue for a date range
+export const getRevenueTotalForRange = async (start: Date, end: Date): Promise<number> => {
+  const revenues = await RevenueModel.find({
+    ...revenueFilter,
+    date: { $gte: start, $lt: end },
+  });
+  return revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+};
 import RevenueModel, { IRevenue } from '../../database/models/Revenue.js';
 import ExpenseModel, { IExpense } from '../../database/models/Expense.js';
 
