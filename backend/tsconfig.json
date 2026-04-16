@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "src/modules/data/service.ts"]
+  "include": ["src", "src/modules/dashboard/service.ts"]
 }
