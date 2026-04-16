@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { router } from 'expo-router';
 import { useLocation } from '../../../hooks/useLocation';
 import { updateLocationThunk } from '../../../store/slices/staff/staffOrders.slice';
 import {
@@ -235,6 +236,10 @@ export default function StaffOrdersScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.TEXT_PRIMARY} />
+          <Text style={styles.backText}>Orders</Text>
+        </Pressable>
         <Text style={styles.headerTitle}>My Jobs</Text>
         <Text style={styles.headerSubtitle}>
           {myJobs.length} active job{myJobs.length !== 1 ? 's' : ''}
@@ -468,5 +473,16 @@ gpsText: {
   fontSize: TYPOGRAPHY.FONT_SIZE.SM,
   fontFamily: TYPOGRAPHY.FONT_FAMILY.SEMIBOLD,
   color: COLORS.SUCCESS_TEXT,
+},
+backButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: SPACING.XXS,
+  marginBottom: SPACING.SM,
+},
+backText: {
+  fontSize: TYPOGRAPHY.FONT_SIZE.LG,
+  fontFamily: TYPOGRAPHY.FONT_FAMILY.MEDIUM,
+  color: COLORS.TEXT_PRIMARY,
 },
 });
