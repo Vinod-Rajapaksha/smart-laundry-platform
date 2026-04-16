@@ -1,4 +1,5 @@
-import { X, Mail, Calendar, Package } from 'lucide-react';
+import { X, Mail, Calendar, Package, RotateCw } from 'lucide-react';
+import { useState } from 'react';
 
 interface Notification {
     _id: string;
@@ -12,9 +13,21 @@ interface Notification {
 interface NotificationHistoryProps {
     notifications: Notification[];
     onClose: () => void;
+    onRefresh: () => Promise<void>;
 }
 
-export function NotificationHistory({ notifications, onClose }: NotificationHistoryProps) {
+export function NotificationHistory({ notifications, onClose, onRefresh }: NotificationHistoryProps) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await onRefresh();
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={onClose}></div>
@@ -88,7 +101,15 @@ export function NotificationHistory({ notifications, onClose }: NotificationHist
                     </table>
                 </div>
                 
-                <div className="px-8 py-5 border-t border-gray-100 bg-white text-right">
+                <div className="px-8 py-5 border-t border-gray-100 bg-white flex justify-between items-center">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className="flex items-center space-x-2 px-4 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all disabled:opacity-50"
+                    >
+                        <RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh History'}</span>
+                    </button>
                     <button
                         onClick={onClose}
                         className="px-6 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-200 transition-all"

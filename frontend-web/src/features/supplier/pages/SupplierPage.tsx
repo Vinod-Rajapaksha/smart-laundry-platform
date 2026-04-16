@@ -145,9 +145,13 @@ export default function SupplierPage() {
       )}
 
       {isHistoryOpen && (
-        <NotificationHistory
-          notifications={notifications}
-          onClose={() => setIsHistoryOpen(false)}
+        <NotificationHistory 
+          notifications={notifications} 
+          onClose={() => setIsHistoryOpen(false)} 
+          onRefresh={async () => {
+            const data = await supplierApi.getNotifications();
+            setNotifications(data);
+          }}
         />
       )}
 
