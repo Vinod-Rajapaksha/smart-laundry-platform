@@ -53,6 +53,16 @@ export const assignJob = async (
     throw new ApiError(400, 'This order already has an active rider assigned');
   }
 
+  // Check staff member's active job count
+const activeJobCount = await StaffJob.countDocuments({
+  assignedStaffId: staffId,
+  jobStatus: { $in: ['PENDING', 'IN_PROGRESS'] },
+});
+
+if (activeJobCount >= 5) {
+  throw new ApiError(400, 'You already have 5 active jobs. Complete one before taking a new one.');
+}
+
   const job = await StaffJob.create({
     orderId,
     jobType,

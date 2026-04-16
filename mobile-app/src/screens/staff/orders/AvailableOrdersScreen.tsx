@@ -149,11 +149,13 @@ export default function AvailableOrdersScreen() {
           {currentData.length} order{currentData.length !== 1 ? 's' : ''} available
         </Text>
             <Pressable
-                style={styles.myJobsButton}
-                onPress={() => router.push('/(protected)/(staff)/orders/assigned')}
-                >
-                <MaterialCommunityIcons name="clipboard-account-outline" size={16} color={COLORS.PRIMARY} />
-                <Text style={styles.myJobsButtonText}>My Jobs ({myJobs.length})</Text>
+              style={styles.myJobsButton}
+              onPress={() => router.push('/(protected)/(staff)/orders/assigned')}
+            >
+              <MaterialCommunityIcons name="clipboard-account-outline" size={16} color={COLORS.PRIMARY} />
+              <Text style={styles.myJobsButtonText}>
+                My Jobs ({myJobs.length}/5)
+              </Text>
             </Pressable>
       </View>
 

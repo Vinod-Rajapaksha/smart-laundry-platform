@@ -100,8 +100,8 @@ export const assignJobThunk = createAsyncThunk(
   ) => {
     try {
       return await deliveryService.assignJob(orderId, jobType);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to assign job';
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Failed to assign job';
       return thunkAPI.rejectWithValue(message);
     }
   }
