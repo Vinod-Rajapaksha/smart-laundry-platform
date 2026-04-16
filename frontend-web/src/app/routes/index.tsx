@@ -5,6 +5,7 @@ import NotFoundPage from "../../pages/NotFoundPage";
 import UnauthorizedPage from "../../pages/UnauthorizedPage";
 import LoginPage from "../../pages/LoginPage";
 import InventoryDashboard from "../../pages/inventory/InventoryDashboard";
+import SupplierPage from "../../features/supplier/pages/SupplierPage";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
 
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomePage /> },
               { path: "inventory", element: <InventoryDashboard /> },
-
+              { path: "suppliers", element: <SupplierPage /> },
             ],
           },
         ],

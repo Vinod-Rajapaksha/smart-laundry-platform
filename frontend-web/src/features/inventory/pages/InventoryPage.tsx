@@ -6,6 +6,7 @@ import type { InventoryItem } from '../types';
 import { ItemTable } from '../components/ItemTable';
 import { ItemForm } from '../components/ItemForm';
 import { CategoryManager } from '../components/CategoryManager';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import {
     fetchInventory,
     createInventoryItem,
@@ -23,6 +24,12 @@ export function InventoryPage() {
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [recentDeductions, setRecentDeductions] = useState(0);
+    
+    // Deletion states
+    const [isDeleteItemModalOpen, setIsDeleteItemModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+    const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         const loadData = async () => {
@@ -79,17 +86,24 @@ export function InventoryPage() {
         }
     };
 
-    const handleDeleteCategory = async (catToDelete: string) => {
-        if (window.confirm(`Delete category "${catToDelete}"? Items in it won't be deleted but might need recategorization.`)) {
-            try {
-                await deleteCategory(catToDelete);
-                setCategories(categories.filter(c => c !== catToDelete));
-                if (activeCategory === catToDelete) setActiveCategory('All');
-                toast.success('Category deleted');
-            } catch (err) {
-                toast.error('Failed to delete category');
-            }
+    const handleDeleteCategory = async () => {
+        if (!categoryToDelete) return;
+        try {
+            await deleteCategory(categoryToDelete);
+            setCategories(categories.filter(c => c !== categoryToDelete));
+            if (activeCategory === categoryToDelete) setActiveCategory('All');
+            toast.success('Category deleted');
+        } catch (err) {
+            toast.error('Failed to delete category');
+        } finally {
+            setIsDeleteCategoryModalOpen(false);
+            setCategoryToDelete(null);
         }
+    };
+
+    const openDeleteCategoryConfirm = (cat: string) => {
+        setCategoryToDelete(cat);
+        setIsDeleteCategoryModalOpen(true);
     };
 
     const handleSaveItem = async (newItemData: Partial<InventoryItem>) => {
@@ -128,16 +142,23 @@ export function InventoryPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteItem = async (id: string) => {
-        if (window.confirm("Are you sure you want to delete this item?")) {
-            try {
-                await deleteInventoryItem(id);
-                setItems(items.filter(item => item.id !== id));
-                toast.success('Item deleted successfully');
-            } catch (err) {
-                toast.error('Failed to delete item');
-            }
+    const handleDeleteItem = async () => {
+        if (!itemToDelete) return;
+        try {
+            await deleteInventoryItem(itemToDelete);
+            setItems(items.filter(item => item.id !== itemToDelete));
+            toast.success('Item deleted successfully');
+        } catch (err) {
+            toast.error('Failed to delete item');
+        } finally {
+            setIsDeleteItemModalOpen(false);
+            setItemToDelete(null);
         }
+    };
+
+    const openDeleteItemConfirm = (id: string) => {
+        setItemToDelete(id);
+        setIsDeleteItemModalOpen(true);
     };
 
     const handleRestockSubmit = async (item: InventoryItem, amount: number) => {
@@ -216,7 +237,7 @@ export function InventoryPage() {
                                 setIsCategoryModalOpen={setIsCategoryModalOpen}
                                 onRegisterClick={openRegisterModal}
                                 onEditClick={openEditModal}
-                                onDeleteClick={handleDeleteItem}
+                                onDeleteClick={openDeleteItemConfirm}
                             />
                         </>
                     ) : (
@@ -234,7 +255,7 @@ export function InventoryPage() {
                     categories={categories}
                     onClose={() => setIsCategoryModalOpen(false)}
                     onAddCategory={handleAddCategory}
-                    onDeleteCategory={handleDeleteCategory}
+                    onDeleteCategory={openDeleteCategoryConfirm}
                 />
             )}
 
@@ -247,6 +268,32 @@ export function InventoryPage() {
                     onSave={handleSaveItem}
                 />
             )}
+
+            <ConfirmDialog
+                open={isDeleteItemModalOpen}
+                title="Delete Inventory Item"
+                description="Are you sure you want to delete this inventory item? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={handleDeleteItem}
+                onCancel={() => {
+                    setIsDeleteItemModalOpen(false);
+                    setItemToDelete(null);
+                }}
+            />
+
+            <ConfirmDialog
+                open={isDeleteCategoryModalOpen}
+                title="Delete Category"
+                description={`Are you sure you want to delete the category "${categoryToDelete}"? Items in this category will not be deleted but may require recategorization.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={handleDeleteCategory}
+                onCancel={() => {
+                    setIsDeleteCategoryModalOpen(false);
+                    setCategoryToDelete(null);
+                }}
+            />
         </div>
     );
 }
