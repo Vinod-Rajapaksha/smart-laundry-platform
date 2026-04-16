@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { PAYMENT_STATUS } from '../../core/constants.js';
 
 const onlineTransactionSchema = new mongoose.Schema(
   {
@@ -21,7 +20,7 @@ const onlineTransactionSchema = new mongoose.Schema(
     status: { 
         type: String, 
         required: true, 
-        enum: Object.values(PAYMENT_STATUS),
+        trim: true, 
     },
     rawResponse: { 
         type: Object, 

@@ -90,6 +90,12 @@ const navItems: NavItem[] = [
     icon: <Truck size={18} />,
   },
   {
+    id: "suppliers",
+    label: "Suppliers",
+    path: "/admin/suppliers",
+    icon: <Truck size={18} />,
+  },
+  {
     id: "reports",
     label: "Reports",
     path: "/admin/reports",

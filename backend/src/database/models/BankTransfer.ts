@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { BANK_VERIFICATION_STATUS, OCR_STATUS } from '../../core/constants.js';
 
 const bankTransferSchema = new mongoose.Schema(
   {
@@ -16,12 +15,6 @@ const bankTransferSchema = new mongoose.Schema(
     bankName: { 
         type: String, 
         required: true, 
-        trim: true, 
-    },
-    systemRefId: { 
-        type: String, 
-        required: true, 
-        unique: true,
         trim: true, 
     },
     referenceNo: { 
@@ -41,8 +34,7 @@ const bankTransferSchema = new mongoose.Schema(
     verifyStatus: { 
         type: String, 
         required: true, 
-        enum: Object.values(BANK_VERIFICATION_STATUS),
-        default: BANK_VERIFICATION_STATUS.PENDING,
+        trim: true, 
     },
     verifiedBy: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -54,31 +46,9 @@ const bankTransferSchema = new mongoose.Schema(
         default: null, 
     },
     rejectReason: { 
-        type: String,
-        default: null,
-        trim: true,
-    },
-    isSuspicious: {
-        type: Boolean,
-        default: false,
-    },
-    internalNotes: {
-        type: String,
-        default: null,
-        trim: true,
-    },
-    ocrText: {
-        type: String,
-        default: null,
-    },
-    ocrConfidence: {
-        type: Number,
-        default: 0,
-    },
-    ocrStatus: {
-        type: String,
-        enum: Object.values(OCR_STATUS),
-        default: OCR_STATUS.PENDING,
+        type: String, 
+        default: null, 
+        trim: true, 
     },
   },
   { 
