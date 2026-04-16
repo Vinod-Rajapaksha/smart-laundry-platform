@@ -1,16 +1,15 @@
 import { Router } from 'express';
 import { auth } from '../../middleware/auth.js';
-import { validateBody } from '../../middleware/validate.js';
-import { registerSchema, loginSchema, refreshTokenSchema } from '../../validation/auth.schema.js';
+import { validateRegister, validateLogin, validateRefreshToken } from './validation.js';
 import { login, refreshToken, register, logout } from './controller.js';
 
 const router = Router();
 
-router.post('/register', validateBody(registerSchema), register);
+router.post('/register', validateRegister, register);
 
-router.post('/login', validateBody(loginSchema), login);
+router.post('/login', validateLogin, login);
 
-router.post('/refresh-token', validateBody(refreshTokenSchema), refreshToken);
+router.post('/refresh-token', validateRefreshToken, refreshToken);
 
 router.post('/logout', auth, logout);
 

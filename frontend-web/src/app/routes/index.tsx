@@ -4,7 +4,8 @@ import HomePage from "../../pages/HomePage";
 import NotFoundPage from "../../pages/NotFoundPage";
 import UnauthorizedPage from "../../pages/UnauthorizedPage";
 import LoginPage from "../../pages/LoginPage";
-
+import InventoryDashboard from "../../pages/inventory/InventoryDashboard";
+import SupplierPage from "../../features/supplier/pages/SupplierPage";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
 
@@ -12,7 +13,6 @@ import { ADMIN_PORTAL_ROLES } from "../../types/enums";
 
 import AdminLayout from "../../layouts/AdminLayout";
 
-import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { 
+      {
         path: "/admin",
         element: <AdminLayout />, 
         children: [
@@ -30,8 +30,8 @@ export const router = createBrowserRouter([
             element: <RoleRoute allowed={ADMIN_PORTAL_ROLES} />,
             children: [
               { index: true, element: <HomePage /> },
-
-              { path: "bank-verification", element: <BankVerificationPage /> },
+              { path: "inventory", element: <InventoryDashboard /> },
+              { path: "suppliers", element: <SupplierPage /> },
             ],
           },
         ],

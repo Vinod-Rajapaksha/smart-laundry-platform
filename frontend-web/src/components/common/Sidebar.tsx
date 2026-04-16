@@ -13,7 +13,6 @@ import {
   Truck,
   BarChart3,
   LogOut,
-  CreditCard,
 } from "lucide-react";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
@@ -46,12 +45,6 @@ const navItems: NavItem[] = [
     label: "Orders",
     path: "/admin/orders",
     icon: <ShoppingCart size={18} />,
-  },
-  {
-    id: "payments",
-    label: "Payments",
-    path: "/admin/payments",
-    icon: <CreditCard size={18} />,
   },
   {
     id: "bank-verification",
@@ -87,6 +80,12 @@ const navItems: NavItem[] = [
     id: "deliveries",
     label: "Deliveries",
     path: "/admin/deliveries",
+    icon: <Truck size={18} />,
+  },
+  {
+    id: "suppliers",
+    label: "Suppliers",
+    path: "/admin/suppliers",
     icon: <Truck size={18} />,
   },
   {
