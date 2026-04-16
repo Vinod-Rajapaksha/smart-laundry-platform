@@ -5,7 +5,7 @@ import financeRoutes from '../modules/finance/index.js';
 import reportGenRoutes from '../modules/reportGen/index.js';
 import userRoutes from '../modules/user/routes.js';
 import feedbackRoutes from '../modules/feedback/routes.js';
-import dataRoutes from "../modules/data/routes.js";
+import dataRoutes from "../modules/dashboard/routes.js";
 
 const router = Router();
 

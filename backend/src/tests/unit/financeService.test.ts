@@ -17,7 +17,7 @@ jest.unstable_mockModule("../../database/models/Expense.ts", () => ({
 	},
 }));
 
-const { getFinanceSummary } = await import("../../modules/finance/financeService.js");
+const { getFinanceSummary } = await import("../../modules/finance/service.js");
 
 describe("getFinanceSummary", () => {
 
