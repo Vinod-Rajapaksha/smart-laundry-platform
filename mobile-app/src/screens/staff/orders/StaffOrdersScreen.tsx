@@ -191,7 +191,9 @@ export default function StaffOrdersScreen() {
         )}
 
         <View style={styles.cardFooter}>
-          <Text style={styles.amount}>LKR {order.totalAmount?.toLocaleString()}</Text>
+          {order.paymentMethod === 'CASH' && (
+            <Text style={styles.amount}>LKR {order.totalAmount?.toLocaleString()}</Text>
+          )}
           {!isCompleted && nextStatus && (
             <Pressable
               style={[styles.actionButton, isUpdating && styles.actionButtonDisabled]}
