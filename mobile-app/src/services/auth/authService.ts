@@ -1,6 +1,6 @@
 import api from "../api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RegisterData, LoginResponse, AuthUser } from "../../types/auth.types";
+import { setAccessToken, setRefreshToken, clearAuthStorage, setUserStorage } from "../storage";
 
 export const login = async (
   email: string,
@@ -9,11 +9,13 @@ export const login = async (
   const response = await api.post("/auth/login", { email, password });
   const { user, accessToken, refreshToken } = response.data.data;
 
-  await AsyncStorage.setItem("accessToken", accessToken);
+  await setAccessToken(accessToken);
 
   if (refreshToken) {
-    await AsyncStorage.setItem("refreshToken", refreshToken);
+  await setRefreshToken(refreshToken);
   }
+
+  await setUserStorage(user);
 
   return { user, accessToken, refreshToken };
 };
@@ -24,6 +26,5 @@ export const register = async (data: RegisterData): Promise<AuthUser> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await AsyncStorage.removeItem("accessToken");
-  await AsyncStorage.removeItem("refreshToken");
+  await clearAuthStorage();
 };
