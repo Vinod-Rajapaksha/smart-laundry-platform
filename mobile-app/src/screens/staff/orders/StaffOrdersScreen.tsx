@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from '../../../hooks/useLocation';
+import { updateLocationThunk } from '../../../store/slices/staff/staffOrders.slice';
 import {
   View,
   Text,
@@ -27,6 +29,7 @@ export default function StaffOrdersScreen() {
     useAppSelector((state) => state.staffOrders);
 
   const [refreshing, setRefreshing] = useState(false);
+  const { startTracking, stopTracking, isTracking, hasPermission } = useLocation();
 
   useEffect(() => {
     dispatch(fetchMyJobs(undefined));
@@ -58,6 +61,14 @@ export default function StaffOrdersScreen() {
               updateJobStatusThunk({ orderId, status: nextStatus })
             );
             if (updateJobStatusThunk.fulfilled.match(result)) {
+              // Start tracking when rider starts moving
+              if (nextStatus === 'PICKUP_ENROUTE' || nextStatus === 'DELIVERY_ENROUTE') {
+                handleStartTracking(orderId);
+              }
+              // Stop tracking when job is done
+              if (nextStatus === 'PICKED_UP' || nextStatus === 'DELIVERED') {
+                stopTracking();
+              }
               Alert.alert('Success', 'Status updated successfully');
               dispatch(fetchMyJobs(undefined));
             } else {
@@ -100,6 +111,12 @@ export default function StaffOrdersScreen() {
   const getStatusBackground = (jobType: string) => {
     return jobType === 'PICKUP' ? COLORS.PRIMARY_LIGHT : COLORS.SUCCESS_BACKGROUND;
   };
+
+  const handleStartTracking = (orderId: string) => {
+  startTracking((latitude, longitude) => {
+    dispatch(updateLocationThunk({ orderId, latitude, longitude }));
+  });
+};
 
   const renderJobCard = ({ item }: { item: any }) => {
     const order = item.orderId;
@@ -165,6 +182,13 @@ export default function StaffOrdersScreen() {
             </Text>
           </View>
         </View>
+
+        {isTracking && (
+          <View style={styles.gpsRow}>
+            <View style={styles.gpsDot} />
+            <Text style={styles.gpsText}>Live GPS Active</Text>
+          </View>
+        )}
 
         <View style={styles.cardFooter}>
           <Text style={styles.amount}>LKR {order.totalAmount?.toLocaleString()}</Text>
@@ -426,4 +450,21 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
+  gpsRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: SPACING.XXS,
+  marginTop: SPACING.SM,
+},
+gpsDot: {
+  width: 7,
+  height: 7,
+  borderRadius: SPACING.PILL,
+  backgroundColor: COLORS.SUCCESS,
+},
+gpsText: {
+  fontSize: TYPOGRAPHY.FONT_SIZE.SM,
+  fontFamily: TYPOGRAPHY.FONT_FAMILY.SEMIBOLD,
+  color: COLORS.SUCCESS_TEXT,
+},
 });

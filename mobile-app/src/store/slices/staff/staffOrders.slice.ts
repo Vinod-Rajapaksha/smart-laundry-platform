@@ -122,6 +122,21 @@ export const updateJobStatusThunk = createAsyncThunk(
   }
 );
 
+export const updateLocationThunk = createAsyncThunk(
+  'staffOrders/updateLocation',
+  async (
+    { orderId, latitude, longitude }: { orderId: string; latitude: number; longitude: number },
+    thunkAPI: any
+  ) => {
+    try {
+      return await deliveryService.updateLocation(orderId, latitude, longitude);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update location';
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const staffOrdersSlice = createSlice({
   name: 'staffOrders',
   initialState,
@@ -189,6 +204,15 @@ const staffOrdersSlice = createSlice({
       .addCase(updateJobStatusThunk.rejected, (state: StaffOrdersState, action: PayloadAction<unknown>) => {
         state.isUpdating = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateLocationThunk.pending, (state: StaffOrdersState) => {
+        // silent update — no loading state needed
+      })
+      .addCase(updateLocationThunk.fulfilled, (state: StaffOrdersState) => {
+        // silent success
+      })
+      .addCase(updateLocationThunk.rejected, (state: StaffOrdersState) => {
+        // silent failure — don't interrupt the rider's flow
       });
   },
 });
