@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { apiFetch } from '../../../services/apiFetch';
 
 
@@ -14,8 +14,7 @@ const statsConfig = [
   { key: 'completed', label: 'COMPLETED', icon: 'check-circle', color: '#3CB371', bg: '#F0FFF0' },
 ];
 
-const revenueData = [5, 7, 6, 8, 5, 12, 8, 10, 9, 11, 10, 9];
-const months = ['JAN', '', '', '', '', 'JUN', '', '', '', '', '', 'DEC'];
+const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 const usage = [
   { label: 'WASHING', value: 45.2, color: '#2176FF' },
@@ -30,8 +29,14 @@ export default function StaffHomeScreen() {
     pendingOrders: null,
     completed: null, // Placeholder if you want to add completed orders
   });
+  const [revenueData, setRevenueData] = useState<number[]>(Array(12).fill(0));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  // Profile modal state removed; navigation will be used instead
+  const pathname = usePathname();
+
+
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -46,6 +51,9 @@ export default function StaffHomeScreen() {
             pendingOrders: data.data.pendingOrders,
             completed: null, // Set this if your API returns completed orders
           });
+          if (Array.isArray(data.data.monthlyRevenue)) {
+            setRevenueData(data.data.monthlyRevenue);
+          }
         }
       })
       .catch((err) => {
@@ -66,9 +74,10 @@ export default function StaffHomeScreen() {
           <Ionicons name="menu" size={28} color="#2176FF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Admin Portal</Text>
-        <TouchableOpacity style={styles.profileIcon}>
+        <TouchableOpacity style={styles.profileIcon} onPress={() => router.push('/(protected)/(staff)/(tabs)/profile')}>
           <Ionicons name="person-circle" size={36} color="#2176FF" />
         </TouchableOpacity>
+
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.performanceLabel}>PERFORMANCE OVERVIEW</Text>
@@ -114,38 +123,37 @@ export default function StaffHomeScreen() {
         <View style={styles.analyticsCard}>
           <View style={styles.analyticsHeader}>
             <Text style={styles.analyticsTitle}>Revenue Analytics</Text>
-            <View style={styles.analyticsGrowth}><Text style={styles.analyticsGrowthText}>+14.2%</Text></View>
           </View>
           <Text style={styles.analyticsSubtitle}>Last 12 Months Performance</Text>
           <View style={styles.barChartRow}>
-            {revenueData.map((val, idx) => (
-              <View key={idx} style={styles.barChartCol}>
-                <View style={[styles.bar, idx === 5 && styles.barActive, { height: val * 10 }]} />
-                <Text style={styles.barLabel}>{months[idx]}</Text>
-              </View>
-            ))}
+            {(() => {
+              const MAX_BAR_HEIGHT = 80;
+              const maxRevenue = Math.max(...revenueData, 1); // Avoid division by zero
+              return revenueData.map((val, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.barChartCol}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedMonth(idx)}
+                >
+                  {selectedMonth === idx && (
+                    <Text style={styles.revenueValue}>{val}</Text>
+                  )}
+                  <View
+                    style={[
+                      styles.bar,
+                      { backgroundColor: idx === 5 ? '#2176FF' : '#3FA0F6' },
+                      { height: (val / maxRevenue) * MAX_BAR_HEIGHT },
+                      selectedMonth === idx && styles.barSelected
+                    ]}
+                  />
+                  <Text style={styles.barLabel}>{months[idx]}</Text>
+                </TouchableOpacity>
+              ));
+            })()}
           </View>
         </View>
-        {/* Service Usage */}
-        <View style={styles.usageCard}>
-          <Text style={styles.usageTitle}>Service Usage</Text>
-          <View style={styles.usageRow}>
-            {/* Donut chart mock */}
-            <View style={styles.donutMock}>
-              <Text style={styles.donutText}>65%</Text>
-              <Text style={styles.donutSub}>RATIO</Text>
-            </View>
-            <View style={styles.usageList}>
-              {usage.map((u, i) => (
-                <View key={u.label} style={styles.usageItem}>
-                  <View style={[styles.usageDot, { backgroundColor: u.color }]} />
-                  <Text style={styles.usageLabel}>{u.label}</Text>
-                  <Text style={styles.usageValue}>{u.value}%</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
+        
         {/* Financial Analysis Button */}
         <TouchableOpacity style={styles.financialBtn}>
           <Ionicons name="stats-chart" size={20} color="#fff" style={{ marginRight: 8 }} />
@@ -154,30 +162,7 @@ export default function StaffHomeScreen() {
         <View style={{ height: 32 }} />
       </ScrollView>
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cash" size={22} color="#B0BEC5" />
-          <Text style={styles.navLabel}>FINANCE</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.navItem, styles.navItemActive]}
-          onPress={() => router.replace('/(protected)/(staff)/(tabs)/reports')}
-        >
-          <Ionicons name="document-text" size={22} color="#3FA0F6" />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>REPORTS</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.replace('/(protected)/(staff)/(tabs)/users')}
-        >
-          <Ionicons name="people" size={22} color="#B0BEC5" />
-          <Text style={styles.navLabel}>STAFF</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Ionicons name="bar-chart" size={22} color="#2176FF" />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>SYSTEM</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Bottom nav bar removed, now handled by shared layout */}
     </SafeAreaView>
   );
 }
@@ -309,17 +294,27 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: 12,
-    backgroundColor: '#E6F0FF',
+    backgroundColor: '#3FA0F6', // Default blue for bars
     borderRadius: 6,
     marginBottom: 4,
   },
   barActive: {
-    backgroundColor: '#2176FF',
+    backgroundColor: '#2176FF', // Darker blue for active bar
   },
   barLabel: {
     fontSize: 10,
     color: '#7B8AAB',
     marginTop: 2,
+  },
+  revenueValue: {
+    fontSize: 12,
+    color: '#2176FF',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  barSelected: {
+    borderWidth: 2,
+    borderColor: '#2176FF',
   },
   usageCard: {
     backgroundColor: '#fff',

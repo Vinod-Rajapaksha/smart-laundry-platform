@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ApiResponse } from "../../core/apiResponse.js";
 import { getDashboardStats, getDashboardUsers } from "./service.js";
 
+
 export const getDashboardData = async (_req: Request, res: Response) => {
 	try {
 		const stats = await getDashboardStats();

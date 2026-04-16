@@ -1,27 +1,59 @@
+
+
 import Order from "../../database/models/Order.js";
 import User from "../../database/models/User.js";
+import RevenueModel from '../../database/models/Revenue.js';
 
 export interface DashboardStats {
 	totalOrders: number;
 	totalCustomers: number;
 	pendingOrders: number;
+	monthlyRevenue: number[]; // Array of revenue per month (Jan-Dec)
 }
 
-export const getDashboardStats = async (): Promise<DashboardStats> => {
-	const [totalOrders, totalCustomers, pendingOrders] = await Promise.all([
+
+export const getDashboardStats = async () => {
+	const [totalOrders, totalCustomers, pendingOrders, monthlyRevenueAgg] = await Promise.all([
 		Order.countDocuments(),
 		User.countDocuments({ role: "CUSTOMER" }),
 		Order.countDocuments({
 			status: { $in: ["PICKUP_ENROUTE", "PICKED_UP"] },
 		}),
+		// Aggregate revenue by month for the current year
+		RevenueModel.aggregate([
+			{
+				$match: {
+					date: {
+						$gte: new Date(new Date().getFullYear(), 0, 1),
+						$lt: new Date(new Date().getFullYear() + 1, 0, 1),
+					},
+					type: 'revenue',
+				},
+			},
+			{
+				$group: {
+					_id: { month: { $month: "$date" } },
+					total: { $sum: "$amount" },
+				},
+			},
+			{ $sort: { "_id.month": 1 } },
+		]),
 	]);
+
+	// Map aggregation result to an array of 12 months (Jan-Dec)
+	const monthlyRevenue: number[] = Array(12).fill(0);
+	monthlyRevenueAgg.forEach((item: any) => {
+		monthlyRevenue[item._id.month - 1] = item.total;
+	});
 
 	return {
 		totalOrders,
 		totalCustomers,
 		pendingOrders,
+		monthlyRevenue,
 	};
 };
+	
 
 interface DashboardUserListQuery {
 	page?: number;
