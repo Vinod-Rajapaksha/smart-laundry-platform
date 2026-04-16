@@ -63,6 +63,11 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: Truck,
   },
 
+  suppliers: {
+    title: "Supplier Management",
+    Icon: Truck,
+  },
+
   reports: {
     title: "Reports",
     Icon: BarChart3,

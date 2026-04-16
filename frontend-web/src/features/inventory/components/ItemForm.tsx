@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { InventoryItem, InventoryErrors } from '../types';
+import { supplierApi } from '../../supplier/api/supplierApi';
 
 interface ItemFormProps {
     initialItem: Partial<InventoryItem>;
@@ -25,18 +26,15 @@ export function ItemForm({
     const parseUnit = (str = '') => { const m = str.match(/[a-zA-Z]+/); return m ? m[0] : 'units'; };
 
     useEffect(() => {
-        const fetchSuppliers = async () => {
+        const fetchSuppliersData = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/suppliers');
-                if (res.ok) {
-                    const data = await res.json();
-                    setSuppliers(data.data || []);
-                }
+                const data = await supplierApi.getSuppliers();
+                setSuppliers(data);
             } catch (err) {
                 console.error('Failed to fetch suppliers', err);
             }
         };
-        fetchSuppliers();
+        fetchSuppliersData();
     }, []);
 
     useEffect(() => {
