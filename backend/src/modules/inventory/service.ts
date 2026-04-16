@@ -2,6 +2,7 @@ import { InventoryModel, CategoryModel, InventoryTransactionModel, IInventoryIte
 import { SupplierModel } from '../../database/models/Supplier.js';
 import { SupplierNotificationModel } from '../../database/models/SupplierNotification.js';
 import { sendLowStockEmail } from '../../utils/mailer.js';
+import logger from '../../config/logger.js';
 
 export class InventoryService {
     // Helpers
@@ -30,33 +31,54 @@ export class InventoryService {
 
             // Notify if below threshold and not already notified
             if (currentNorm.base <= thresholdNorm.base && !item.lowStockEmailSent && item.supplierId) {
-                // Set the flag to prevent duplicate emails
-                item.lowStockEmailSent = true;
-                await item.save();
+                
+                // ATOMIC UPDATE: Only proceed if we successfully switch the flag from false to true
+                const updatedItem = await InventoryModel.findOneAndUpdate(
+                    { _id: item._id, lowStockEmailSent: false },
+                    { $set: { lowStockEmailSent: true } },
+                    { new: true }
+                );
+
+                if (!updatedItem) {
+                    logger.info(`Notification for item ${item.name} already in progress or sent. Skipping duplicate.`);
+                    return;
+                }
 
                 // Fetch supplier details
                 const supplier = await SupplierModel.findById(item.supplierId);
                 if (supplier && supplier.email) {
                     const quantityRequired = `${(thresholdNorm.base * 2) / (stockUnit.toLowerCase() === 'l' || stockUnit.toLowerCase() === 'kg' ? 1000 : 1)} ${stockUnit}`;
-                    await sendLowStockEmail(supplier.email, item.name, quantityRequired);
-
-                    // Log the notification
-                    await SupplierNotificationModel.create({
-                        supplierId: supplier._id,
-                        itemId: item.itemId,
-                        itemName: item.name,
-                        quantityRequired,
-                        recipientEmail: supplier.email,
-                        status: 'success'
-                    });
+                    
+                    try {
+                        await sendLowStockEmail(supplier.email, item.name, quantityRequired);
+                        
+                        // Log the notification to database
+                        await SupplierNotificationModel.create({
+                            supplierId: supplier._id,
+                            itemId: item.itemId,
+                            itemName: item.name,
+                            quantityRequired,
+                            recipientEmail: supplier.email,
+                            status: 'success'
+                        });
+                        
+                        logger.info(`Low stock notification sent and recorded for ${item.name} to ${supplier.email}`);
+                    } catch (emailErr) {
+                        logger.error(`Failed to send email for ${item.name}:`, emailErr);
+                        // Optional: Reset flag if email failed so it can retry? 
+                        // For now we keep it true to avoid spamming failed attempts
+                    }
                 }
             } else if (currentNorm.base > thresholdNorm.base && item.lowStockEmailSent) {
                 // Reset flag if manually restocked via update
-                item.lowStockEmailSent = false;
-                await item.save();
+                await InventoryModel.updateOne(
+                    { _id: item._id },
+                    { $set: { lowStockEmailSent: false } }
+                );
+                logger.info(`Low stock flag reset for ${item.name} as stock is now above threshold`);
             }
         } catch (err) {
-            console.error('Failed to trigger low stock check', err);
+            logger.error('Failed to trigger low stock check:', err);
         }
     }
 
@@ -89,8 +111,11 @@ export class InventoryService {
         const item = await InventoryModel.findOne({ itemId });
         if (!item) return null;
 
-        // Apply updates
-        Object.assign(item, data);
+        // Apply updates - protect internal flags
+        const updateData = { ...data };
+        delete (updateData as any).lowStockEmailSent;
+        
+        Object.assign(item, updateData);
         await item.save();
 
         // Trigger check after manual update

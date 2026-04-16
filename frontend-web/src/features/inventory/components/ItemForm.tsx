@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, RotateCw } from 'lucide-react';
 import type { InventoryItem, InventoryErrors } from '../types';
 import { supplierApi } from '../../supplier/api/supplierApi';
 
@@ -21,6 +21,7 @@ export function ItemForm({
     const [newItem, setNewItem] = useState<Partial<InventoryItem>>(initialItem);
     const [errors, setErrors] = useState<InventoryErrors>({});
     const [suppliers, setSuppliers] = useState<{_id: string, name: string}[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
 
     const parseAmount = (str = '') => { const m = str.match(/[\d.]+/); return m ? m[0] : ''; };
     const parseUnit = (str = '') => { const m = str.match(/[a-zA-Z]+/); return m ? m[0] : 'units'; };
@@ -70,9 +71,17 @@ export function ItemForm({
             return;
         }
 
-        const saveErrors = await onSave(newItem);
-        if (saveErrors) {
-            setErrors((prev) => ({ ...prev, ...saveErrors }));
+        setIsSaving(true);
+        try {
+            const saveErrors = await onSave(newItem);
+            if (saveErrors) {
+                setErrors((prev) => ({ ...prev, ...saveErrors }));
+                setIsSaving(false);
+            }
+            // onClose is usually handled by the parent on successful onSave
+        } catch (err) {
+            console.error('Save failed', err);
+            setIsSaving(false);
         }
     };
 
@@ -236,10 +245,15 @@ export function ItemForm({
                         </button>
                         <button
                             type="submit"
-                            className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-tr from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center transform hover:-translate-y-0.5 active:translate-y-0"
+                            disabled={isSaving}
+                            className={`px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-tr from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center transform hover:-translate-y-0.5 active:translate-y-0 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            {isEditing ? 'Save Changes' : 'Confirm Registration'}
+                            {isSaving ? (
+                                <RotateCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                            )}
+                            {isSaving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Confirm Registration')}
                         </button>
                     </div>
                 </form>
