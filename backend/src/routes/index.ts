@@ -6,6 +6,7 @@ import reportGenRoutes from '../modules/reportGen/index.js';
 import userRoutes from '../modules/user/routes.js';
 import feedbackRoutes from '../modules/feedback/routes.js';
 import dataRoutes from "../modules/data/routes.js";
+import staffRoutes from '../modules/staff/routes.js';
 
 const router = Router();
 
@@ -14,6 +15,8 @@ router.use('/auth', authRoutes);
 router.use('/finance', financeRoutes);
 router.use('/reportGen', reportGenRoutes);
 router.use('/users', userRoutes);
+
+router.use('/staff', staffRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/data', dataRoutes);
 

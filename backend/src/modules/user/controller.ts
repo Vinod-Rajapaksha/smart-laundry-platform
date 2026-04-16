@@ -56,29 +56,39 @@ export const getAllUsers = asyncHandler(
   }
 );
 
+
+import { AuthRequest } from '../../types/auth.js';
+
 export const getUserById = asyncHandler(
-  async (req: Request<any>, res: Response) => {
+  async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
-
-    const user = await userService.getUserById(id);
-
+    const userId = Array.isArray(id) ? id[0] : id;
+    // Only ADMIN or self can access
+    if (req.user?.role !== 'ADMIN' && req.user?.id !== userId) {
+      return ApiResponse(res, 403, 'Forbidden: insufficient permissions');
+    }
+    const user = await userService.getUserById(userId);
     return ApiResponse(res, 200, "User retrieved successfully", user);
   }
 ) as any;
 
-export const updateUser = asyncHandler(
-  async (req: Request<any, any, UpdateUserBody>, res: Response) => {
-    const { id } = req.params;
-    const { name, email, telephone, address, password } = req.body;
 
-    const user = await userService.updateUser(id, {
+export const updateUser = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = Array.isArray(id) ? id[0] : id;
+    const { name, email, telephone, address, password } = req.body;
+    // Only ADMIN or self can update
+    if (req.user?.role !== 'ADMIN' && req.user?.id !== userId) {
+      return ApiResponse(res, 403, 'Forbidden: insufficient permissions');
+    }
+    const user = await userService.updateUser(userId, {
       name,
       email,
       telephone,
       address,
       password,
     });
-
     return ApiResponse(res, 200, "User updated successfully", user);
   }
 ) as any;

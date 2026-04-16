@@ -1,6 +1,8 @@
+
 import axios from 'axios';
 import type { User, CreateUserInput, UpdateUserInput, UserListResponse, UserStats } from '../types';
 import { env } from '../../../app/config/env';
+import { tokenStorage } from '../../../services/storage/tokenStorage';
 
 const axiosInstance = axios.create({
   baseURL: env.API_URL,
@@ -12,7 +14,7 @@ const axiosInstance = axios.create({
 // Add token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = tokenStorage.getAccess();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

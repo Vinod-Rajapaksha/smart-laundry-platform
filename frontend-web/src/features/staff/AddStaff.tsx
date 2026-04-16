@@ -47,7 +47,7 @@ const AddStaff: React.FC = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/staff', formData);
+            const response = await axios.post('http://192.168.8.193:5000/api/staff', formData);
             toast.success(response.data.message || 'Staff member added successfully!');
             setSaveSuccess(true);
             handleReset();
