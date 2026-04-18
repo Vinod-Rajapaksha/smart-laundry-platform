@@ -15,7 +15,7 @@ const ReservationSummaryScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const reservation = useAppSelector((state) => state.reservation);
-  
+
   const [serviceDetails, setServiceDetails] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -52,14 +52,18 @@ const ReservationSummaryScreen = () => {
         reservedDateTime: reservation.scheduledDate,
         pickupAddress: reservation.pickupAddress,
         deliveryAddress: reservation.deliveryAddress,
+        pickupLat: reservation.pickupLat,
+        pickupLng: reservation.pickupLng,
+        deliveryLat: reservation.deliveryLat,
+        deliveryLng: reservation.deliveryLng,
         notes: reservation.notes,
         options: reservation.selectedOptions.map(o => o.inventoryId),
-        paymentMethod: 'COD', // Default for now
+        paymentMethod: reservation.paymentMethod,
         deliveryFee: reservation.serviceMode === 'PICKUP_DELIVERY' ? 150 : 0,
       };
 
       await reservationService.createOrder(orderData);
-      
+
       dispatch(resetReservation());
       router.push('/(protected)/(customer)/reservation/success');
     } catch (error: any) {
@@ -95,8 +99,8 @@ const ReservationSummaryScreen = () => {
 
   const footer = (
     <View style={commonStyles.footer}>
-      <TouchableOpacity 
-        style={[commonStyles.primaryButton, submitting && { opacity: 0.7 }]} 
+      <TouchableOpacity
+        style={[commonStyles.primaryButton, submitting && { opacity: 0.7 }]}
         onPress={handleConfirm}
         disabled={submitting}
       >
@@ -117,11 +121,11 @@ const ReservationSummaryScreen = () => {
     >
       <View style={commonStyles.container}>
         <View style={styles.scrollContent}>
-          
+
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
-               <Package size={20} color={COLORS.PRIMARY} />
-               <Text style={styles.summaryTitle}>Service Details</Text>
+              <Package size={20} color={COLORS.PRIMARY} />
+              <Text style={styles.summaryTitle}>Service Details</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Type</Text>
@@ -135,8 +139,8 @@ const ReservationSummaryScreen = () => {
 
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
-               <Calendar size={20} color={COLORS.PRIMARY} />
-               <Text style={styles.summaryTitle}>Schedule</Text>
+              <Calendar size={20} color={COLORS.PRIMARY} />
+              <Text style={styles.summaryTitle}>Schedule</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Date & Time</Text>
@@ -146,8 +150,8 @@ const ReservationSummaryScreen = () => {
 
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
-               <MapPin size={20} color={COLORS.PRIMARY} />
-               <Text style={styles.summaryTitle}>Location</Text>
+              <MapPin size={20} color={COLORS.PRIMARY} />
+              <Text style={styles.summaryTitle}>Location</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Pickup</Text>
@@ -159,23 +163,23 @@ const ReservationSummaryScreen = () => {
 
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
-               <Receipt size={20} color={COLORS.PRIMARY} />
-               <Text style={styles.summaryTitle}>Bill Details</Text>
+              <Receipt size={20} color={COLORS.PRIMARY} />
+              <Text style={styles.summaryTitle}>Bill Details</Text>
             </View>
-            
+
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Base Price</Text>
               <Text style={styles.detailValue}>Rs.{serviceDetails?.price.toFixed(2)}</Text>
             </View>
 
             <View style={styles.optionsList}>
-               <Text style={[styles.detailLabel, { marginBottom: 8 }]}>Selected Options:</Text>
-               {reservation.selectedOptions.map((opt, i) => (
-                 <View key={i} style={styles.optionItem}>
-                    <Text style={styles.optionName}>• {opt.name}</Text>
-                    <Text style={styles.optionPrice}>{opt.price > 0 ? `+Rs.${opt.price.toFixed(2)}` : 'Free'}</Text>
-                 </View>
-               ))}
+              <Text style={[styles.detailLabel, { marginBottom: 8 }]}>Selected Options:</Text>
+              {reservation.selectedOptions.map((opt, i) => (
+                <View key={i} style={styles.optionItem}>
+                  <Text style={styles.optionName}>• {opt.name}</Text>
+                  <Text style={styles.optionPrice}>{opt.price > 0 ? `+Rs.${opt.price.toFixed(2)}` : 'Free'}</Text>
+                </View>
+              ))}
             </View>
 
             {reservation.serviceMode === 'PICKUP_DELIVERY' && (

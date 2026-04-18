@@ -44,12 +44,37 @@ router.patch(
   controller.updateOrderStatus
 );
 
+// Get available orders for riders
+router.get(
+  '/available',
+  auth,
+  allowRoles(ROLES.STAFF),
+  controller.getAvailableOrders
+);
+
+// Get tasks assigned to current staff
+router.get(
+  '/tasks',
+  auth,
+  allowRoles(ROLES.STAFF),
+  controller.getStaffTasks
+);
+
 // Get order by ID
 router.get(
   '/:id',
   auth,
   validate(validation.validateOrderId),
   controller.getOrderById
+);
+
+// Claim an order (staff only)
+router.patch(
+  '/:id/claim',
+  auth,
+  allowRoles(ROLES.STAFF),
+  validate(validation.validateOrderId),
+  controller.claimOrder
 );
 
 // Download order receipt

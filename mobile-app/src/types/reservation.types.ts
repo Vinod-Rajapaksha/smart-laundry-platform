@@ -12,8 +12,13 @@ export interface ReservationState {
   scheduledDate: string | null; // ISO string
   pickupAddress: string | null;
   deliveryAddress: string | null;
+  pickupLat: number | null;
+  pickupLng: number | null;
+  deliveryLat: number | null;
+  deliveryLng: number | null;
   weightKg: number | null;
   notes: string | null;
+  paymentMethod: 'COD' | 'CARD' | 'BANK_TRANSFER' | null;
   currentStep: number;
   isSubmitting: boolean;
   error: string | null;

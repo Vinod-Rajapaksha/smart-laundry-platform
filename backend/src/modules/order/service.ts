@@ -17,6 +17,10 @@ interface CreateOrderInput {
   reservedDateTime?: Date;
   pickupAddress?: string;
   deliveryAddress?: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  deliveryLat?: number;
+  deliveryLng?: number;
   notes?: string;
   extraFee?: number;
   deliveryFee?: number;
@@ -31,11 +35,11 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     throw new ApiError(404, 'Service not found');
   }
 
-  const subtotal = service.price * (input.weightKg || 1); // Base price * weight
+  const subtotal = service.price * (input.weightKg || 1); 
   let extraFromOptions = 0;
   const selectedOptions = [];
 
-  // 2. Process laundry options (detergent, fabric care etc)
+  // 2. Process laundry options
   if (input.options && input.options.length > 0) {
     const inventoryItems = await Inventory.find({
       _id: { $in: input.options },
@@ -43,7 +47,6 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     });
 
     for (const item of inventoryItems) {
-      // If it's NOT default, add to the price
       if (!item.isDefault) {
         extraFromOptions += item.unitPrice;
       }
@@ -79,6 +82,10 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     reservedDateTime: input.reservedDateTime,
     pickupAddress: input.pickupAddress,
     deliveryAddress: input.deliveryAddress,
+    pickupLat: input.pickupLat,
+    pickupLng: input.pickupLng,
+    deliveryLat: input.deliveryLat,
+    deliveryLng: input.deliveryLng,
     notes: input.notes,
     subtotal,
     extraFee,
@@ -90,6 +97,92 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
   });
 
   return order;
+};
+
+export const claimOrder = async (orderId: string, staffId: string) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new ApiError(404, 'Order not found');
+
+  if (order.staffId) {
+    throw new ApiError(400, 'Order already assigned to another rider');
+  }
+
+  // Determine next status based on current status
+  let nextStatus = order.status;
+  if (order.status === ORDER_STATUS.ORDER_PLACED || order.status === ORDER_STATUS.PENDING) {
+    nextStatus = ORDER_STATUS.PICKUP_ASSIGNED;
+  } else if (order.status === ORDER_STATUS.READY) {
+    nextStatus = ORDER_STATUS.DELIVERY_ASSIGNED;
+  }
+
+  const staffIdObj = new mongoose.Types.ObjectId(staffId);
+  order.staffId = staffIdObj as any;
+  order.status = nextStatus;
+  await order.save();
+
+  return order;
+};
+
+export const getAvailableOrders = async (query: any) => {
+  const { page, limit } = query;
+  const p = parseInt(page as string) || DEFAULT_PAGINATION.PAGE;
+  const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
+  const skip = (p - 1) * l;
+
+  const filter = {
+    staffId: null,
+    status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PENDING, ORDER_STATUS.READY] }
+  };
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(l)
+      .populate('userId', 'name telephone')
+      .populate('serviceId', 'name'),
+    Order.countDocuments(filter),
+  ]);
+
+  return {
+    orders,
+    pagination: {
+      total,
+      page: p,
+      limit: l,
+      totalPages: Math.ceil(total / l),
+    },
+  };
+};
+
+export const getStaffTasks = async (staffId: string, query: any) => {
+  const { status, page, limit } = query;
+  const p = parseInt(page as string) || DEFAULT_PAGINATION.PAGE;
+  const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
+  const skip = (p - 1) * l;
+
+  const filter: any = { staffId };
+  if (status) filter.status = status;
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(l)
+      .populate('userId', 'name telephone')
+      .populate('serviceId', 'name'),
+    Order.countDocuments(filter),
+  ]);
+
+  return {
+    orders,
+    pagination: {
+      total,
+      page: p,
+      limit: l,
+      totalPages: Math.ceil(total / l),
+    },
+  };
 };
 
 export const updateOrderStatus = async (id: string, status: string, updateBy: string) => {
@@ -141,8 +234,8 @@ export const getOrderById = async (id: string) => {
 
 export const getMyOrders = async (userId: string, query: any) => {
   const { status, page, limit } = query;
-  const p = parseInt(page) || DEFAULT_PAGINATION.PAGE;
-  const l = parseInt(limit) || DEFAULT_PAGINATION.LIMIT;
+  const p = parseInt(page as string) || DEFAULT_PAGINATION.PAGE;
+  const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
   const skip = (p - 1) * l;
 
   const filter: any = { userId };
@@ -170,8 +263,8 @@ export const getMyOrders = async (userId: string, query: any) => {
 
 export const getAllOrders = async (query: any) => {
   const { status, userId, page, limit } = query;
-  const p = parseInt(page) || DEFAULT_PAGINATION.PAGE;
-  const l = parseInt(limit) || DEFAULT_PAGINATION.LIMIT;
+  const p = parseInt(page as string) || DEFAULT_PAGINATION.PAGE;
+  const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
   const skip = (p - 1) * l;
 
   const filter: any = {};

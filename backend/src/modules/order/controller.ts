@@ -17,6 +17,21 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
   return ApiResponse(res, 200, 'Order status updated successfully', result);
 });
 
+export const claimOrder = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.claimOrder(req.params.id as string, (req as any).user.id);
+  return ApiResponse(res, 200, 'Order claimed successfully', result);
+});
+
+export const getAvailableOrders = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.getAvailableOrders(req.query);
+  return ApiResponse(res, 200, 'Available orders fetched successfully', result);
+});
+
+export const getStaffTasks = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.getStaffTasks((req as any).user.id, req.query);
+  return ApiResponse(res, 200, 'Staff tasks fetched successfully', result);
+});
+
 export const getOrderById = asyncHandler(async (req: Request, res: Response) => {
   const result = await service.getOrderById(req.params.id as string);
   return ApiResponse(res, 200, 'Order fetched successfully', result);

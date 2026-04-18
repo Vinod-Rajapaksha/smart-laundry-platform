@@ -17,6 +17,14 @@ export interface ScanResult {
 }
 
 export const scanService = {
+  getOrderById: async (orderId: string): Promise<any> => {
+    const response = await api.get(`/orders/${orderId}`);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to fetch order');
+  },
+
   validateQrCode: async (qrData: string): Promise<ScanResult> => {
     let orderId = qrData;
     

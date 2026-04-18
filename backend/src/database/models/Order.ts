@@ -92,6 +92,15 @@ const orderSchema = new mongoose.Schema(
         categoryName: { type: String, required: true },
       }
     ],
+    staffId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User', 
+      default: null 
+    },
+    pickupLat: { type: Number, default: null },
+    pickupLng: { type: Number, default: null },
+    deliveryLat: { type: Number, default: null },
+    deliveryLng: { type: Number, default: null },
     voucherId: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: 'Voucher', 

@@ -8,8 +8,13 @@ const initialState: ReservationState = {
   scheduledDate: null,
   pickupAddress: null,
   deliveryAddress: null,
+  pickupLat: null,
+  pickupLng: null,
+  deliveryLat: null,
+  deliveryLng: null,
   weightKg: 0,
   notes: null,
+  paymentMethod: 'COD',
   currentStep: 1,
   isSubmitting: false,
   error: null,
@@ -42,12 +47,26 @@ const reservationSlice = createSlice({
     setSchedule: (state, action: PayloadAction<string>) => {
       state.scheduledDate = action.payload;
     },
-    setAddress: (state, action: PayloadAction<{ pickup?: string; delivery?: string }>) => {
-      if (action.payload.pickup) state.pickupAddress = action.payload.pickup;
-      if (action.payload.delivery) state.deliveryAddress = action.payload.delivery;
+    setAddress: (state, action: PayloadAction<{ 
+      pickup?: string; 
+      delivery?: string;
+      pickupLat?: number | null;
+      pickupLng?: number | null;
+      deliveryLat?: number | null;
+      deliveryLng?: number | null;
+    }>) => {
+      if (action.payload.pickup !== undefined) state.pickupAddress = action.payload.pickup;
+      if (action.payload.delivery !== undefined) state.deliveryAddress = action.payload.delivery;
+      if (action.payload.pickupLat !== undefined) state.pickupLat = action.payload.pickupLat;
+      if (action.payload.pickupLng !== undefined) state.pickupLng = action.payload.pickupLng;
+      if (action.payload.deliveryLat !== undefined) state.deliveryLat = action.payload.deliveryLat;
+      if (action.payload.deliveryLng !== undefined) state.deliveryLng = action.payload.deliveryLng;
     },
     setNotes: (state, action: PayloadAction<string>) => {
       state.notes = action.payload;
+    },
+    setPaymentMethod: (state, action: PayloadAction<'COD' | 'CARD' | 'BANK_TRANSFER'>) => {
+      state.paymentMethod = action.payload;
     },
     setWeightKg: (state, action: PayloadAction<number>) => {
       state.weightKg = action.payload;
@@ -77,6 +96,7 @@ export const {
   setSchedule,
   setAddress,
   setNotes,
+  setPaymentMethod,
   setWeightKg,
   nextStep,
   prevStep,
