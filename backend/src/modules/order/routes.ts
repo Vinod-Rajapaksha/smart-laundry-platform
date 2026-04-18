@@ -48,7 +48,7 @@ router.patch(
 router.get(
   '/available',
   auth,
-  allowRoles(ROLES.STAFF),
+  allowRoles(ROLES.STAFF, ROLES.ADMIN),
   controller.getAvailableOrders
 );
 
@@ -56,7 +56,7 @@ router.get(
 router.get(
   '/tasks',
   auth,
-  allowRoles(ROLES.STAFF),
+  allowRoles(ROLES.STAFF, ROLES.ADMIN),
   controller.getStaffTasks
 );
 
@@ -72,7 +72,7 @@ router.get(
 router.patch(
   '/:id/claim',
   auth,
-  allowRoles(ROLES.STAFF),
+  allowRoles(ROLES.STAFF, ROLES.ADMIN),
   validate(validation.validateOrderId),
   controller.claimOrder
 );

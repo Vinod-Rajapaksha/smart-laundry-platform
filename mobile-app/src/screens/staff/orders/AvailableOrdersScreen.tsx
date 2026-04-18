@@ -113,9 +113,6 @@ const AvailableOrdersScreen = () => {
   const header = (
     <View style={styles.header}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-          <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
-        </TouchableOpacity>
         <Text style={styles.sectionTitle}>Available Orders</Text>
       </View>
     </View>
