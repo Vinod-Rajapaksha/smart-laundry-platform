@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Voucher from '../../database/models/Voucher.js';
 import VoucherRedemption from '../../database/models/VoucherRedemption.js';
 import Order from '../../database/models/Order.js';
@@ -23,6 +24,16 @@ export const validateVoucher = async (code: string, userId: string, orderAmount:
   const voucher = await Voucher.findOne({ code, isActive: true });
   if (!voucher) {
     throw new ApiError(404, 'Voucher not found or inactive');
+  }
+
+  // Loyalty member restriction: ONLY bronze members can apply vouchers
+  const user = await mongoose.model('User').findById(userId);
+  if (user && user.membership) {
+     const level = user.membership.level;
+     // If not BRONZE (and not null/entry), block voucher usage
+     if (level !== 'BRONZE' && level !== 'null' && level !== null) {
+        throw new ApiError(403, 'Vouchers are only available for Bronze members. Premium tiers already receive automatic loyalty discounts.');
+     }
   }
 
   // Date validation

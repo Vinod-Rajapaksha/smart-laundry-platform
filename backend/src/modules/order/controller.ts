@@ -31,3 +31,12 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response) => 
   const result = await service.getAllOrders(req.query);
   return ApiResponse(res, 200, 'All orders fetched successfully', result);
 });
+
+export const downloadReceipt = asyncHandler(async (req: Request, res: Response) => {
+  const buffer = await service.generateReceiptPdf(req.params.id as string);
+  
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename=receipt-${req.params.id}.pdf`);
+  
+  return res.status(200).send(buffer);
+});

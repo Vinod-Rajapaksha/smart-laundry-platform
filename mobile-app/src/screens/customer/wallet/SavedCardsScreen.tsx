@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Plus, CreditCard, ShieldCheck, Trash2 } from 'lucide-react-native';
+import { Plus, CreditCard, ShieldCheck, Trash2 } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
@@ -59,17 +59,8 @@ const SavedCardsScreen = () => {
         <View style={cardStyles.header}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-                        <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
-                    </TouchableOpacity>
                     <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Saved Cards</Text>
                 </View>
-                <TouchableOpacity
-                    style={cardStyles.addIconButton}
-                    onPress={() => router.push('/(protected)/(customer)/wallet/add-card')}
-                >
-                    <Plus size={24} color={COLORS.PRIMARY} />
-                </TouchableOpacity>
             </View>
         </View>
     );
@@ -91,8 +82,8 @@ const SavedCardsScreen = () => {
                     </View>
                     <Text style={cardStyles.cardExpiry}>Expires {item.expiryMonth}/{item.expiryYear}</Text>
                 </View>
-                <TouchableOpacity 
-                    style={cardStyles.deleteButton} 
+                <TouchableOpacity
+                    style={cardStyles.deleteButton}
                     onPress={() => handleDeleteCard(item._id)}
                     disabled={deletingId === item._id}
                 >
@@ -139,7 +130,7 @@ const SavedCardsScreen = () => {
                     />
                 ) : (
                     <View style={cardStyles.emptyContainer}>
-                        <CreditCard size={80} color={COLORS.TEXT_LIGHT} />
+                        <CreditCard size={80} color={COLORS.TEXT_MUTED} />
                         <Text style={cardStyles.emptyText}>No saved cards yet.</Text>
                     </View>
                 )}
@@ -243,7 +234,7 @@ const cardStyles = StyleSheet.create({
     },
     emptyText: {
         marginTop: 20,
-        color: COLORS.TEXT_LIGHT,
+        color: COLORS.TEXT_MUTED,
         fontSize: 16,
         fontWeight: '500',
     },

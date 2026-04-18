@@ -17,6 +17,7 @@ export interface TrackingLog {
 
 export interface Order {
   _id: string;
+  orderNo?: string;
   customer: string;
   serviceId: any;
   serviceMode: 'PICKUP_DELIVERY' | 'SELF_SERVICE';

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import PDFDocument from 'pdfkit';
 import Order from '../../database/models/Order.js';
 import Service from '../../database/models/Service.js';
 import Inventory from '../../database/models/Inventory.js';
@@ -7,6 +8,8 @@ import { PAYMENT_STATUS, ORDER_STATUS, DEFAULT_PAGINATION } from '../../core/con
 import { generateOrderNo } from '../../utils/reference.js';
 import { getIO } from '../../core/socket.js';
 import * as voucherService from '../voucher/service.js';
+import * as loyaltyService from '../loyalty/loyalty.service.js';
+import { LOYALTY_RULES } from '../../core/constants.js';
 
 interface CreateOrderInput {
   serviceId: string;
@@ -109,6 +112,18 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
     });
   } catch (e) {
     console.error('Socket execution failed (possibly not initialized)', e);
+  }
+
+  if (status === ORDER_STATUS.DELIVERED) {
+    try {
+      await loyaltyService.awardLoyaltyPoints(
+        order.userId.toString(), 
+        LOYALTY_RULES.POINTS_PER_ORDER || 10, 
+        order._id.toString()
+      );
+    } catch (e) {
+      console.error('Failed to award loyalty points:', e);
+    }
   }
 
   return order;
@@ -224,4 +239,146 @@ export const applyVoucher = async (orderId: string, userId: string, voucherCode:
   await order.save();
 
   return order;
+};
+
+export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
+  const order = await Order.findById(id)
+    .populate('userId', 'name email address')
+    .populate('serviceId', 'name price');
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50 });
+    const chunks: any[] = [];
+
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', (err) => reject(err));
+
+    // Header
+    doc
+      .fillColor('#444444')
+      .fontSize(25)
+      .text('B & W Laundry', 50, 50, { align: 'center' })
+      .fontSize(10)
+      .text('Premium Laundry Solutions', { align: 'center' })
+      .moveDown();
+
+    doc.moveDown();
+
+    // Invoice Info
+    doc
+      .fillColor('#000000')
+      .fontSize(18)
+      .text('Receipt / Invoice', 50, 130);
+
+    const invoiceTableTop = 160;
+    doc
+      .fontSize(10)
+      .text('Order No:', 50, invoiceTableTop)
+      .font('Helvetica-Bold')
+      .text(order.orderNo, 150, invoiceTableTop)
+      .font('Helvetica')
+      .text('Date:', 50, invoiceTableTop + 15)
+      .text(new Date(order.createdAt).toLocaleDateString(), 150, invoiceTableTop + 15)
+      .text('Status:', 50, invoiceTableTop + 30)
+      .text(order.status, 150, invoiceTableTop + 30);
+
+    // Customer Info
+    const customerInfoTop = 160;
+    doc
+      .fontSize(10)
+      .text('Bill To:', 350, customerInfoTop)
+      .font('Helvetica-Bold')
+      .text((order.userId as any)?.name || 'Valued Customer', 350, customerInfoTop + 15)
+      .font('Helvetica')
+      .text((order.userId as any)?.email || '', 350, customerInfoTop + 30)
+      .text(order.pickupAddress || '', 350, customerInfoTop + 45);
+
+    // Items Header
+    const itemTableTop = 250;
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(10)
+      .text('Service Description', 50, itemTableTop)
+      .text('Weight/Qty', 280, itemTableTop, { width: 90, align: 'right' })
+      .text('Unit Price', 370, itemTableTop, { width: 90, align: 'right' })
+      .text('Total', 480, itemTableTop, { width: 50, align: 'right' });
+
+    doc
+      .moveTo(50, itemTableTop + 15)
+      .lineTo(550, itemTableTop + 15)
+      .stroke();
+
+    // Line items
+    let position = itemTableTop + 30;
+    doc
+      .font('Helvetica')
+      .text((order.serviceId as any)?.name || 'Laundry Service', 50, position)
+      .text(`${order.weightKg || 1} kg`, 280, position, { width: 90, align: 'right' })
+      .text(`LKR ${(order.subtotal / (order.weightKg || 1)).toFixed(2)}`, 370, position, { width: 90, align: 'right' })
+      .text(`LKR ${order.subtotal.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
+
+    // Options (extra features)
+    if (order.options && order.options.length > 0) {
+      order.options.forEach((opt: any) => {
+        position += 20;
+        doc
+          .fontSize(9)
+          .text(`+ ${opt.name} (${opt.categoryName})`, 70, position)
+          .text(`LKR ${opt.price.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
+      });
+    }
+
+    // Divider
+    position += 30;
+    doc
+      .moveTo(50, position)
+      .lineTo(550, position)
+      .stroke();
+
+    // Calculations
+    position += 20;
+    doc
+      .fontSize(10)
+      .text('Subtotal:', 350, position)
+      .text(`LKR ${order.subtotal.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
+
+    position += 15;
+    doc
+      .text('Extra Fees:', 350, position)
+      .text(`LKR ${order.extraFee.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
+
+    position += 15;
+    doc
+      .text('Delivery Fee:', 350, position)
+      .text(`LKR ${order.deliveryFee.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
+
+    if ((order.discountTotal || 0) > 0) {
+      position += 15;
+      doc
+        .fillColor('#EE5555')
+        .text('Discount:', 350, position)
+        .text(`- LKR ${order.discountTotal.toFixed(2)}`, 480, position, { width: 50, align: 'right' })
+        .fillColor('#000000');
+    }
+
+    position += 20;
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(14)
+      .text('TOTAL:', 350, position)
+      .text(`LKR ${order.totalAmount.toFixed(2)}`, 450, position, { width: 100, align: 'right' });
+
+    // Footer
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .text('Thank you for choosing B & W Laundry!', 50, 700, { align: 'center', width: 500 });
+
+    doc.end();
+  });
 };

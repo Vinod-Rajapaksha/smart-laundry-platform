@@ -52,4 +52,12 @@ router.get(
   controller.getOrderById
 );
 
+// Download order receipt
+router.get(
+  '/:id/receipt',
+  auth,
+  validate(validation.validateOrderId),
+  controller.downloadReceipt
+);
+
 export default router;

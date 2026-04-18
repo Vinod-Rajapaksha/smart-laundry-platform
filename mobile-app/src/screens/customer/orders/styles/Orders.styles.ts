@@ -134,7 +134,14 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     marginHorizontal: 40,
-  }
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
 });
 
 export default styles;

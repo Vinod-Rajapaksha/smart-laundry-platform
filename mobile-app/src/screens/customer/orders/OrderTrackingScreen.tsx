@@ -1,26 +1,96 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Clock, MapPin, CheckCircle2, Circle } from 'lucide-react-native';
+import { ArrowLeft, Clock, MapPin, CheckCircle2, Circle, Package, AlertCircle } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Orders.styles';
+import { orderService } from '../../../services/customer/orderService';
+import { Order, OrderStatus } from '../../../types/order.types';
+import { subscribeToOrderStatus, unsubscribeFromOrderStatus } from '../../../services/socketService';
 
-/**
- * Screen providing real-time tracking for a specific order.
- * Features a vertical step indicator and detailed order status.
- */
 const OrderTrackingScreen = () => {
   const router = useRouter();
   const { orderId } = useLocalSearchParams();
 
-  const steps = [
-    { title: 'Order Placed', time: '10:00 AM', completed: true, current: false },
-    { title: 'Picked Up', time: '10:30 AM', completed: true, current: false },
-    { title: 'Processing', time: '11:15 AM', completed: true, current: true },
-    { title: 'Quality Check', time: 'Pending', completed: false, current: false },
-    { title: 'Out for Delivery', time: 'Pending', completed: false, current: false },
-    { title: 'Delivered', time: 'Pending', completed: false, current: false },
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchOrderDetails = async () => {
+    try {
+      if (orderId) {
+        const data = await orderService.getOrderById(orderId as string);
+        setOrder(data);
+      }
+    } catch (error) {
+      console.error('Error fetching tracking data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderDetails();
+
+    // Subscribe to real-time updates
+    subscribeToOrderStatus((data: any) => {
+      // If the update is for this specific order, refresh the data
+      if (data.orderId === orderId) {
+        fetchOrderDetails();
+      }
+    });
+
+    return () => {
+      unsubscribeFromOrderStatus();
+    };
+  }, [orderId]);
+
+  if (loading) return <Loading fullScreen />;
+  if (!order) {
+    return (
+      <View style={trackingStyles.errorContainer}>
+        <Package size={64} color={COLORS.TEXT_MUTED} />
+        <Text style={trackingStyles.errorText}>Order not found</Text>
+        <TouchableOpacity style={trackingStyles.backButton} onPress={() => router.back()}>
+          <Text style={trackingStyles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Define the ordered steps for tracking
+  const ORDER_STATUS_STEPS: { status: OrderStatus; title: string }[] = [
+    { status: 'PENDING', title: 'Order Placed' },
+    { status: 'CONFIRMED', title: 'Order Confirmed' },
+    { status: 'PICKUP_SCHEDULED', title: 'Pickup Scheduled' },
+    { status: 'PICKED_UP', title: 'Picked Up' },
+    { status: 'IN_WASH', title: 'Laundry in Progress' },
+    { status: 'READY_FOR_DELIVERY', title: 'Ready for Delivery' },
+    { status: 'OUT_FOR_DELIVERY', title: 'Out for Delivery' },
+    { status: 'DELIVERED', title: 'Delivered' },
   ];
+
+  // Helper to check if a status has been completed
+  const isStatusReached = (status: OrderStatus) => {
+    if (!order) return false;
+    return (order.trackingLogs || []).some(log => log.status === status) || order.status === status;
+  };
+
+  // Helper to get time for a status
+  const getStatusTime = (status: OrderStatus) => {
+    if (!order) return null;
+    const log = (order.trackingLogs || []).find(l => l.status === status);
+    if (!log) return null;
+    return new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const steps = ORDER_STATUS_STEPS.map((step) => ({
+    ...step,
+    completed: isStatusReached(step.status),
+    current: order.status === step.status,
+    time: getStatusTime(step.status) || (order.status === step.status ? 'Ongoing' : 'Pending')
+  }));
 
   const header = (
     <View style={styles.header}>
@@ -30,7 +100,7 @@ const OrderTrackingScreen = () => {
         </TouchableOpacity>
         <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Track Order</Text>
       </View>
-      <Text style={{ color: COLORS.TEXT_SECONDARY, fontSize: 14 }}>Order ID: {orderId || 'ORD-1234'}</Text>
+      <Text style={{ color: COLORS.TEXT_SECONDARY, fontSize: 14 }}>Order ID: #{order.orderNo || order._id.substring(0, 8).toUpperCase()}</Text>
     </View>
   );
 
@@ -43,14 +113,28 @@ const OrderTrackingScreen = () => {
       <View style={{ padding: 20 }}>
         {/* Live Status Header */}
         <View style={trackingStyles.statusCard}>
-          <View style={trackingStyles.iconCircle}>
-            <Clock size={32} color={COLORS.PRIMARY} />
+          <View style={[trackingStyles.iconCircle, order.status === 'CANCELLED' && { backgroundColor: COLORS.ERROR_BACKGROUND }]}>
+            {order.status === 'CANCELLED' ? (
+              <AlertCircle size={32} color={COLORS.ERROR} />
+            ) : (
+              <Clock size={32} color={COLORS.PRIMARY} />
+            )}
           </View>
           <View style={{ flex: 1, marginLeft: 16 }}>
-            <Text style={trackingStyles.statusLabel}>Estimated Completion</Text>
-            <Text style={trackingStyles.statusValue}>Today, 04:30 PM</Text>
+            <Text style={trackingStyles.statusLabel}>Current Status</Text>
+            <Text style={[trackingStyles.statusValue, order.status === 'CANCELLED' && { color: COLORS.ERROR }]}>
+              {order.status.replace(/_/g, ' ')}
+            </Text>
           </View>
         </View>
+
+        {order.status === 'CANCELLED' && (
+          <View style={[trackingStyles.statusCard, { backgroundColor: COLORS.ERROR_BACKGROUND, borderColor: COLORS.ERROR_BORDER }]}>
+            <Text style={{ color: COLORS.ERROR_TEXT, fontWeight: '600' }}>
+              This order has been cancelled. Please contact support for more information.
+            </Text>
+          </View>
+        )}
 
         {/* Tracking Steps */}
         <View style={trackingStyles.stepsContainer}>
@@ -69,7 +153,7 @@ const OrderTrackingScreen = () => {
                   ]} />
                 )}
               </View>
-              
+
               <View style={[
                 trackingStyles.content,
                 step.current && trackingStyles.currentContent
@@ -96,10 +180,12 @@ const OrderTrackingScreen = () => {
 
         {/* Location Info */}
         <View style={[styles.orderCard, { marginTop: 20 }]}>
-          <Text style={styles.sectionTitle}>Delivery Address</Text>
+          <Text style={styles.sectionTitle}>Service Address</Text>
           <View style={styles.detailRow}>
             <MapPin size={18} color={COLORS.PRIMARY} />
-            <Text style={styles.detailText}>No. 123, Luxury Apartments, Colombo 07</Text>
+            <Text style={styles.detailText}>
+              {order.pickupAddress || order.deliveryAddress || 'Self Service / In-Store Pickup'}
+            </Text>
           </View>
         </View>
       </View>
@@ -108,6 +194,31 @@ const OrderTrackingScreen = () => {
 };
 
 const trackingStyles = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.TEXT_PRIMARY,
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  backButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  backButtonText: {
+    color: COLORS.WHITE,
+    fontWeight: '700',
+    fontSize: 16,
+  },
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { User, MapPin, Bell, Shield, LogOut, ChevronRight, Edit2 } from 'lucide-react-native';
+import { User, MapPin, Bell, Shield, LogOut, ChevronRight, Edit2, Star, Crown } from 'lucide-react-native';
 import { useAppDispatch } from '../../../store/hooks';
 import { logoutUser } from '../../../store/slices/auth.slice';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
@@ -145,6 +145,42 @@ const CustomerProfileScreen = () => {
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuTitle}>Security & Privacy</Text>
                 <Text style={styles.menuSubtitle}>Password and security settings</Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
+            </TouchableOpacity>
+
+          </View>
+        </View>
+
+        {/* Loyalty & Membership */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rewards & Benefits</Text>
+          <View style={styles.menuCard}>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => router.push('/(protected)/(customer)/loyalty')}
+            >
+              <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}>
+                <Star size={20} color="#D97706" />
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>Loyalty Program</Text>
+                <Text style={styles.menuSubtitle}>View points and reward history</Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.menuItem, styles.menuItemLast]}
+              onPress={() => router.push('/(protected)/(customer)/loyalty/membership')}
+            >
+              <View style={[styles.iconBox, { backgroundColor: '#F5F3FF' }]}>
+                <Crown size={20} color="#7C3AED" />
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>Membership Tier</Text>
+                <Text style={styles.menuSubtitle}>Upgrade and view exclusive perks</Text>
               </View>
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>

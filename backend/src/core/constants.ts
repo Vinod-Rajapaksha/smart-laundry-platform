@@ -69,7 +69,7 @@ export const ORDER_STATUS = {
   WASHING: 'WASHING',
   DRYING: 'DRYING',
   PROCESSING: 'PROCESSING',
-  READY : 'READY',
+  READY: 'READY',
   DELIVERY_ASSIGNED: 'DELIVERY_ASSIGNED',
   DELIVERY_ON_THE_WAY: 'DELIVERY_ON_THE_WAY',
   ON_THE_WAY: 'ON_THE_WAY',
@@ -81,9 +81,10 @@ export const ORDER_STATUS = {
 
 // LOYALTY
 export const LOYALTY_TIER_NAME = {
-  SILVER: "silver",
-  PLATINUM: "platinum",
-  GOLD: "gold",
+  BRONZE: "BRONZE",
+  SILVER: "SILVER",
+  PLATINUM: "PLATINUM",
+  GOLD: "GOLD",
 } as const;
 
 export const LOYALTY_RULES = {
@@ -94,19 +95,19 @@ export const LOYALTY_RULES = {
 
 // VOUCHER
 export const VOUCHER_TYPE = {
-  PUBLIC: "public",
-  SEASONAL: "seasonal",
+  PUBLIC: "PUBLIC",
+  SEASONAL: "SEASONAL",
 } as const;
 
 export const DISCOUNT_TYPE = {
-  PERCENTAGE: "percentage",
-  FIXED: "fixed",
+  PERCENTAGE: "PERCENTAGE",
+  FIXED: "FIXED",
 } as const;
 
 export const FEEDBACK_SUMMARY = {
   WINDOW_DAYS: 90,
   MIN_APPROVED_COUNT: 3,
-  MODEL_NAME: "gemini",
+  MODEL_NAME: "GEMINI",
 } as const;
 
 // DEFAULT PAGINATION

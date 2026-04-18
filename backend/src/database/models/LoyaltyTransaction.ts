@@ -16,7 +16,10 @@ const loyaltyTransactionSchema = new mongoose.Schema(
         type: Number, 
         required: true, 
     },
-
+    description: {
+        type: String,
+        default: '',
+    },
     expiresAt: { 
         type: Date, 
         default: null, 

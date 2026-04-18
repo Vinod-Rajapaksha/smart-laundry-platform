@@ -10,6 +10,7 @@ import inventoryRoutes from '../modules/inventory/routes.js';
 import orderRoutes from '../modules/order/routes.js';
 import serviceRoutes from '../modules/service/routes.js';
 import userRoutes from '../modules/user/routes.js';
+import loyaltyRoutes from '../modules/loyalty/loyalty.routes.js';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/inventory', inventoryRoutes);
 router.use('/orders', orderRoutes);
 router.use('/services', serviceRoutes);
 router.use('/users', userRoutes);
+router.use('/loyalty', loyaltyRoutes);
 
 export default router;

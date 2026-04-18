@@ -26,6 +26,10 @@ export const orderService = {
       return response.data.data.orders[0];
     }
     return null;
+  },
+
+  getReceiptUrl: (id: string): string => {
+    return `${process.env.EXPO_PUBLIC_API_BASE_URL}/orders/${id}/receipt`;
   }
 };
 

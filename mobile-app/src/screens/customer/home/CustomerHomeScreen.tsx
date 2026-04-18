@@ -55,13 +55,6 @@ const CustomerHomeScreen = () => {
     fetchActiveOrder();
   };
 
-  const handleServicePress = (service: any) => {
-    router.push({
-      pathname: '/(protected)/(customer)/reservation/ServiceModeScreen',
-      params: { serviceId: service.id, serviceName: service.name }
-    });
-  };
-
   if (loading) return <Loading fullScreen />;
 
   const header = (

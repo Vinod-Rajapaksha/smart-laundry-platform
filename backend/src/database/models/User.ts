@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { LOYALTY_TIER_NAME } from '../../core/constants.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,13 +21,13 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
     telephone: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
     },
     address: {
-        type: String,
-        trim: true,
+      type: String,
+      trim: true,
     },
     role: {
       type: String,
@@ -38,10 +39,10 @@ const userSchema = new mongoose.Schema(
       min: 0,
       default: null,
     },
-    staffType: { 
-      type: String, 
-      enum: ['DELIVERY', 'STORE', 'BOTH'], 
-      default: null, 
+    staffType: {
+      type: String,
+      enum: ['DELIVERY', 'STORE', 'BOTH'],
+      default: null,
     },
     isActive: {
       type: Boolean,
@@ -52,13 +53,33 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
     otp: {
-        type: String,
-        default: null,
+      type: String,
+      default: null,
     },
     otpExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    loyaltyPoints: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    membership: {
+      level: {
+        type: String,
+        enum: Object.values(LOYALTY_TIER_NAME),
+        default: LOYALTY_TIER_NAME.BRONZE,
+      },
+      validUntil: {
         type: Date,
         default: null,
-    },
+      },
+      pointsToNextLevel: {
+        type: Number,
+        default: 500,
+      }
+    }
   },
   {
     timestamps: true,

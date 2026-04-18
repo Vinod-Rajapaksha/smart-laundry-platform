@@ -13,4 +13,21 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      await AsyncStorage.multiRemove(["accessToken", "refreshToken", "user"]);
+
+      try {
+        const { store } = require("../store/store");
+        store.dispatch({ type: "auth/logout/fulfilled" });
+      } catch (e) {
+        console.error("Failed to dispatch logout from interceptor", e);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
