@@ -5,10 +5,14 @@ import {
   Landmark,
   Package,
   RefreshCcw,
-  Megaphone,
   MessageSquare,
   Truck,
   BarChart3,
+  Ticket,
+  Star,
+  Settings2,
+  CreditCard,
+  Banknote,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,6 +37,21 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: ShoppingCart,
   },
 
+  "card-payments": {
+    title: "Card Payments",
+    Icon: CreditCard,
+  },
+
+  cod: {
+    title: "Cash on Delivery",
+    Icon: Banknote,
+  },
+
+  "bank-transfer": {
+    title: "Bank Transfer Ledger",
+    Icon: Landmark,
+  },
+
   "bank-verification": {
     title: "Bank Transfer Verification",
     Icon: Landmark,
@@ -43,14 +62,24 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: Package,
   },
 
+  pricing: {
+    title: "Pricing Rules",
+    Icon: Settings2,
+  },
+
   "update-status": {
     title: "Update Status",
     Icon: RefreshCcw,
   },
 
-  promotions: {
-    title: "Promotions",
-    Icon: Megaphone,
+  vouchers: {
+    title: "Voucher Management",
+    Icon: Ticket,
+  },
+
+  loyalty: {
+    title: "Loyalty Program",
+    Icon: Star,
   },
 
   feedbacks: {

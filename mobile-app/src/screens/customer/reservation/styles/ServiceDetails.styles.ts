@@ -1,0 +1,220 @@
+import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../../theme/colors';
+
+export const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.WHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_LIGHT,
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 14,
+  },
+  listContent: {
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  serviceCard: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: COLORS.BORDER_LIGHT,
+    position: 'relative',
+  },
+  serviceCardActive: {
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.PRIMARY_SOFT,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  serviceName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  serviceNameActive: {
+    color: COLORS.PRIMARY,
+  },
+  servicePrice: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  tag: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.TEXT_SECONDARY,
+    textTransform: 'uppercase',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.PRIMARY,
+    borderWidth: 3,
+    borderColor: COLORS.WHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.WHITE,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  input: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_LIGHT,
+    fontSize: 16,
+    color: COLORS.TEXT_PRIMARY,
+  },
+  weightInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  unitBadge: {
+    backgroundColor: COLORS.PRIMARY_SOFT,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  unitText: {
+    fontWeight: '700',
+    color: COLORS.PRIMARY,
+  },
+  optionChip: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_LIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  optionChipActive: {
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.PRIMARY_SOFT,
+  },
+  chipText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: '600',
+  },
+  chipTextActive: {
+    color: COLORS.PRIMARY,
+  },
+  addOnsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: COLORS.PRIMARY,
+    gap: 8,
+  },
+  addOnsText: {
+    color: COLORS.PRIMARY,
+    fontWeight: '700',
+  },
+  summaryCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 8,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 14,
+  },
+  summaryValue: {
+    color: COLORS.TEXT_PRIMARY,
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.BORDER_LIGHT,
+    marginVertical: 12,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.PRIMARY,
+  },
+});
+
+export default styles;

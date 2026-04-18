@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import * as authService from "../../services/auth/authService";
 import { AuthUser, LoginResponse, RegisterData, UserRole } from "../../types/auth.types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface LoginPayload {
   email: string;
@@ -77,6 +78,28 @@ export const logoutUser = createAsyncThunk("auth/logout", async () => {
   await authService.logout();
 });
 
+export const restoreSession = createAsyncThunk(
+  "auth/restoreSession",
+  async (_, thunkAPI) => {
+    try {
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      const refreshToken = await AsyncStorage.getItem("refreshToken");
+      const userJson = await AsyncStorage.getItem("user");
+
+      if (accessToken && userJson) {
+        return {
+          user: JSON.parse(userJson),
+          accessToken,
+          refreshToken,
+        };
+      }
+      return thunkAPI.rejectWithValue("No session found");
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue("Failed to restore session");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -133,6 +156,22 @@ const authSlice = createSlice({
         state.refreshToken = null;
         state.isAuthenticated = false;
         state.error = null;
+      })
+
+      // Restore Session
+      .addCase(restoreSession.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
       });
   },
 });

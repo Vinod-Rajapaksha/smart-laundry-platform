@@ -59,6 +59,56 @@ export const FEEDBACK_TAGS = {
   RECOMMENDED: 'recommended',
 };
 
+// ORDER STATUS
+export const ORDER_STATUS = {
+  ORDER_PLACED: 'ORDER_PLACED',
+  PENDING: 'PENDING',
+  PICKUP_ASSIGNED: 'PICKUP_ASSIGNED',
+  PICKUP_ON_THE_WAY: 'PICKUP_ON_THE_WAY',
+  PICKED_UP: 'PICKED_UP',
+  WASHING: 'WASHING',
+  DRYING: 'DRYING',
+  PROCESSING: 'PROCESSING',
+  READY : 'READY',
+  DELIVERY_ASSIGNED: 'DELIVERY_ASSIGNED',
+  DELIVERY_ON_THE_WAY: 'DELIVERY_ON_THE_WAY',
+  ON_THE_WAY: 'ON_THE_WAY',
+  DELIVERED: 'DELIVERED',
+  ON_HOLD: 'ON_HOLD',
+  CANCELLED: 'CANCELLED',
+  RETURNED: 'RETURNED',
+} as const;
+
+// LOYALTY
+export const LOYALTY_TIER_NAME = {
+  SILVER: "silver",
+  PLATINUM: "platinum",
+  GOLD: "gold",
+} as const;
+
+export const LOYALTY_RULES = {
+  POINTS_PER_ORDER: 10,
+  EARN_WINDOW_DAYS: 90,
+  MEMBERSHIP_DURATION_DAYS: 90,
+} as const;
+
+// VOUCHER
+export const VOUCHER_TYPE = {
+  PUBLIC: "public",
+  SEASONAL: "seasonal",
+} as const;
+
+export const DISCOUNT_TYPE = {
+  PERCENTAGE: "percentage",
+  FIXED: "fixed",
+} as const;
+
+export const FEEDBACK_SUMMARY = {
+  WINDOW_DAYS: 90,
+  MIN_APPROVED_COUNT: 3,
+  MODEL_NAME: "gemini",
+} as const;
+
 // DEFAULT PAGINATION
 export const DEFAULT_PAGINATION = {
   PAGE: 1,

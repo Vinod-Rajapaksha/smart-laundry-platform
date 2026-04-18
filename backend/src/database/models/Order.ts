@@ -84,6 +84,19 @@ const orderSchema = new mongoose.Schema(
       required: true, 
       trim: true, 
     },
+    options: [
+      {
+        inventoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        categoryName: { type: String, required: true },
+      }
+    ],
+    voucherId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Voucher', 
+      default: null 
+    },
   },
   { 
     timestamps: true, 

@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema(
   {
+    reportCode: { 
+        type: String, 
+        required: true, 
+        unique: true, 
+        trim: true, 
+    },
     reportType: { 
         type: String, 
         required: true, 

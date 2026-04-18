@@ -8,12 +8,13 @@ import {
   Landmark,
   Package,
   RefreshCcw,
-  Megaphone,
   MessageSquare,
   Truck,
   BarChart3,
   LogOut,
   CreditCard,
+  Ticket,
+  Star,
 } from "lucide-react";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
@@ -36,9 +37,9 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard size={18} />,
   },
   {
-    id: "customers",
-    label: "Customers",
-    path: "/admin/customers",
+    id: "users",
+    label: "Users",
+    path: "/admin/users",
     icon: <Users size={18} />,
   },
   {
@@ -60,6 +61,12 @@ const navItems: NavItem[] = [
     icon: <Landmark size={18} />,
   },
   {
+    id: "services",
+    label: "Services",
+    path: "/admin/services",
+    icon: <WashingMachine size={18} />,
+  },
+  {
     id: "inventory",
     label: "Inventory",
     path: "/admin/inventory",
@@ -72,10 +79,16 @@ const navItems: NavItem[] = [
     icon: <RefreshCcw size={18} />,
   },
   {
-    id: "promotions",
-    label: "Promotions",
-    path: "/admin/promotions",
-    icon: <Megaphone size={18} />,
+    id: "vouchers",
+    label: "Vouchers",
+    path: "/admin/vouchers",
+    icon: <Ticket size={18} />,
+  },
+  {
+    id: "loyalty",
+    label: "Loyalty",
+    path: "/admin/loyalty",
+    icon: <Star size={18} />,
   },
   {
     id: "feedbacks",
@@ -117,7 +130,7 @@ export default function AsideSidebar() {
   return (
     <>
       <aside className="w-64 h-screen flex flex-col bg-white border-r border-slate-200">
-        
+
         {/* HEADER */}
         <div className="flex items-center gap-3 p-6 h-[88px] shrink-0">
           <div className="w-10 h-10 flex items-center justify-center bg-blue-500 rounded-full text-white">
@@ -140,10 +153,9 @@ export default function AsideSidebar() {
               to={item.path}
               end={item.id === "dashboard"}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  isActive
-                    ? "bg-blue-100 text-blue-600 font-semibold"
-                    : "text-slate-600 hover:bg-slate-100"
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive
+                  ? "bg-blue-100 text-blue-600 font-semibold"
+                  : "text-slate-600 hover:bg-slate-100"
                 }`
               }
             >
@@ -156,7 +168,7 @@ export default function AsideSidebar() {
         {/* FOOTER */}
         <div className="p-4 border-t border-slate-200 shrink-0">
           <div className="flex items-center gap-3">
-            
+
             {/* Avatar */}
             <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center">
               {user?.avatar ? (

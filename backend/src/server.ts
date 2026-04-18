@@ -3,6 +3,7 @@ import app from "./app.js";
 import config from "./config/env.js";
 import { connectDB, closeDB } from "./config/db.js";
 import logger from "./config/logger.js";
+import { initSocket } from "./core/socket.js";
 
 let server: http.Server | undefined;
 let isShuttingDown = false;
@@ -14,6 +15,9 @@ const startServer = async (): Promise<void> => {
 
     // Create server
     server = http.createServer(app);
+
+    // Initialize Socket.io
+    initSocket(server);
 
     // Start server
     server.listen(config.PORT, "0.0.0.0", () => {

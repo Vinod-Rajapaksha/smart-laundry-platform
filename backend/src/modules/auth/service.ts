@@ -7,6 +7,7 @@ import {
   AuthPayload,
 } from "../../utils/jwt.js";
 import { Role } from "../../core/constants.js";
+import { sendSms } from "../../utils/smsService.js";
 
 type RegisterInput = {
   name: string;
@@ -125,6 +126,59 @@ export const logout = async (userId: string) => {
   if (!user) throw createError("User not found", 404);
 
   user.refreshToken = null;
+  await user.save();
+
+  return true;
+};
+
+export const sendForgotPasswordOtp = async (email: string) => {
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    // For security, don't reveal if user exists. Just return true.
+    return true;
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 mins expiry
+
+  user.otp = otp;
+  user.otpExpiresAt = expiresAt;
+  await user.save();
+
+  // Send via SMSlenz
+  await sendSms(user.telephone, `Your password reset OTP is ${otp}. Valid for 10 minutes.`);
+
+  return true;
+};
+
+export const verifyOtp = async (email: string, otp: string) => {
+  const user = await User.findOne({
+    email,
+    otp,
+    otpExpiresAt: { $gt: new Date() }
+  });
+
+  if (!user) throw createError("Invalid or expired OTP", 400);
+
+  return true;
+};
+
+export const resetPassword = async (email: string, otp: string, newPassword: string) => {
+  const user = await User.findOne({
+    email,
+    otp,
+    otpExpiresAt: { $gt: new Date() }
+  });
+
+  if (!user) throw createError("Invalid or expired OTP", 400);
+
+  const hashed = await hashPassword(newPassword);
+
+  user.password = hashed;
+  user.otp = null;
+  user.otpExpiresAt = null;
   await user.save();
 
   return true;

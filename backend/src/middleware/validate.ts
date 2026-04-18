@@ -67,3 +67,5 @@ export const validateQuery = (schema: AnyZodObject) => {
     }
   };
 };
+
+export const validate = (schema: any) => validateRequest(z.object(schema));

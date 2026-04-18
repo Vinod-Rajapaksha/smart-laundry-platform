@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { initBankTransfer, initCOD } from '../controller/payment.controller.js';
+import { initBankTransfer, initCOD, initCard } from '../controller/payment.controller.js';
 import { auth } from '../../../middleware/auth.js';
 import bankTransferRoutes from './bankTransfer.routes.js';
 import onlineTransactionRoutes from './onlineTransaction.routes.js';
@@ -10,6 +10,7 @@ const router = Router();
 
 router.post('/bank/init/:orderId', auth, initBankTransfer);
 router.post('/cod/init/:orderId', auth, initCOD);
+router.post('/card/init/:orderId', auth, initCard);
 
 router.use('/bank-transfer', auth, bankTransferRoutes);
 router.use('/online', auth, onlineTransactionRoutes);

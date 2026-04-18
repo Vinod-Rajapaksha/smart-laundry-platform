@@ -7,6 +7,10 @@ const inventorySchema = new mongoose.Schema(
         required: true, 
         trim: true, 
     },
+    itemId: { 
+        type: String, 
+        trim: true, 
+    },
     name: { 
         type: String, 
         required: true, 
@@ -40,6 +44,15 @@ const inventorySchema = new mongoose.Schema(
     isActive: { 
         type: Boolean, 
         default: true, 
+    },
+    isDefault: {
+        type: Boolean,
+        default: false,
+    },
+    description: {
+        type: String,
+        trim: true,
+        default: null,
     },
   },
   { 
