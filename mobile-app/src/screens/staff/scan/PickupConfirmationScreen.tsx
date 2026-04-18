@@ -1,192 +1,149 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { CheckCircle2, Home, List, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, Check, LayoutGrid } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 
-/**
- * Success screen shown after a Staff member successfully picks up an order.
- * Displays summary and provides easy navigation back to tasks.
- */
 const PickupConfirmationScreen = () => {
   const router = useRouter();
-  const { orderId } = useLocalSearchParams();
+  const { orderId, customerName } = useLocalSearchParams();
+
+  const header = (
+    <View style={s.header}>
+       <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
+       </TouchableOpacity>
+       <Text style={s.headerTitle}>Confirmation</Text>
+       <View style={{ width: 44 }} />
+    </View>
+  );
 
   return (
-    <ScreenWrapper scroll>
-      <View style={confStyles.content}>
-        <View style={confStyles.successIconBox}>
-          <CheckCircle2 size={80} color={COLORS.SUCCESS} strokeWidth={1.5} />
+    <ScreenWrapper header={header} style={{ backgroundColor: '#F8FAFC' }}>
+      <View style={s.content}>
+        
+        {/* Success Icon */}
+        <View style={s.iconContainer}>
+           <View style={s.iconBgOuter}>
+              <View style={s.iconBgInner}>
+                 <Check size={40} color={COLORS.WHITE} strokeWidth={4} />
+              </View>
+           </View>
         </View>
 
-        <Text style={confStyles.title}>Pickup Successful!</Text>
-        <Text style={confStyles.subtitle}>
-          Order <Text style={{ fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>{orderId || 'ORD-8890'}</Text> has been successfully claimed and is ready for processing.
-        </Text>
-
-        <View style={confStyles.summaryCard}>
-          <View style={confStyles.row}>
-            <Text style={confStyles.label}>Customer</Text>
-            <Text style={confStyles.value}>John Doe</Text>
-          </View>
-          <View style={confStyles.divider} />
-          <View style={confStyles.row}>
-            <Text style={confStyles.label}>Items Collected</Text>
-            <Text style={confStyles.value}>12 Items</Text>
-          </View>
-          <View style={confStyles.divider} />
-          <View style={confStyles.row}>
-            <Text style={confStyles.label}>Location</Text>
-            <Text style={confStyles.value} numberOfLines={1}>Ward Place, Colombo 07</Text>
-          </View>
+        {/* Text Area */}
+        <View style={s.textContainer}>
+           <Text style={s.title}>Pickup Confirmed{'\n'}Successfully</Text>
+           <Text style={s.orderLabel}>Order ID: <Text style={s.orderId}>#{orderId}</Text></Text>
+           
+           <Text style={s.message}>
+             Successfully collected items from <Text style={{ fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>{customerName}</Text>. Your clothes are in good hands and heading to our facility!
+           </Text>
         </View>
 
-        <View style={confStyles.actions}>
-          <TouchableOpacity
-            style={confStyles.primaryBtn}
-            onPress={() => router.push('/(protected)/(staff)/home')}
-          >
-            <Home size={20} color={COLORS.WHITE} />
-            <Text style={confStyles.primaryBtnText}>Back to Home</Text>
-          </TouchableOpacity>
+        {/* Action Button */}
+        <TouchableOpacity 
+          style={s.dashboardBtn}
+          onPress={() => router.replace('/(protected)/(staff)/home')}
+        >
+           <Text style={s.dashboardBtnText}>Back to Dashboard</Text>
+           <LayoutGrid size={20} color={COLORS.WHITE} style={{ marginLeft: 10 }} />
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={confStyles.secondaryBtn}
-            onPress={() => router.push('/(protected)/(staff)/orders/my-orders')}
-          >
-            <List size={20} color={COLORS.PRIMARY} />
-            <Text style={confStyles.secondaryBtnText}>View My Tasks</Text>
-            <ArrowRight size={18} color={COLORS.PRIMARY} style={{ marginLeft: 'auto' }} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={confStyles.footer}>
-          <Text style={confStyles.footerText}>
-            The customer has been notified of the successful pickup.
-          </Text>
-        </View>
       </View>
     </ScreenWrapper>
   );
 };
 
-const confStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+const s = StyleSheet.create({
+  header: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  backBtn: {
+    padding: 4,
   },
   content: {
     flex: 1,
-    padding: 24,
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingTop: 60,
+  },
+  iconContainer: {
+    marginBottom: 50,
+  },
+  iconBgOuter: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: '#DCFCE7',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  successIconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#F0FDF4',
+  iconBgInner: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#22C55E',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: COLORS.SUCCESS,
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowColor: '#22C55E',
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  textContainer: {
+    alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
-    color: COLORS.TEXT_PRIMARY,
+    color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 12,
+    lineHeight: 34,
   },
-  subtitle: {
-    fontSize: 15,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 20,
-    marginBottom: 40,
+  orderLabel: {
+    fontSize: 18,
+    color: '#0D47A1',
+    fontWeight: '700',
+    marginTop: 15,
   },
-  summaryCard: {
-    backgroundColor: COLORS.WHITE,
-    width: '100%',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: COLORS.BLACK,
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 40,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    fontWeight: '600',
-  },
-  value: {
-    fontSize: 14,
-    color: COLORS.TEXT_PRIMARY,
+  orderId: {
     fontWeight: '800',
-    flex: 0.7,
-    textAlign: 'right',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 16,
+  message: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 15,
+    lineHeight: 24,
   },
-  actions: {
+  dashboardBtn: {
+    marginTop: 60,
+    backgroundColor: '#0D47A1',
     width: '100%',
-    gap: 16,
-  },
-  primaryBtn: {
-    backgroundColor: COLORS.PRIMARY,
-    padding: 18,
-    borderRadius: 18,
+    height: 64,
+    borderRadius: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  primaryBtnText: {
+  dashboardBtnText: {
     color: COLORS.WHITE,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
-  },
-  secondaryBtn: {
-    backgroundColor: COLORS.WHITE,
-    padding: 18,
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.PRIMARY,
-  },
-  secondaryBtnText: {
-    color: COLORS.PRIMARY,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  footer: {
-    padding: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  footerText: {
-    textAlign: 'center',
-    color: COLORS.TEXT_SECONDARY,
-    fontSize: 12,
-    fontWeight: '600',
   }
 });
 

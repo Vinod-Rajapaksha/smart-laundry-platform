@@ -10,6 +10,8 @@ import styles from './styles/Profile.styles';
 import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
 
+import { notify } from '../../../utils/notify';
+
 const CustomerProfileScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -21,7 +23,7 @@ const CustomerProfileScreen = () => {
       const data = await profileService.getProfile();
       setProfile(data);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load profile');
+      notify.error('Error', error.message || 'Failed to load profile');
     } finally {
       setLoading(false);
     }
@@ -32,17 +34,15 @@ const CustomerProfileScreen = () => {
   }, []);
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { 
-        text: 'Logout', 
-        style: 'destructive',
-        onPress: async () => {
-          await dispatch(logoutUser());
-          router.replace('/(public)/auth/login');
-        }
-      }
-    ]);
+    notify.confirm(
+      'Logout', 
+      'Are you sure you want to log out?', 
+      async () => {
+        await dispatch(logoutUser());
+        router.replace('/(public)/auth/login');
+      },
+      'Logout'
+    );
   };
 
   if (loading) {

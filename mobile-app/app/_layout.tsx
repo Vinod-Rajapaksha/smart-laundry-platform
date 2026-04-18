@@ -12,6 +12,8 @@ import {
 
 import { ActivityIndicator, View } from "react-native";
 
+import Toast from 'react-native-toast-message';
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -37,6 +39,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <Stack screenOptions={{ headerShown: false }} />
+      <Toast />
     </Provider>
   );
 }

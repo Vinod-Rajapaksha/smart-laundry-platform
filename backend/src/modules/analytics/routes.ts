@@ -8,7 +8,10 @@ import { ROLES } from '../../core/constants.js';
 
 const router = Router();
 
-// All analytics routes require Admin access
+// Staff & Admin access
+router.get('/staff-dashboard', auth, allowRoles(ROLES.STAFF, ROLES.ADMIN), controller.getStaffStats);
+
+// All other analytics routes require Admin access
 router.use(auth);
 router.use(allowRoles(ROLES.ADMIN));
 

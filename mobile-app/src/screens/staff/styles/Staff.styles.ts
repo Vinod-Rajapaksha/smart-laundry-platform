@@ -6,13 +6,7 @@ const { width } = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // Slightly different background for staff
-  },
-  header: {
-    padding: 20,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
   },
   sectionTitle: {
     fontSize: 18,
@@ -21,6 +15,51 @@ export const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
   },
+  // Header
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: COLORS.WHITE,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  welcomeText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: '500',
+  },
+  userNameText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  notifButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: COLORS.WHITE,
+  },
+  mainContent: {
+    paddingBottom: 40,
+    paddingTop: 10,
+  },
   // Home Stats
   statsRow: {
     flexDirection: 'row',
@@ -28,131 +67,67 @@ export const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   statBox: {
-    width: (width - 40) / 2,
+    width: (width - 40) / 2 - 10,
     padding: 20,
     backgroundColor: COLORS.WHITE,
-    borderRadius: 16,
-    margin: 10,
+    borderRadius: 24,
+    margin: 5,
     shadowColor: COLORS.BLACK,
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.TEXT_PRIMARY,
-    marginTop: 4,
-  },
-  // Order Cards
-  orderCard: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: 20,
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    shadowColor: COLORS.BLACK,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 3,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.TEXT_SECONDARY,
+    marginTop: 12,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: COLORS.TEXT_PRIMARY,
+    marginTop: 4,
+  },
+  // Action Cards
+  actionCard: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 24,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    shadowColor: COLORS.BLACK,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingBottom: 12,
-  },
-  orderNo: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.TEXT_PRIMARY,
-  },
-  customerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  customerName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.TEXT_PRIMARY,
-    marginLeft: 12,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  addressText: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 20,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  primaryAction: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    flex: 1,
-    marginLeft: 10,
-    alignItems: 'center',
-  },
-  secondaryAction: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+  actionIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Availability
-  availabilityCard: {
-    padding: 20,
-    backgroundColor: COLORS.WHITE,
-    borderRadius: 20,
-    margin: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  actionContent: {
+    flex: 1,
+    marginLeft: 16,
   },
-  // Balance Card
-  balanceCard: {
-    margin: 20,
-    padding: 24,
-    borderRadius: 24,
-    shadowColor: COLORS.BLACK,
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 5,
-  },
-  balanceLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  balanceValue: {
-    color: COLORS.WHITE,
-    fontSize: 28,
+  actionTitle: {
+    fontSize: 17,
     fontWeight: '800',
-    marginTop: 8,
-  }
+    color: COLORS.TEXT_PRIMARY,
+  },
+  actionSubtitle: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    marginTop: 4,
+  },
 });
 
 export default styles;

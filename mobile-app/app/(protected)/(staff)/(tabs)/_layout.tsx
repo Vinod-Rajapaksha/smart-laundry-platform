@@ -26,17 +26,17 @@ export default function StaffTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="orders"
-        options={{
-          title: 'Tasks',
-          tabBarIcon: ({ color, size }) => <LayoutList size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="scan"
         options={{
           title: 'Scan',
           tabBarIcon: ({ color, size }) => <QrCode size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          tabBarIcon: ({ color, size }) => <LayoutList size={size} color={color} />,
         }}
       />
       <Tabs.Screen

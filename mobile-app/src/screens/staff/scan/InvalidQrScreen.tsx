@@ -1,190 +1,188 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, RefreshCcw, ArrowLeft, HelpCircle } from 'lucide-react-native';
+import { ArrowLeft, Scan, Sun, History, ShieldAlert } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 
-/**
- * Error screen shown when an invalid or expired QR code is scanned.
- * Provides clear reasons and guidance on how to proceed.
- */
 const InvalidQrScreen = () => {
   const router = useRouter();
 
+  const header = (
+    <View style={s.header}>
+       <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
+       </TouchableOpacity>
+       <Text style={s.headerTitle}>B & W Laundry</Text>
+       <View style={{ width: 44 }} />
+    </View>
+  );
+
   return (
-    <ScreenWrapper scroll style={{ backgroundColor: '#FFF1F2' }} statusBarColor="#FFF1F2">
-      <View style={errStyles.content}>
-        <View style={errStyles.errorIconBox}>
-          <AlertTriangle size={80} color="#EF4444" strokeWidth={1.5} />
+    <ScreenWrapper header={header} style={{ backgroundColor: '#F8FAFC' }}>
+      <View style={s.content}>
+        
+        {/* Error Icon */}
+        <View style={s.iconContainer}>
+           <View style={s.iconBg}>
+              <Scan size={60} color="#EF4444" strokeWidth={1.5} />
+              <View style={s.alertBadge}>
+                 <ShieldAlert size={16} color={COLORS.WHITE} />
+              </View>
+           </View>
         </View>
 
-        <Text style={errStyles.title}>Invalid QR Code</Text>
-        <Text style={errStyles.subtitle}>
-          The scanned code could not be verified. It may be expired, already used, or for a different order.
+        {/* Text Area */}
+        <Text style={s.title}>Invalid or Expired QR Code</Text>
+        <Text style={s.subtitle}>
+           Please verify the customer QR or contact support if the problem persists.
         </Text>
 
-        <View style={errStyles.reasonCard}>
-          <Text style={errStyles.reasonLabel}>Possible Reasons:</Text>
-          <View style={errStyles.bulletRow}>
-            <View style={errStyles.bullet} />
-            <Text style={errStyles.bulletText}>QR code has already been scanned</Text>
-          </View>
-          <View style={errStyles.bulletRow}>
-            <View style={errStyles.bullet} />
-            <Text style={errStyles.bulletText}>Customer is showing an old screenshot</Text>
-          </View>
-          <View style={errStyles.bulletRow}>
-            <View style={errStyles.bullet} />
-            <Text style={errStyles.bulletText}>Network sync error</Text>
-          </View>
-        </View>
-
-        <View style={errStyles.actions}>
-          <TouchableOpacity
-            style={errStyles.primaryBtn}
-            onPress={() => router.back()}
-          >
-            <RefreshCcw size={20} color={COLORS.WHITE} />
-            <Text style={errStyles.primaryBtnText}>Try Scanning Again</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={errStyles.secondaryBtn}
-            onPress={() => router.push('/(protected)/(staff)/home')}
-          >
-            <ArrowLeft size={18} color={COLORS.TEXT_PRIMARY} />
-            <Text style={errStyles.secondaryBtnText}>Back to Dashboard</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={errStyles.helpBtn}>
-          <HelpCircle size={20} color={COLORS.TEXT_SECONDARY} />
-          <Text style={errStyles.helpText}>Contact Support for Help</Text>
+        <TouchableOpacity 
+          style={s.scanBtn}
+          onPress={() => router.back()}
+        >
+           <Scan size={20} color={COLORS.WHITE} style={{ marginRight: 10 }} />
+           <Text style={s.scanBtnText}>Scan Again</Text>
         </TouchableOpacity>
+
+        {/* Common Issues Section */}
+        <View style={s.issuesSection}>
+           <Text style={s.issuesTitle}>COMMON ISSUES</Text>
+           
+           <View style={s.issueItem}>
+              <View style={s.issueIconBox}>
+                 <Sun size={20} color="#0D47A1" />
+              </View>
+              <Text style={s.issueText}>Ensure the screen brightness is high on the customer's device.</Text>
+           </View>
+
+           <View style={s.issueItem}>
+              <View style={s.issueIconBox}>
+                 <History size={20} color="#0D47A1" />
+              </View>
+              <Text style={s.issueText}>Check if the QR code has already been used for this session.</Text>
+           </View>
+        </View>
+
       </View>
     </ScreenWrapper>
   );
 };
 
-const errStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF1F2',
+const s = StyleSheet.create({
+  header: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  backBtn: {
+    padding: 4,
   },
   content: {
     flex: 1,
-    padding: 24,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 30,
+    paddingTop: 40,
   },
-  errorIconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#FFE4E6',
+  iconContainer: {
+    marginBottom: 30,
+  },
+  iconBg: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FEF2F2',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: '#EF4444',
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
+    position: 'relative',
+  },
+  alertBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FEF2F2',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '900',
-    color: '#991B1B',
+    color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
-    color: '#B91C1C',
+    color: '#64748B',
     textAlign: 'center',
+    marginTop: 15,
     lineHeight: 22,
-    paddingHorizontal: 20,
-    marginBottom: 40,
-    opacity: 0.8,
+    paddingHorizontal: 10,
   },
-  reasonCard: {
-    backgroundColor: COLORS.WHITE,
+  scanBtn: {
+    marginTop: 40,
+    backgroundColor: '#0D47A1',
     width: '100%',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-    marginBottom: 40,
-  },
-  reasonLabel: {
-    fontSize: 14,
-    color: COLORS.TEXT_PRIMARY,
-    fontWeight: '800',
-    marginBottom: 16,
-  },
-  bulletRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#EF4444',
-  },
-  bulletText: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    fontWeight: '600',
-  },
-  actions: {
-    width: '100%',
-    gap: 16,
-  },
-  primaryBtn: {
-    backgroundColor: '#B91C1C',
-    padding: 18,
-    borderRadius: 18,
+    height: 60,
+    borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    shadowColor: '#0D47A1',
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  primaryBtnText: {
+  scanBtnText: {
     color: COLORS.WHITE,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
   },
-  secondaryBtn: {
-    backgroundColor: COLORS.WHITE,
-    padding: 18,
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    borderWidth: 1.5,
-    borderColor: '#FECACA',
-  },
-  secondaryBtnText: {
-    color: COLORS.TEXT_PRIMARY,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  helpBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    padding: 24,
+  issuesSection: {
+    width: '100%',
+    marginTop: 60,
+    paddingTop: 30,
     borderTopWidth: 1,
-    borderTopColor: '#FEE2E2',
+    borderTopColor: '#F1F5F9',
   },
-  helpText: {
-    color: COLORS.TEXT_SECONDARY,
+  issuesTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#1E293B',
+    letterSpacing: 1,
+    marginBottom: 20,
+  },
+  issueItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 15,
+  },
+  issueIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  issueText: {
+    flex: 1,
     fontSize: 14,
-    fontWeight: '600',
+    color: '#475569',
+    lineHeight: 20,
+    fontWeight: '500',
   }
 });
 

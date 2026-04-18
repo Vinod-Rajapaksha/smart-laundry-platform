@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, StyleSheet, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, CheckCircle2, User, Package } from 'lucide-react-native';
+import { 
+  ArrowLeft, User, Package, MapPin, 
+  Clock, Calendar, CreditCard, ShieldCheck 
+} from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
-import styles from '../styles/Staff.styles';
 import { scanService } from '../../../services/staff/scanService';
+import { notify } from '../../../utils/notify';
 
 const ScanResultScreen = () => {
   const router = useRouter();
@@ -17,12 +20,21 @@ const ScanResultScreen = () => {
     try {
       setLoading(true);
       await scanService.updateOrderStatus(result.orderId, newStatus, imageUri as string);
+      
+      const targetPath = newStatus === 'PICKED_UP' 
+        ? '/(protected)/(staff)/scan/pickup-confirmation'
+        : '/(protected)/(staff)/scan/delivery-confirmation';
 
-      Alert.alert('Success', `Order status updated to ${newStatus}`, [
-        { text: 'Back to Home', onPress: () => router.replace('/(protected)/(staff)/home') }
-      ]);
+      router.push({
+        pathname: targetPath,
+        params: { 
+          orderId: result.orderNo,
+          customerName: result.customerName,
+          totalAmount: result.totalAmount.toString()
+        }
+      });
     } catch (error: any) {
-      Alert.alert('Update Failed', error.message || 'Failed to update status');
+       notify.error('Update Failed', error.message || 'Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -31,89 +43,268 @@ const ScanResultScreen = () => {
   if (!result) return null;
 
   const header = (
-    <View style={{ padding: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.WHITE }}>
-      <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
+    <View style={s.header}>
+      <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
         <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
       </TouchableOpacity>
-      <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Scan Result</Text>
+      <Text style={s.headerTitle}>Order Verification</Text>
+      <View style={{ width: 44 }} />
     </View>
   );
 
   return (
-    <ScreenWrapper
-      header={header}
-      scroll
-    >
-      <View style={{ alignItems: 'center', padding: 30, backgroundColor: COLORS.WHITE }}>
-        <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#F0FDF4', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-          <CheckCircle2 size={50} color="#16A34A" />
-        </View>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Order Found</Text>
-        <Text style={{ fontSize: 14, color: COLORS.TEXT_SECONDARY, marginTop: 4 }}>ID: #{result.orderId.substring(result.orderId.length - 8).toUpperCase()}</Text>
-      </View>
-
-      <View style={{ marginTop: 20 }}>
-        <View style={[styles.orderCard, { paddingVertical: 24, marginHorizontal: 20 }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-            <User size={20} color={COLORS.PRIMARY} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.TEXT_PRIMARY, marginLeft: 12 }}>{result.customerName}</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-            <Package size={20} color={COLORS.PRIMARY} />
-            <Text style={{ fontSize: 16, color: COLORS.TEXT_SECONDARY, marginLeft: 12 }}>{result.serviceMode} Service</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 16 }}>
-            <Text style={{ fontSize: 14, color: COLORS.TEXT_SECONDARY }}>Current Status</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: COLORS.PRIMARY }}>{result.status}</Text>
-          </View>
+    <ScreenWrapper header={header} style={{ backgroundColor: '#F8FAFC' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        
+        {/* Order Found Info */}
+        <View style={s.topInfo}>
+           <View>
+              <Text style={s.orderStatusLabel}>ORDER VERITION SUCCESS</Text>
+              <Text style={s.orderNoText}>#{result.orderNo}</Text>
+           </View>
+           <View style={[s.paidBadge, result.paymentStatus === 'PAID' ? { backgroundColor: '#DCFCE7' } : { backgroundColor: '#FEE2E2' }]}>
+              <Text style={[s.paidText, result.paymentStatus === 'PAID' ? { color: '#16A34A' } : { color: '#DC2626' }]}>
+                {result.paymentStatus}
+              </Text>
+           </View>
         </View>
 
-        {imageUri && (
-          <View style={[styles.orderCard, { padding: 8, marginHorizontal: 20, marginTop: 16 }]}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.TEXT_PRIMARY, margin: 8 }}>Condition Attachment</Text>
-            <Image source={{ uri: imageUri as string }} style={{ width: '100%', height: 200, borderRadius: 12 }} />
-          </View>
-        )}
-
-        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.TEXT_SECONDARY, marginBottom: 12 }}>APPROVE ACTION</Text>
-
-          {result.status === 'READY_FOR_PICKUP' && (
-            <TouchableOpacity
-              style={[styles.primaryAction, { marginLeft: 0, height: 56, justifyContent: 'center' }]}
-              onPress={() => handleUpdateStatus('PICKED_UP')}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color={COLORS.WHITE} /> : <Text style={{ color: COLORS.WHITE, fontSize: 18, fontWeight: '700' }}>Confirm Pickup</Text>}
-            </TouchableOpacity>
-          )}
-
-          {result.status === 'PROCESSING_COMPLETE' && (
-            <TouchableOpacity
-              style={[styles.primaryAction, { marginLeft: 0, height: 56, justifyContent: 'center', backgroundColor: '#8B5CF6' }]}
-              onPress={() => handleUpdateStatus('OUT_FOR_DELIVERY')}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color={COLORS.WHITE} /> : <Text style={{ color: COLORS.WHITE, fontSize: 18, fontWeight: '700' }}>Out for Delivery</Text>}
-            </TouchableOpacity>
-          )}
-
-          {result.status === 'OUT_FOR_DELIVERY' && (
-            <TouchableOpacity
-              style={[styles.primaryAction, { marginLeft: 0, height: 56, justifyContent: 'center', backgroundColor: '#10B981' }]}
-              onPress={() => handleUpdateStatus('DELIVERED')}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color={COLORS.WHITE} /> : <Text style={{ color: COLORS.WHITE, fontSize: 18, fontWeight: '700' }}>Confirm Delivery</Text>}
-            </TouchableOpacity>
-          )}
+        {/* Service Summary Card */}
+        <View style={s.card}>
+           <View style={s.serviceRow}>
+              <View style={s.serviceIconBox}>
+                 <Package size={24} color={COLORS.PRIMARY} />
+              </View>
+              <View style={s.serviceMain}>
+                 <Text style={s.serviceName}>{result.serviceMode}</Text>
+                 <Text style={s.serviceMeta}>{result.itemsCount} Items • Professional Care</Text>
+              </View>
+              <Text style={s.servicePrice}>Rs {result.totalAmount.toLocaleString()}</Text>
+           </View>
         </View>
-      </View>
-      <View style={{ height: 40 }} />
+
+        {/* Customer Details Card */}
+        <View style={s.card}>
+           <View style={s.cardHeader}>
+              <User size={18} color={COLORS.PRIMARY} />
+              <Text style={s.cardTitle}>Customer Details</Text>
+           </View>
+           
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Name</Text>
+              <Text style={s.detailValue}>{result.customerName}</Text>
+           </View>
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Phone</Text>
+              <Text style={[s.detailValue, { color: COLORS.PRIMARY }]}>{result.customerPhone}</Text>
+           </View>
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Address</Text>
+              <Text style={s.detailValue}>{result.customerAddress}</Text>
+           </View>
+        </View>
+
+        {/* Logistics Card */}
+        <View style={s.card}>
+           <View style={s.cardHeader}>
+              <Clock size={18} color={COLORS.PRIMARY} />
+              <Text style={s.cardTitle}>Logistics Information</Text>
+           </View>
+
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Current Status</Text>
+              <Text style={[s.detailValue, { color: COLORS.PRIMARY }]}>{result.status.replace('_', ' ')}</Text>
+           </View>
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Time Window</Text>
+              <Text style={s.detailValue}>{result.status === 'READY_FOR_PICKUP' ? result.pickupSlot : result.deliverySlot}</Text>
+           </View>
+           <View style={s.detailRow}>
+              <Text style={s.detailLabel}>Payment Mode</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                 <CreditCard size={14} color={COLORS.TEXT_SECONDARY} />
+                 <Text style={s.detailValue}>{result.paymentMethod}</Text>
+              </View>
+           </View>
+        </View>
+
+        {/* Actions */}
+        <View style={s.actions}>
+           {(result.status === 'PENDING' || result.status === 'PLACED') && (
+             <TouchableOpacity 
+               style={s.confirmBtn}
+               onPress={() => handleUpdateStatus('PICKED_UP')}
+               disabled={loading}
+             >
+                {loading ? (
+                  <ActivityIndicator color={COLORS.WHITE} />
+                ) : (
+                  <>
+                    <ShieldCheck size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
+                    <Text style={s.confirmBtnText}>Confirm Pickup</Text>
+                  </>
+                )}
+             </TouchableOpacity>
+           )}
+
+           {result.status === 'READY_FOR_DELIVERY' && (
+             <TouchableOpacity 
+               style={[s.confirmBtn, { backgroundColor: '#1E293B' }]}
+               onPress={() => handleUpdateStatus('DELIVERED')}
+               disabled={loading}
+             >
+                {loading ? (
+                  <ActivityIndicator color={COLORS.WHITE} />
+                ) : (
+                  <>
+                    <Package size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
+                    <Text style={s.confirmBtnText}>Confirm Delivery</Text>
+                  </>
+                )}
+             </TouchableOpacity>
+           )}
+        </View>
+
+      </ScrollView>
     </ScreenWrapper>
   );
 };
+
+const s = StyleSheet.create({
+  header: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.WHITE,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  backBtn: {
+    padding: 4,
+  },
+  topInfo: {
+    padding: 25,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  orderStatusLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.PRIMARY,
+    letterSpacing: 0.5,
+  },
+  orderNoText: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1E293B',
+    marginTop: 4,
+  },
+  paidBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  paidText: {
+    color: '#16A34A',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  card: {
+    backgroundColor: COLORS.WHITE,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  serviceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  serviceIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceMain: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  serviceMeta: {
+    fontSize: 13,
+    color: COLORS.TEXT_MUTED,
+    marginTop: 2,
+  },
+  servicePrice: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.PRIMARY,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+    paddingBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.TEXT_PRIMARY,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: COLORS.TEXT_MUTED,
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 14,
+    color: COLORS.TEXT_PRIMARY,
+    fontWeight: '700',
+  },
+  actions: {
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  confirmBtn: {
+    backgroundColor: '#0D47A1',
+    height: 60,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  confirmBtnText: {
+    color: COLORS.WHITE,
+    fontSize: 16,
+    fontWeight: '800',
+  }
+});
 
 export default ScanResultScreen;

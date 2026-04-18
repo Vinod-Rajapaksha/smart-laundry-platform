@@ -43,6 +43,10 @@ export const getReports = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const downloadReport = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  await service.downloadReport(id, res);
+  await service.downloadReport(req.params.id as string, res);
+});
+
+export const getStaffStats = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.getStaffDashboardStats();
+  return ApiResponse(res, 200, 'Staff stats fetched successfully', result);
 });

@@ -12,6 +12,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notify } from '../../../utils/notify';
 
 /**
  * Screen displaying a QR code for order verification.
@@ -57,7 +58,7 @@ const OrderQrCodeScreen = () => {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'We need permission to save images to your gallery.');
+        notify.error('Permission Denied', 'We need permission to save images to your gallery.');
         return;
       }
 
@@ -68,11 +69,11 @@ const OrderQrCodeScreen = () => {
         });
 
         await MediaLibrary.saveToLibraryAsync(fileUri);
-        Alert.alert('Success', 'QR Code saved to gallery!');
+        notify.success('Success', 'QR Code saved to gallery!');
       });
     } catch (error) {
       console.error('Error saving QR:', error);
-      Alert.alert('Error', 'Failed to save QR code');
+      notify.error('Error', 'Failed to save QR code');
     }
   };
 
@@ -102,12 +103,12 @@ const OrderQrCodeScreen = () => {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(result.uri);
         } else {
-          Alert.alert('Success', 'Receipt downloaded to your device!');
+          notify.success('Success', 'Receipt downloaded to your device!');
         }
       }
     } catch (error) {
       console.error('Download error:', error);
-      Alert.alert('Error', 'Failed to download receipt');
+      notify.error('Error', 'Failed to download receipt');
     } finally {
       setIsDownloading(false);
     }

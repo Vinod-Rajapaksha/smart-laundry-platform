@@ -1,114 +1,163 @@
-import { useState } from 'react';
-import { View, Text, TouchableOpacity, RefreshControl } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Package, Truck, CheckCircle, Clock, Bell, ChevronRight } from 'lucide-react-native';
+import {
+  Package, Truck, CheckCircle, Clock,
+  Bell, ChevronRight, QrCode, ClipboardList
+} from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from '../styles/Staff.styles';
+import { staffService, StaffStats } from '../../../services/staff/staffService';
+import { notify } from '../../../utils/notify';
+import { useAppSelector } from '../../../store/hooks';
 
 const StaffHomeScreen = () => {
   const router = useRouter();
+  const { user } = useAppSelector(state => state.auth);
   const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState({
-    assigned: 5,
-    pickups: 3,
-    deliveries: 2,
-    completed: 12
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StaffStats>({
+    pickups: 0,
+    processing: 0,
+    deliveries: 0,
+    completedToday: 0
   });
+
+  const fetchStats = async () => {
+    try {
+      const data = await staffService.getDashboardStats();
+      setStats(data);
+    } catch (error: any) {
+      notify.error('Error', error.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Fetch real stats here
-    setTimeout(() => setRefreshing(false), 1500);
+    fetchStats();
   };
 
   const header = (
-    <View style={{ padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.WHITE }}>
+    <View style={styles.headerContainer}>
       <View>
-        <Text style={{ fontSize: 14, color: COLORS.TEXT_SECONDARY }}>Good Morning,</Text>
-        <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Staff Member</Text>
+        <Text style={styles.welcomeText}>Welcome,</Text>
+        <Text style={styles.userNameText}>{user?.name || 'Staff Member'}</Text>
       </View>
       <TouchableOpacity
-        style={{ width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}
+        style={styles.notifButton}
         onPress={() => router.push('/(protected)/(staff)/notifications/list')}
       >
         <Bell size={24} color={COLORS.TEXT_PRIMARY} />
-        <View style={{ position: 'absolute', top: 10, right: 10, width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444', borderWidth: 2, borderColor: COLORS.WHITE }} />
+        <View style={styles.notifDot} />
       </TouchableOpacity>
     </View>
   );
+
+  if (loading && !refreshing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.BACKGROUND }}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+      </View>
+    );
+  }
 
   return (
     <ScreenWrapper
       header={header}
       scroll
       refreshControl={
-        <RefreshControl 
-          refreshing={refreshing} 
-          onRefresh={onRefresh} 
-          colors={[COLORS.PRIMARY]} 
-          tintColor={COLORS.PRIMARY} 
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[COLORS.PRIMARY]}
+          tintColor={COLORS.PRIMARY}
         />
       }
     >
-      <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Today's Overview</Text>
+      <View style={styles.mainContent}>
+        <Text style={styles.sectionTitle}>Operations Overview</Text>
 
-      <View style={styles.statsRow}>
+        <View style={styles.statsRow}>
+          <TouchableOpacity
+            style={[styles.statBox, { borderLeftColor: '#F59E0B', borderLeftWidth: 4 }]}
+            onPress={() => router.push('/(protected)/(staff)/orders/pickup')}
+          >
+            <Clock size={28} color="#F59E0B" />
+            <Text style={styles.statValue}>{stats.pickups}</Text>
+            <Text style={styles.statLabel}>Pending Pickups</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.statBox, { borderLeftColor: COLORS.PRIMARY, borderLeftWidth: 4 }]}
+            onPress={() => router.push('/(protected)/(staff)/orders/pending')}
+          >
+            <Package size={28} color={COLORS.PRIMARY} />
+            <Text style={styles.statValue}>{stats.processing}</Text>
+            <Text style={styles.statLabel}>In Treatment</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.statBox, { borderLeftColor: '#8B5CF6', borderLeftWidth: 4 }]}
+            onPress={() => router.push('/(protected)/(staff)/orders/delivery')}
+          >
+            <Truck size={28} color="#8B5CF6" />
+            <Text style={styles.statValue}>{stats.deliveries}</Text>
+            <Text style={styles.statLabel}>Out for Delivery</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.statBox, { borderLeftColor: '#10B981', borderLeftWidth: 4 }]}
+            onPress={() => router.push('/(protected)/(staff)/orders/history')}
+          >
+            <CheckCircle size={28} color="#10B981" />
+            <Text style={styles.statValue}>{stats.completedToday}</Text>
+            <Text style={styles.statLabel}>Success Today</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Actions */}
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick Actions</Text>
+
         <TouchableOpacity
-          style={styles.statBox}
-          onPress={() => router.push('/(protected)/(staff)/orders/assigned')}
+          style={styles.actionCard}
+          onPress={() => router.push('/(protected)/(staff)/scan')}
         >
-          <Package size={28} color={COLORS.PRIMARY} />
-          <Text style={styles.statValue}>{stats.assigned}</Text>
-          <Text style={styles.statLabel}>Assigned</Text>
+          <View style={[styles.actionIconBox, { backgroundColor: '#EEF2FF' }]}>
+            <QrCode size={26} color={COLORS.PRIMARY} />
+          </View>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionTitle}>Scan Service QR</Text>
+            <Text style={styles.actionSubtitle}>Pick up or deliver an order instantly</Text>
+          </View>
+          <ChevronRight size={20} color={COLORS.TEXT_SECONDARY} />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.statBox}
-          onPress={() => router.push('/(protected)/(staff)/orders/pickup')}
+          style={styles.actionCard}
+          onPress={() => router.push('/(protected)/(staff)/orders')}
         >
-          <Clock size={28} color="#F59E0B" />
-          <Text style={styles.statValue}>{stats.pickups}</Text>
-          <Text style={styles.statLabel}>Pending Pickups</Text>
+          <View style={[styles.actionIconBox, { backgroundColor: '#FDF2F8' }]}>
+            <ClipboardList size={26} color="#DB2777" />
+          </View>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionTitle}>Order Management</Text>
+            <Text style={styles.actionSubtitle}>View and manage all active cycles</Text>
+          </View>
+          <ChevronRight size={20} color={COLORS.TEXT_SECONDARY} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.statBox}
-          onPress={() => router.push('/(protected)/(staff)/orders/delivery')}
-        >
-          <Truck size={28} color="#8B5CF6" />
-          <Text style={styles.statValue}>{stats.deliveries}</Text>
-          <Text style={styles.statLabel}>Deliveries</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.statBox}
-          onPress={() => router.push('/(protected)/(staff)/orders/history')}
-        >
-          <CheckCircle size={28} color="#10B981" />
-          <Text style={styles.statValue}>{stats.completed}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </TouchableOpacity>
+        <View style={{ height: 40 }} />
       </View>
-
-      <TouchableOpacity
-        style={[styles.orderCard, { flexDirection: 'row', alignItems: 'center', paddingVertical: 24, marginTop: 10 }]}
-        onPress={() => router.push('/(protected)/(staff)/scan/scanner')}
-      >
-        <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' }}>
-          <Package size={30} color={COLORS.PRIMARY} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 16 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Scan QR Code</Text>
-          <Text style={{ fontSize: 14, color: COLORS.TEXT_SECONDARY, marginTop: 2 }}>Instantly process customer orders</Text>
-        </View>
-        <ChevronRight size={24} color={COLORS.TEXT_SECONDARY} />
-      </TouchableOpacity>
-
-      <View style={{ height: 40 }} />
     </ScreenWrapper>
   );
-}
-;
+};
 
 export default StaffHomeScreen;

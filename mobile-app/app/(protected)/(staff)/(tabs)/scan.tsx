@@ -1,1 +1,1 @@
-export { default } from '../../../../src/screens/staff/scan/ScanLandingScreen';
+export { default } from '../../../../src/screens/staff/scan/QrScannerScreen';

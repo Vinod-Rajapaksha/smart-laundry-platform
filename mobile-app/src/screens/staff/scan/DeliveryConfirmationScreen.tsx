@@ -10,44 +10,44 @@ import { COLORS } from '../../../theme/colors';
  */
 const DeliveryConfirmationScreen = () => {
   const router = useRouter();
-  const { orderId } = useLocalSearchParams();
+  const { orderId, customerName, totalAmount } = useLocalSearchParams();
 
   return (
-    <ScreenWrapper scroll>
+    <ScreenWrapper scroll style={{ backgroundColor: '#F8FAFC' }}>
       <View style={confStyles.content}>
         <View style={confStyles.successIconBox}>
-          <ShoppingBag size={80} color={COLORS.PRIMARY} strokeWidth={1.5} />
+          <ShieldCheck size={80} color="#16A34A" strokeWidth={1.5} />
         </View>
 
-        <Text style={confStyles.title}>Successfully Delivered!</Text>
+        <Text style={confStyles.title}>Order Delivered!</Text>
         <Text style={confStyles.subtitle}>
-          Order <Text style={{ fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>{orderId || 'ORD-8890'}</Text> has been successfully delivered and verified by the customer.
+          Order <Text style={{ fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>#{orderId}</Text> has been successfully delivered to the customer.
         </Text>
 
         <View style={confStyles.summaryCard}>
           <View style={confStyles.row}>
             <Text style={confStyles.label}>Customer</Text>
-            <Text style={confStyles.value}>John Doe</Text>
+            <Text style={confStyles.value}>{customerName || 'Standard Customer'}</Text>
           </View>
           <View style={confStyles.divider} />
           <View style={confStyles.row}>
             <Text style={confStyles.label}>Verification</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <ShieldCheck size={14} color={COLORS.SUCCESS} />
-              <Text style={[confStyles.value, { color: COLORS.SUCCESS_TEXT }]}>QR SIGNED</Text>
+              <ShieldCheck size={14} color="#16A34A" />
+              <Text style={[confStyles.value, { color: '#16A34A' }]}>QR VERIFIED</Text>
             </View>
           </View>
           <View style={confStyles.divider} />
           <View style={confStyles.row}>
-            <Text style={confStyles.label}>Timestamp</Text>
-            <Text style={confStyles.value}>Today, 04:30 PM</Text>
+            <Text style={confStyles.label}>Total Value</Text>
+            <Text style={confStyles.value}>Rs {parseInt(totalAmount as string || '0').toLocaleString()}</Text>
           </View>
         </View>
 
         <View style={confStyles.actions}>
           <TouchableOpacity
             style={confStyles.primaryBtn}
-            onPress={() => router.push('/(protected)/(staff)/home')}
+            onPress={() => router.replace('/(protected)/(staff)/home')}
           >
             <Home size={20} color={COLORS.WHITE} />
             <Text style={confStyles.primaryBtnText}>Back to Dashboard</Text>
@@ -55,7 +55,7 @@ const DeliveryConfirmationScreen = () => {
 
           <TouchableOpacity
             style={confStyles.secondaryBtn}
-            onPress={() => router.push('/(protected)/(staff)/orders/my-orders')}
+            onPress={() => router.replace('/(protected)/(staff)/home')}
           >
             <List size={20} color={COLORS.PRIMARY} />
             <Text style={confStyles.secondaryBtnText}>View Remaining Tasks</Text>
