@@ -17,6 +17,13 @@ export const updateUser = async (id: string, data: Partial<User>) => {
     });
 };
 
+export const createUser = async (data: Partial<User> & { password?: string }) => {
+    return apiFetch<User>(`/users`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+};
+
 export const deleteUser = async (id: string) => {
     return apiFetch<void>(`/users/${id}`, {
         method: "DELETE",
