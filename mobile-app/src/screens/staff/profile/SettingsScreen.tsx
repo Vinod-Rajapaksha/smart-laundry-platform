@@ -62,12 +62,12 @@ const StaffSettingsScreen = () => {
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <View style={styles.menuCard}>
               {section.items.map((item, itemIndex) => (
-                <TouchableOpacity 
-                   key={itemIndex} 
-                   style={[
-                     styles.menuItem, 
-                     itemIndex === section.items.length - 1 && styles.menuItemLast
-                   ]}
+                <TouchableOpacity
+                  key={itemIndex}
+                  style={[
+                    styles.menuItem,
+                    itemIndex === section.items.length - 1 && styles.menuItemLast
+                  ]}
                 >
                   <View style={[styles.iconBox, { backgroundColor: '#F8FAFC' }]}>
                     {item.icon}
@@ -86,7 +86,7 @@ const StaffSettingsScreen = () => {
         {/* Support Tools */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Administrative</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuCard}
             onPress={handleDeleteAccount}
           >
@@ -100,11 +100,6 @@ const StaffSettingsScreen = () => {
               </View>
             </View>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.versionText}>Staff Portal v1.0.4 (internal)</Text>
-          <Text style={styles.copyrightText}>© 2024 B & W Laundry Services</Text>
         </View>
       </View>
     </ScreenWrapper>

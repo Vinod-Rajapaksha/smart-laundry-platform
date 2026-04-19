@@ -42,8 +42,8 @@ const StaffProfileScreen = () => {
 
   const handleLogout = async () => {
     notify.confirm(
-      'Logout', 
-      'Are you sure you want to log out from the Staff Portal?', 
+      'Logout',
+      'Are you sure you want to log out from the Staff Portal?',
       async () => {
         await dispatch(logoutUser());
         router.replace('/(public)/auth/login');
@@ -73,7 +73,7 @@ const StaffProfileScreen = () => {
   return (
     <ScreenWrapper header={header} scroll={true}>
       <View style={styles.scrollContent}>
-        
+
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
@@ -84,11 +84,11 @@ const StaffProfileScreen = () => {
             <Text style={styles.emailText}>{profile?.email}</Text>
             <Text style={styles.phoneText}>{profile?.telephone}</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editButton}
-            onPress={() => router.push({ 
-              pathname: '/(protected)/(staff)/profile/edit-profile', 
-              params: { profileStr: JSON.stringify(profile) } 
+            onPress={() => router.push({
+              pathname: '/(protected)/(staff)/profile/edit-profile',
+              params: { profileStr: JSON.stringify(profile) }
             })}
           >
             <Edit2 size={18} color={COLORS.WHITE} />
@@ -99,12 +99,12 @@ const StaffProfileScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Information</Text>
           <View style={styles.menuCard}>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => router.push({ 
-                pathname: '/(protected)/(staff)/profile/edit-profile', 
-                params: { profileStr: JSON.stringify(profile) } 
+              onPress={() => router.push({
+                pathname: '/(protected)/(staff)/profile/edit-profile',
+                params: { profileStr: JSON.stringify(profile) }
               })}
             >
               <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
@@ -117,7 +117,7 @@ const StaffProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push('/(protected)/(staff)/profile/settings')}
             >
@@ -131,7 +131,7 @@ const StaffProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.menuItem, styles.menuItemLast]}
               onPress={() => router.push('/(protected)/(staff)/profile/settings')}
             >
@@ -170,12 +170,6 @@ const StaffProfileScreen = () => {
           <LogOut size={20} color="#E11D48" />
           <Text style={styles.logoutText}>Logout from Staff Portal</Text>
         </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.versionText}>Staff Edition v1.0.4 (B2240)</Text>
-          <Text style={styles.copyrightText}>© 2024 B & W Laundry Services</Text>
-        </View>
-
       </View>
     </ScreenWrapper>
   );
