@@ -32,7 +32,7 @@ export default function OrderTable({ orders, onViewDetails, loading }: OrderTabl
       header: "Customer ID",
       cell: (order) => (
         <span className="text-slate-500 font-mono text-[10px] uppercase tracking-tighter">
-          {order.userId.slice(-8)}
+          {(typeof order.userId === 'string' ? order.userId : order.userId?._id || '').slice(-8)}
         </span>
       ),
     },
@@ -40,7 +40,9 @@ export default function OrderTable({ orders, onViewDetails, loading }: OrderTabl
       header: "Date",
       cell: (order) => (
         <span className="text-slate-600 text-sm">
-          {format(new Date(order.createdAt), "MMM dd, yyyy")}
+          {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
+            ? format(new Date(order.createdAt), "MMM dd, yyyy") 
+            : "N/A"}
         </span>
       ),
     },

@@ -85,4 +85,22 @@ router.get(
   controller.downloadReceipt
 );
 
+// Update order details
+router.patch(
+  '/:id',
+  auth,
+  allowRoles(ROLES.ADMIN, ROLES.STAFF),
+  validate(validation.validateUpdateOrder),
+  controller.updateOrder
+);
+
+// Soft delete order
+router.delete(
+  '/:id',
+  auth,
+  allowRoles(ROLES.ADMIN),
+  validate(validation.validateOrderId),
+  controller.deleteOrder
+);
+
 export default router;

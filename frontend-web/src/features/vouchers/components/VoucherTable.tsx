@@ -27,8 +27,8 @@ export default function VoucherTable({ vouchers, onDelete }: VoucherTableProps) 
       cell: (voucher) => (
         <span className="font-bold text-slate-700">
           {voucher.discountType === "PERCENTAGE"
-            ? `${voucher.discountValue}% Off`
-            : `LKR ${voucher.discountValue.toLocaleString()} Off`}
+            ? `${voucher.discountValue || 0}% Off`
+            : `LKR ${(voucher.discountValue || 0).toLocaleString()} Off`}
         </span>
       ),
     },
@@ -38,7 +38,9 @@ export default function VoucherTable({ vouchers, onDelete }: VoucherTableProps) 
         <div className="flex flex-col">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expiration</span>
           <span className="text-sm font-bold text-slate-600">
-            {format(new Date(voucher.expiryDate), "MMM dd, yyyy")}
+            {voucher.expiryDate && !isNaN(new Date(voucher.expiryDate).getTime()) 
+              ? format(new Date(voucher.expiryDate), "MMM dd, yyyy") 
+              : "N/A"}
           </span>
         </div>
       ),
@@ -54,9 +56,9 @@ export default function VoucherTable({ vouchers, onDelete }: VoucherTableProps) 
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
             <div
               className={`h-full transition-all duration-700 ${
-                (voucher.usedCount / voucher.usageLimit) > 0.8 ? 'bg-amber-500' : 'bg-blue-500'
+                ((voucher.usedCount || 0) / (voucher.usageLimit || 1)) > 0.8 ? 'bg-amber-500' : 'bg-blue-500'
               }`}
-              style={{ width: `${(voucher.usedCount / voucher.usageLimit) * 100}%` }}
+              style={{ width: `${((voucher.usedCount || 0) / (voucher.usageLimit || 1)) * 100}%` }}
             />
           </div>
         </div>

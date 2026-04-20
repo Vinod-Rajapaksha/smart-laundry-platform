@@ -38,7 +38,7 @@ export const Container = () => {
   }, [activeTab, searchQuery]);
 
   return (
-    <div className="flex flex-col w-full max-w-[1256px] mx-auto items-start gap-6 relative min-h-screen font-sans">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
       <VerificationSummarySection />
       <BankVerificationFilters
         activeTab={activeTab}

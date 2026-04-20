@@ -106,6 +106,14 @@ const orderSchema = new mongoose.Schema(
       ref: 'Voucher', 
       default: null 
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    paidAt: {
+      type: Date,
+      default: null,
+    },
   },
   { 
     timestamps: true, 

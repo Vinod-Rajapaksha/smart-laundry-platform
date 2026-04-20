@@ -124,7 +124,9 @@ export const previewReport = async (periodFrom: Date, periodTo: Date, sections: 
 
 // 5. Report Generation - Save (Step 3)
 export const saveReport = async (periodFrom: Date, periodTo: Date, reportType: string, generatedBy: string) => {
-  return Report.create({ periodFrom, periodTo, reportType, generatedBy });
+  const count = await Report.countDocuments();
+  const reportCode = `REP-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+  return Report.create({ reportCode, periodFrom, periodTo, reportType, generatedBy });
 };
 
 export const getReports = async () => {

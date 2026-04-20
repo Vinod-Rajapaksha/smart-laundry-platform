@@ -22,6 +22,7 @@ export interface OnlineTransaction {
   gatewayPaymentId: string;
   rawResponse?: any;
   order?: {
+    _id: string;
     orderNo: string;
   };
   user?: {
@@ -41,6 +42,7 @@ export interface CODPayment {
   collectedAt?: string;
   notes?: string;
   order?: {
+    _id: string;
     orderNo: string;
   };
   user?: {

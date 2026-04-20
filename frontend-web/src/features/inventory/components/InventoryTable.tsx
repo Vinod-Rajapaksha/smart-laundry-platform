@@ -61,7 +61,7 @@ export default function InventoryTable({ items, onEdit, loading }: InventoryTabl
       header: "Unit Price",
       cell: (item) => (
         <span className="font-semibold text-slate-900">
-          LKR {item.unitPrice.toLocaleString()}
+          LKR {(item.unitPrice || 0).toLocaleString()}
         </span>
       ),
     },

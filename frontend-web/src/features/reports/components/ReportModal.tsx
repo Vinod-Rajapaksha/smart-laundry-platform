@@ -20,7 +20,7 @@ export default function ReportModal({ isOpen, onClose, onGenerate, loading }: Re
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden font-poppins animate-in zoom-in-95 duration-300">
           {/* HEADER */}
@@ -90,7 +90,11 @@ export default function ReportModal({ isOpen, onClose, onGenerate, loading }: Re
             </button>
             <button
               disabled={loading}
-              onClick={() => onGenerate(formData)}
+              onClick={() => onGenerate({
+                ...formData,
+                periodFrom: formData.periodFrom ? new Date(formData.periodFrom).toISOString() : undefined,
+                periodTo: formData.periodTo ? new Date(formData.periodTo).toISOString() : undefined,
+              })}
               className="flex-2 px-8 py-4.5 bg-slate-900 text-white font-bold rounded-[1.5rem] hover:bg-black transition shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
             >
               <Play size={18} className="fill-white" />

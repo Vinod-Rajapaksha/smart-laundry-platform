@@ -8,7 +8,7 @@ interface OnlineTransactionDrawerProps {
   onClose: () => void;
 }
 
-export default function OnlineTransactionDrawer({ transaction, isOpen, onClose }: OnlineTransactionDrawerProps) {
+export const OnlineTransactionDrawer = ({ transaction, isOpen, onClose }: OnlineTransactionDrawerProps) => {
   if (!isOpen || !transaction) return null;
 
   return (
@@ -90,4 +90,4 @@ export default function OnlineTransactionDrawer({ transaction, isOpen, onClose }
       </div>
     </div>
   );
-}
+};

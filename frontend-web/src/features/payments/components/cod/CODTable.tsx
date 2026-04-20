@@ -10,7 +10,7 @@ interface CODTableProps {
   onViewDetails: (cod: CODPayment) => void;
 }
 
-export default function CODTable({ data, loading, onViewDetails }: CODTableProps) {
+export const CODTable = ({ data, loading, onViewDetails }: CODTableProps) => {
   const columns: TableColumn<CODPayment>[] = [
     {
       header: "Created Date",
@@ -37,8 +37,8 @@ export default function CODTable({ data, loading, onViewDetails }: CODTableProps
       header: "Customer",
       cell: (item) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-slate-700">{item.user?.firstName} {item.user?.lastName}</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.user?.email.split('@')[0]}</span>
+          <span className="font-semibold text-slate-700">{item.user?.firstName || 'Unknown'} {item.user?.lastName || ''}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.user?.email?.split('@')[0] || 'N/A'}</span>
         </div>
       ),
     },
@@ -108,4 +108,4 @@ export default function CODTable({ data, loading, onViewDetails }: CODTableProps
       data={data}
     />
   );
-}
+};

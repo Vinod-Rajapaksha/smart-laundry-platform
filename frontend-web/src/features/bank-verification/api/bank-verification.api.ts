@@ -52,7 +52,7 @@ export const bankVerificationApi = {
     if (params?.status) query.append("status", params.status);
     if (params?.search) query.append("search", params.search);
     
-    return apiFetch<{ data: PendingTransferData[] }>(`/payments/bank-transfer?${query.toString()}`);
+    return apiFetch<PendingTransferData[]>(`/payments/bank-transfer?${query.toString()}`);
   },
 
   verifyTransfer: (transferId: string, payload: {

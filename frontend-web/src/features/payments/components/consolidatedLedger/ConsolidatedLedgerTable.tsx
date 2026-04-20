@@ -1,15 +1,15 @@
-import { Table, type TableColumn } from "../../../components/ui/Table";
-import type { Payment } from "../types";
+import { Table, type TableColumn } from "../../../../components/ui/Table";
+import type { Payment } from "../../types";
 import { format } from "date-fns";
 import { Eye } from "lucide-react";
-import { Button } from "../../../components/ui/Button";
+import { Button } from "../../../../components/ui/Button";
 
-interface PaymentTableProps {
+interface ConsolidatedLedgerTableProps {
   payments: Payment[];
   onView: (payment: Payment) => void;
 }
 
-export default function PaymentTable({ payments, onView }: PaymentTableProps) {
+export const ConsolidatedLedgerTable = ({ payments, onView }: ConsolidatedLedgerTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PAID": return "bg-green-100 text-green-700";
@@ -27,18 +27,25 @@ export default function PaymentTable({ payments, onView }: PaymentTableProps) {
         <div>
           <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">#{payment._id.substring(0, 8)}</p>
           <p className="text-[10px] text-slate-400 font-medium">
-            {payment.paidAt ? format(new Date(payment.paidAt), "MMM dd, HH:mm") : "Awaiting..."}
+            {payment.paidAt && !isNaN(new Date(payment.paidAt).getTime()) 
+              ? format(new Date(payment.paidAt), "MMM dd, HH:mm") 
+              : "Awaiting..."}
           </p>
         </div>
       ),
     },
     {
       header: "Order",
-      cell: (payment) => (
-        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
-          ORD-{payment.orderId.substring(0, 4)}
-        </span>
-      ),
+      cell: (payment) => {
+        const displayId = typeof payment.orderId === 'object' 
+          ? (payment.orderId as any).orderNo 
+          : payment.orderId.substring(0, 4);
+        return (
+          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
+            ORD-{displayId}
+          </span>
+        );
+      },
     },
     {
       header: "Method",
@@ -78,11 +85,9 @@ export default function PaymentTable({ payments, onView }: PaymentTableProps) {
   ];
 
   return (
-    <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden font-poppins">
-      <Table 
-        columns={columns} 
-        data={payments} 
-      />
-    </div>
+    <Table
+      columns={columns}
+      data={payments}
+    />
   );
-}
+};

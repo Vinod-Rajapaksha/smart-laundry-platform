@@ -10,7 +10,7 @@ interface OnlineTransactionTableProps {
   onViewDetails: (tx: OnlineTransaction) => void;
 }
 
-export default function OnlineTransactionTable({ data, loading, onViewDetails }: OnlineTransactionTableProps) {
+export const OnlineTransactionTable = ({ data, loading, onViewDetails }: OnlineTransactionTableProps) => {
   const columns: TableColumn<OnlineTransaction>[] = [
     {
       header: "Date/Time",
@@ -37,8 +37,8 @@ export default function OnlineTransactionTable({ data, loading, onViewDetails }:
       header: "Customer",
       cell: (tx) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-slate-700">{tx.user?.firstName} {tx.user?.lastName}</span>
-          <span className="text-xs text-slate-500 lowercase">{tx.user?.email}</span>
+          <span className="font-semibold text-slate-700">{tx.user?.firstName || 'Unknown'} {tx.user?.lastName || ''}</span>
+          <span className="text-xs text-slate-500 lowercase">{tx.user?.email || 'N/A'}</span>
         </div>
       ),
     },
@@ -103,4 +103,4 @@ export default function OnlineTransactionTable({ data, loading, onViewDetails }:
       data={data}
     />
   );
-}
+};

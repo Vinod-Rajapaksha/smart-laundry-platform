@@ -55,3 +55,13 @@ export const downloadReceipt = asyncHandler(async (req: Request, res: Response) 
 
   return res.status(200).send(buffer);
 });
+
+export const updateOrder = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.updateAnyOrder(req.params.id as string, req.body);
+  return ApiResponse(res, 200, 'Order updated successfully', result);
+});
+
+export const deleteOrder = asyncHandler(async (req: Request, res: Response) => {
+  await service.softDeleteOrder(req.params.id as string);
+  return ApiResponse(res, 200, 'Order deleted successfully (Soft delete)');
+});

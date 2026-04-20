@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import CashOnDelivery from '../../../database/models/CashOnDelivery.js';
 import { AuthRequest } from '../../../types/auth.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import { getFilteredCashOnDeliveries, confirmCODPayment } from '../service/cod.service.js';
@@ -16,12 +17,29 @@ export const getCashOnDeliveriesHandler = asyncHandler(async (req: AuthRequest, 
 export const confirmCOD = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
   const { orderId } = req.body;
+  const { id } = req.params;
 
   if (!userId) {
     return ApiResponse(res, 401, 'Unauthorized');
   }
 
-  const result = await confirmCODPayment(orderId, userId);
+  let result;
+  if (id) {
+    // Audit drawer confirm
+    const codRecord = await CashOnDelivery.findById(id).populate('orderId');
+    if (!codRecord) throw new Error('COD record not found');
+    
+    codRecord.status = 'COMPLETED';
+    codRecord.collectedAt = new Date();
+    await codRecord.save();
+    
+    // Also update order/payment
+    await confirmCODPayment((codRecord.orderId as any).orderNo, userId);
+    result = codRecord;
+  } else {
+    // Standard init/confirm
+    result = await confirmCODPayment(orderId, userId);
+  }
 
   return ApiResponse(res, 201, 'COD payment confirmed successfully', result);
 });

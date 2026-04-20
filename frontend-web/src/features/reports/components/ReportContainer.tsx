@@ -17,8 +17,9 @@ export default function ReportContainer() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const data = await getReports();
-      setReports(data);
+      const response = await getReports();
+      const reportData = (response as any).data || response;
+      setReports(Array.isArray(reportData) ? reportData : []);
     } catch (error) {
       toast.error("Failed to fetch reports");
       console.error(error);
@@ -48,8 +49,19 @@ export default function ReportContainer() {
   const handleDownload = async (id: string) => {
     try {
       toast.loading("Preparing download...", { id: "dl" });
-      await downloadReport(id);
-      toast.success("Download started", { id: "dl" });
+      const blob = await downloadReport(id);
+      
+      // Trigger actual browser download
+      const url = window.URL.createObjectURL(new Blob([blob as any]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Report-${id.substring(0, 8)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Download success", { id: "dl" });
     } catch (error) {
       toast.error("Download failed", { id: "dl" });
     }

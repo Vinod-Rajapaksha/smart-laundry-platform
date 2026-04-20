@@ -20,6 +20,10 @@ export const verifyPayment = async (id: string, status: string) => {
   });
 };
 
+export const getDashboardStats = async () => {
+  return apiFetch<{ success: boolean; data: any }>(`/payments/stats`);
+};
+
 export const paymentsApi = {
   getPayments,
   getPaymentById,
@@ -28,9 +32,9 @@ export const paymentsApi = {
   getOnlineTransactionById,
   getCashOnDeliveries,
   updateCODStatus,
-  getBankTransfers: async (params: { status?: string; search?: string }) => {
-    const res = await bankVerificationApi.getTransfers(params);
-    return res.data;
+  getDashboardStats,
+  getBankTransfers: (params: { status?: string; search?: string }) => {
+    return bankVerificationApi.getTransfers(params);
   }
 };
 

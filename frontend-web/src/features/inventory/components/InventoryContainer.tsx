@@ -23,8 +23,9 @@ export default function InventoryContainer() {
         "Inactive": "inactive"
       };
       const status = statusMap[activeTab];
-      const data = await getInventory(status);
-      setItems(data);
+      const response = await getInventory(status);
+      const inventoryData = (response as any).items || response;
+      setItems(Array.isArray(inventoryData) ? inventoryData : []);
     } catch (error) {
       toast.error("Failed to fetch inventory");
       console.error(error);

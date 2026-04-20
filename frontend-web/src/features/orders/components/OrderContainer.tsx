@@ -3,7 +3,7 @@ import OrderFilters from "./OrderFilters";
 import OrderTable from "./OrderTable";
 import OrderDrawer from "./OrderDrawer";
 import type { Order, Tab, OrderStatus } from "../types";
-import { getOrders, updateOrderStatus } from "../api/orders.api";
+import { getOrders, updateOrderStatus, updateOrder, deleteOrder } from "../api/orders.api";
 import { toast } from "react-hot-toast";
 
 export default function OrderContainer() {
@@ -17,8 +17,11 @@ export default function OrderContainer() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await getOrders(activeTab === "All" ? undefined : activeTab);
-      setOrders(data);
+      const response = await getOrders(activeTab === "All" ? undefined : activeTab);
+      // Backend returns { orders: Order[], pagination: { ... } }
+      // We check if response has orders, if not we assume it might be an array (for safety)
+      const ordersData = (response as any).orders || response;
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
     } catch (error) {
       toast.error("Failed to fetch orders");
       console.error(error);
@@ -49,9 +52,37 @@ export default function OrderContainer() {
     }
   };
 
-  const filteredOrders = orders.filter((order) =>
+  const handleUpdateOrder = async (id: string, data: any) => {
+    try {
+      setActionLoading(true);
+      const updatedOrder = await updateOrder(id, data);
+      setOrders(prev => prev.map(o => o._id === id ? updatedOrder : o));
+      setSelectedOrder(updatedOrder);
+      toast.success("Order updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update order");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async (id: string) => {
+    try {
+      setActionLoading(true);
+      await deleteOrder(id);
+      setOrders(prev => prev.filter(o => o._id !== id));
+      setSelectedOrder(null);
+      toast.success("Order deleted successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete order");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredOrders = Array.isArray(orders) ? orders.filter((order) =>
     order.orderNo.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   return (
     <div className="space-y-6">
@@ -97,6 +128,8 @@ export default function OrderContainer() {
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
         onUpdateStatus={handleUpdateStatus}
+        onUpdateOrder={handleUpdateOrder}
+        onDeleteOrder={handleDeleteOrder}
         loading={actionLoading}
       />
     </div>

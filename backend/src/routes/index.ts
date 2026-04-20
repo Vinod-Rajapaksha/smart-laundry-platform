@@ -4,7 +4,7 @@ import analyticsRoutes from '../modules/analytics/routes.js';
 import authRoutes from '../modules/auth/routes.js';
 import notificationRoutes from '../modules/notification/routes.js';
 import voucherRoutes from '../modules/voucher/routes.js';
-import paymentRoutes from '../modules/payment/routes/index.js';
+import paymentRoutes from '../modules/payment/routes/payments.js';
 import feedbackRoutes from '../modules/feedback/routes.js';
 import inventoryRoutes from '../modules/inventory/routes.js';
 import orderRoutes from '../modules/order/routes.js';

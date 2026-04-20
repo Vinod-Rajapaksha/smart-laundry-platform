@@ -1,7 +1,7 @@
 import { Table, type TableColumn } from "../../../../components/ui/Table";
 import { Badge, type BadgeVariant } from "../../../../components/ui/Badge";
 import { Button } from "../../../../components/ui/Button";
-import type { PendingTransferData } from "../../../../features/bank-verification/api/bank-verification.api";
+import type { PendingTransferData } from "../../../bank-verification/api/bank-verification.api";
 
 interface BankTransferTableProps {
   data: PendingTransferData[];
@@ -9,7 +9,7 @@ interface BankTransferTableProps {
   onViewDetails: (tx: PendingTransferData) => void;
 }
 
-export default function BankTransferTable({ data, loading, onViewDetails }: BankTransferTableProps) {
+export const BankTransferTable = ({ data, loading, onViewDetails }: BankTransferTableProps) => {
   const columns: TableColumn<PendingTransferData>[] = [
     {
       header: "Submission Date",
@@ -101,4 +101,4 @@ export default function BankTransferTable({ data, loading, onViewDetails }: Bank
       data={data}
     />
   );
-}
+};

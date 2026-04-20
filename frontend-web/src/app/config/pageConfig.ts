@@ -37,7 +37,17 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: ShoppingCart,
   },
 
-  "card-payments": {
+  "payments": {
+    title: "Payments",
+    Icon: CreditCard,
+  },
+
+  "ledger": {
+    title: "Consolidated Ledger",
+    Icon: LayoutDashboard,
+  },
+
+  "online": {
     title: "Card Payments",
     Icon: CreditCard,
   },

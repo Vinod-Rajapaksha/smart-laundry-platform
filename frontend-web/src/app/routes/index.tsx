@@ -14,7 +14,11 @@ import AdminLayout from "../../layouts/AdminLayout";
 import DashboardPage from "../../features/dashboard/pages/DashboardPage";
 import UserListPage from "../../features/users/pages/UserListPage";
 import OrderListPage from "../../features/orders/pages/OrderListPage";
+import PaymentDashboard from "../../features/payments/pages/PaymentDashboard";
 import PaymentPage from "../../features/payments/pages/PaymentPage";
+import OnlineTransactionPage from "../../features/payments/pages/OnlineTransactionPage";
+import CODPage from "../../features/payments/pages/CODPage";
+import BankTransferPage from "../../features/payments/pages/BankTransferPage";
 import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
 import ServicesPage from "../../features/services/pages/ServicesPage";
 import InventoryPage from "../../features/inventory/pages/InventoryPage";
@@ -44,7 +48,16 @@ export const router = createBrowserRouter([
 
               { path: "users", element: <UserListPage /> },
               { path: "orders", element: <OrderListPage /> },
-              { path: "payments", element: <PaymentPage /> },
+              {
+                path: "payments",
+                children: [
+                  { index: true, element: <PaymentDashboard /> },
+                  { path: "ledger", element: <PaymentPage /> },
+                  { path: "online", element: <OnlineTransactionPage /> },
+                  { path: "cod", element: <CODPage /> },
+                  { path: "bank-transfer", element: <BankTransferPage /> }
+                ]
+              },
               { path: "bank-verification", element: <BankVerificationPage /> },
               { path: "services", element: <ServicesPage /> },
               { path: "inventory", element: <InventoryPage /> },

@@ -131,7 +131,8 @@ export const getAvailableOrders = async (query: any) => {
 
   const filter = {
     staffId: null,
-    status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PENDING, ORDER_STATUS.READY] }
+    status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PENDING, ORDER_STATUS.READY] },
+    isActive: true
   };
 
   const [orders, total] = await Promise.all([
@@ -267,7 +268,7 @@ export const getAllOrders = async (query: any) => {
   const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
   const skip = (p - 1) * l;
 
-  const filter: any = {};
+  const filter: any = { isActive: true };
   if (status) filter.status = status;
   if (userId) filter.userId = userId;
 
@@ -474,4 +475,32 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
 
     doc.end();
   });
+};
+export const updateAnyOrder = async (id: string, updateData: any) => {
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).populate('userId', 'name email telephone')
+   .populate('serviceId', 'name price');
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  return order;
+};
+
+export const softDeleteOrder = async (id: string) => {
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { $set: { isActive: false } },
+    { new: true }
+  );
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  return order;
 };

@@ -15,9 +15,9 @@ export interface OrderOption {
 export interface Order {
   _id: string;
   orderNo: string;
-  userId: string;
+  userId: any; // Populated object or string ID
   updateBy?: string;
-  serviceId: string;
+  serviceId: any; // Populated object or string ID
   weightKg?: number;
   status: OrderStatus;
   reservedDateTime?: string;

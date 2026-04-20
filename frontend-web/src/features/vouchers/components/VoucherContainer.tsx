@@ -17,8 +17,9 @@ export default function VoucherContainer() {
   const fetchVouchers = async () => {
     try {
       setLoading(true);
-      const data = await getVouchers();
-      setVouchers(data);
+      const response = await getVouchers();
+      const voucherData = (response as any).data || response;
+      setVouchers(Array.isArray(voucherData) ? voucherData : []);
     } catch (error) {
       toast.error("Failed to fetch vouchers");
       console.error(error);

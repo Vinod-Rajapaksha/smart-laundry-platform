@@ -7,9 +7,11 @@ interface CODDrawerProps {
   cod: CODPayment | null;
   isOpen: boolean;
   onClose: () => void;
+  onConfirm: (orderId: string) => Promise<void>;
+  loading?: boolean;
 }
 
-export default function CODDrawer({ cod, isOpen, onClose }: CODDrawerProps) {
+export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawerProps) => {
   if (!isOpen || !cod) return null;
 
   return (
@@ -95,9 +97,15 @@ export default function CODDrawer({ cod, isOpen, onClose }: CODDrawerProps) {
 
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center gap-3">
           <Button variant="outline" className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-slate-200" onClick={onClose}>Dismiss</Button>
-          <Button className="flex-1 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20">Audit Complete</Button>
+          <Button
+            disabled={loading || cod.status === 'COMPLETED'}
+            onClick={() => onConfirm(cod.order?._id || '')}
+            className="flex-1 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20"
+          >
+            {loading ? 'Processing...' : cod.status === 'COMPLETED' ? 'Already Settled' : 'Audit Complete'}
+          </Button>
         </div>
       </div>
     </div>
   );
-}
+};

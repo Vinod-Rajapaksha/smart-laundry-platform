@@ -1,15 +1,23 @@
-import { Landmark, X, FileText, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { Landmark, X, FileText, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Badge } from "../../../../components/ui/Badge";
-import type { PendingTransferData } from "../../../../features/bank-verification/api/bank-verification.api";
+import type { PendingTransferData } from "../../../bank-verification/api/bank-verification.api";
 
 interface BankTransferDrawerProps {
   tx: PendingTransferData | null;
   isOpen: boolean;
   onClose: () => void;
+  onVerify: (id: string, status: 'APPROVED' | 'REJECTED', auditData: { isSuspicious: boolean; internalNotes?: string; rejectReason?: string }) => Promise<void>;
+  loading?: boolean;
 }
 
-export default function BankTransferDrawer({ tx, isOpen, onClose }: BankTransferDrawerProps) {
+export const BankTransferDrawer = ({ tx, isOpen, onClose, onVerify, loading }: BankTransferDrawerProps) => {
+  const [internalNotes, setInternalNotes] = useState(tx?.internalNotes || "");
+  const [rejectReason, setRejectReason] = useState(tx?.rejectReason || "");
+  const [isSuspicious, setIsSuspicious] = useState(tx?.isSuspicious || false);
+  const [showRejectForm, setShowRejectForm] = useState(false);
+
   if (!isOpen || !tx) return null;
 
   return (
@@ -105,7 +113,7 @@ export default function BankTransferDrawer({ tx, isOpen, onClose }: BankTransfer
           {/* Payment Slip Backdrop */}
           <section>
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Cryptographic Proof (Slip)</h4>
-            <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden relative group aspect-[3/4] bg-slate-100 flex items-center justify-center shadow-inner">
+            <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden relative group aspect-[3/4] bg-slate-100 flex items-center justify-center shadow-inner mb-8">
               {tx.slipImageUrl ? (
                 <img
                   src={tx.slipImageUrl}
@@ -120,13 +128,69 @@ export default function BankTransferDrawer({ tx, isOpen, onClose }: BankTransfer
               )}
             </div>
           </section>
+
+          {/* Audit Form Section */}
+          {tx.verifyStatus === 'PENDING' && (
+            <div className="pt-8 border-t border-slate-100 space-y-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Administrative Audit</h4>
+                <div
+                  onClick={() => setIsSuspicious(!isSuspicious)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-all border ${isSuspicious ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'}`}
+                >
+                  <ShieldAlert size={14} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Suspicious</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Internal Audit Notes</label>
+                  <textarea
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    placeholder="Record your findings here (Private)..."
+                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-medium placeholder:text-slate-300 focus:ring-2 focus:ring-purple-500/10 outline-none min-h-[100px] resize-none"
+                  />
+                </div>
+
+                {showRejectForm && (
+                  <div className="animate-in slide-in-from-top-2 duration-300">
+                    <label className="block text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">Rejection Reason (Visible to User)</label>
+                    <textarea
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Why is this being rejected?"
+                      className="w-full p-4 bg-rose-50 border border-rose-100 rounded-2xl text-xs font-medium placeholder:text-rose-300 focus:ring-2 focus:ring-rose-500/10 outline-none min-h-[80px] resize-none"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-8 border-t border-slate-100 flex items-center gap-4 bg-slate-50/50">
-          <Button variant="outline" className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-slate-200" onClick={onClose}>Dismiss Audit</Button>
-          <Button className="flex-1 h-12 rounded-2xl bg-purple-600 hover:bg-purple-700 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-purple-500/20">Recalculate OCR</Button>
+          <Button
+            variant="outline"
+            disabled={loading || tx.verifyStatus !== 'PENDING'}
+            className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-rose-100 text-rose-600 hover:bg-rose-50"
+            onClick={() => {
+              if (!showRejectForm) setShowRejectForm(true);
+              else onVerify(tx._id, 'REJECTED', { isSuspicious, internalNotes, rejectReason });
+            }}
+          >
+            {loading ? 'Processing...' : showRejectForm ? 'Confirm Rejection' : 'Reject Transfer'}
+          </Button>
+          <Button
+            disabled={loading || tx.verifyStatus !== 'PENDING'}
+            className="flex-1 h-12 rounded-2xl bg-purple-600 hover:bg-purple-700 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-purple-500/20"
+            onClick={() => onVerify(tx._id, 'APPROVED', { isSuspicious, internalNotes })}
+          >
+            {loading ? 'Processing...' : 'Approve Transfer'}
+          </Button>
         </div>
       </div>
     </div>
   );
-}
+};

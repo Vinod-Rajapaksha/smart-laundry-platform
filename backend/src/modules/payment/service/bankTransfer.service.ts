@@ -8,34 +8,72 @@ import { processSlipOCR } from '../../../utils/ocrService.js';
 import { PAYMENT_METHODS } from '../../../core/constants.js';
 
 export const getFilteredTransfers = async (status?: string, search?: string) => {
-  const query: any = {};
-  
+  const pipeline: any[] = [];
+
+  // Match status if provided
   if (status && status !== 'All Transactions') {
-    query.verifyStatus = status.toUpperCase();
+    pipeline.push({ 
+      $match: { verifyStatus: status.toUpperCase() } 
+    });
   }
 
+  // Lookup User
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'userId',
+      foreignField: '_id',
+      as: 'userId'
+    }
+  });
+  pipeline.push({ $unwind: '$userId' });
+
+  // Lookup Payment
+  pipeline.push({
+    $lookup: {
+      from: 'payments',
+      localField: 'paymentId',
+      foreignField: '_id',
+      as: 'paymentId'
+    }
+  });
+  pipeline.push({ $unwind: '$paymentId' });
+
+  // Lookup Order
+  pipeline.push({
+    $lookup: {
+      from: 'orders',
+      localField: 'paymentId.orderId',
+      foreignField: '_id',
+      as: 'paymentId.orderId'
+    }
+  });
+  pipeline.push({ $unwind: '$paymentId.orderId' });
+
+  // Match Search if provided
   if (search) {
     const searchRegex = new RegExp(search, 'i');
-    query.$or = [
-      { systemRefId: searchRegex },
-      { referenceNo: searchRegex }
-    ];
+    pipeline.push({
+      $match: {
+        $or: [
+          { systemRefId: searchRegex },
+          { referenceNo: searchRegex },
+          { bankName: searchRegex },
+          { 'paymentId.orderId.orderNo': searchRegex },
+          { 'userId.firstName': searchRegex },
+          { 'userId.lastName': searchRegex },
+          { 'userId.email': searchRegex },
+        ]
+      }
+    });
   }
 
-  const results = await BankTransfer.find(query)
-    .populate('userId', 'firstName lastName email avatar')
-    .populate({
-      path: 'paymentId',
-      populate: { 
-        path: 'orderId',
-        populate: { path: 'serviceId' }
-      },
-    })
-    .sort({ createdAt: -1 });
+  // Sort and execute
+  pipeline.push({ $sort: { createdAt: -1 } });
+
+  const validResults = await BankTransfer.aggregate(pipeline);
     
-  const validResults = results.filter(tx => tx.paymentId && (tx.paymentId as any).orderId);
-    
-  console.log(`Bank Verification Results: ${validResults.length} valid records found`);
+  console.log(`Bank Verification Results: ${validResults.length} records found`);
   return validResults;
 };
 

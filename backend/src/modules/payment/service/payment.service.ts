@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import Payment from '../../../database/models/Payment.js';
 import Order from '../../../database/models/Order.js';
+import BankTransfer from '../../../database/models/BankTransfer.js';
+import CashOnDelivery from '../../../database/models/CashOnDelivery.js';
 import ApiError from '../../../core/apiError.js';
 import { PAYMENT_METHODS, PAYMENT_STATUS } from '../../../core/constants.js';
 import { generateBankReference } from '../../../utils/reference.js';
@@ -189,4 +191,149 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
   }
 
   return order;
+}
+
+export async function getPaymentDashboardStats() {
+  const [totalRevenueData, successRateData, methodSplit] = await Promise.all([
+    // Total Revenue (MoM - this month vs last month)
+    Payment.aggregate([
+      { $match: { status: PAYMENT_STATUS.PAID } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$paidAt" } },
+          total: { $sum: "$amount" }
+        }
+      },
+      { $sort: { _id: -1 } },
+      { $limit: 2 }
+    ]),
+
+    // Success Rate
+    Payment.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalCount: { $sum: 1 },
+          successCount: { $sum: { $cond: [{ $eq: ["$status", PAYMENT_STATUS.PAID] }, 1, 0] } }
+        }
+      }
+    ]),
+
+    // Method Split
+    Payment.aggregate([
+      {
+        $group: {
+          _id: "$method",
+          value: { $sum: 1 }
+        }
+      }
+    ])
+  ]);
+
+  // Daily Trajectory (Last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const trajectory = await Payment.aggregate([
+    { $match: { status: PAYMENT_STATUS.PAID, paidAt: { $gte: sevenDaysAgo } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$paidAt" } },
+        amount: { $sum: "$amount" },
+        sortDate: { $first: "$paidAt" }
+      }
+    },
+    { $sort: { sortDate: 1 } }
+  ]);
+
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Counts from specific models
+  const [pendingVerifications, activeCOD] = await Promise.all([
+    BankTransfer.countDocuments({ verifyStatus: 'PENDING' }),
+    CashOnDelivery.aggregate([
+      { $match: { status: 'PENDING' } },
+      {
+        $lookup: {
+          from: 'payments',
+          localField: 'paymentId',
+          foreignField: '_id',
+          as: 'payment'
+        }
+      },
+      { $unwind: '$payment' },
+      { $group: { _id: null, total: { $sum: '$payment.amount' }, count: { $sum: 1 } } }
+    ])
+  ]);
+
+  const currentMonthRevenue = totalRevenueData[0]?.total || 0;
+  const prevMonthRevenue = totalRevenueData[1]?.total || 0;
+  const revChange = prevMonthRevenue ? ((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100 : 0;
+
+  const successRate = successRateData[0] ? (successRateData[0].successCount / successRateData[0].totalCount) * 100 : 0;
+
+  const totalMethodCount = methodSplit.reduce((acc, curr) => acc + curr.value, 0);
+  const methodData = methodSplit.map(m => ({
+    name: m._id,
+    value: Math.round((m.value / totalMethodCount) * 100),
+    color: m._id === 'ONLINE' ? '#3b82f6' : m._id === 'COD' ? '#10b981' : '#8b5cf6'
+  }));
+
+  return {
+    kpis: {
+      totalRevenue: currentMonthRevenue,
+      revenueChange: revChange.toFixed(1),
+      successRate: successRate.toFixed(1),
+      pendingVerifications,
+      activeCODAmt: activeCOD[0]?.total || 0,
+      pendingSettlements: activeCOD[0]?.count || 0
+    },
+    trajectory: trajectory.map(t => ({
+      name: weekdays[new Date(t.sortDate).getDay()],
+      amount: t.amount
+    })),
+    methodSplit: methodData
+  };
+}
+
+export async function getAllPayments(filters: { status?: string } = {}) {
+  const query: any = {};
+  if (filters.status && filters.status !== 'All') {
+    query.status = filters.status;
+  }
+
+  return Payment.find(query)
+    .sort({ createdAt: -1 })
+    .populate('orderId', 'orderNo');
+}
+
+export async function adminVerifyPayment(paymentId: string, status: 'PAID' | 'FAILED') {
+  const payment = await Payment.findById(paymentId);
+  if (!payment) throw new ApiError(404, 'Payment not found');
+
+  if (payment.status !== PAYMENT_STATUS.PENDING) {
+    throw new ApiError(400, 'Payment is already processed');
+  }
+
+  payment.status = status;
+  if (status === PAYMENT_STATUS.PAID) {
+    payment.paidAt = new Date();
+  }
+  await payment.save();
+
+  // Sync with Order
+  const order = await Order.findById(payment.orderId);
+  if (order) {
+    const oldStatus = order.paymentStatus;
+    order.paymentStatus = status;
+    if (status === PAYMENT_STATUS.PAID) {
+      order.paidAt = new Date();
+      // Award loyalty points
+      if (oldStatus !== PAYMENT_STATUS.PAID) {
+        await loyaltyService.awardLoyaltyPoints(String(order.userId), 10, String(order._id));
+      }
+    }
+    await order.save();
+  }
+
+  return payment;
 }

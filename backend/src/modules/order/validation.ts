@@ -40,3 +40,15 @@ export const validateGetOrders = {
     limit: z.string().optional(),
   }),
 };
+export const validateUpdateOrder = {
+  params: z.object({
+    id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid Order ID'),
+  }),
+  body: z.object({
+    weightKg: z.number().min(0).optional(),
+    pickupAddress: z.string().optional(),
+    deliveryAddress: z.string().optional(),
+    notes: z.string().optional(),
+    status: z.string().optional(),
+  }),
+};

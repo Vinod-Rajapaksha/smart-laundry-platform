@@ -23,3 +23,8 @@ export const updateOrder = async (id: string, data: Partial<Order>) => {
     body: JSON.stringify(data),
   });
 };
+export const deleteOrder = async (id: string) => {
+  return apiFetch<void>(`/orders/${id}`, {
+    method: "DELETE",
+  });
+};
