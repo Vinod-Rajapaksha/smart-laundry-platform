@@ -31,14 +31,16 @@ export default function DashboardContainer() {
       if (!showToast) setLoading(true);
       else setRefreshing(true);
 
-      const [kpis, orders] = await Promise.all([
+      const [kpis, ordersResponse] = await Promise.all([
         getDashboardKPIs(activeRange),
-        getOrders() // We'll take latest from here
+        getOrders()
       ]);
+
+      const ordersList = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse as any).orders || [];
 
       setData(kpis);
       // Sort and take latest 5
-      setRecentOrders(orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
+      setRecentOrders(ordersList.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
 
       if (showToast) toast.success("Dashboard data synchronized");
     } catch (error) {
@@ -180,7 +182,9 @@ export default function DashboardContainer() {
                         </span>
                       </p>
                       <p className="text-xs text-slate-500 font-medium">
-                        {format(new Date(order.createdAt), "HH:mm, MMM dd")} • Customer ID: {order.userId.substring(0, 8).toUpperCase()}
+                        {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
+                          ? format(new Date(order.createdAt), "HH:mm, MMM dd") 
+                          : "Time unknown"} • Customer: {typeof order.userId === 'object' ? (order.userId as any).name : String(order.userId || '').substring(0, 8).toUpperCase()}
                       </p>
                     </div>
                   </div>
