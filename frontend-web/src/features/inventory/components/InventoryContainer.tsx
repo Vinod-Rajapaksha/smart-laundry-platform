@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { InventoryHeader } from "./InventoryHeader";
 import InventoryFilters from "./InventoryFilters";
 import InventoryTable from "./InventoryTable";
 import InventoryModal from "./InventoryModal";
@@ -58,7 +59,7 @@ export default function InventoryContainer() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Remove this item from inventory?")) return;
+    if (!window.confirm("This will permanently remove this item from inventory. Continue?")) return;
     try {
       setActionLoading(true);
       await deleteInventoryItem(id);
@@ -79,7 +80,8 @@ export default function InventoryContainer() {
   const lowStockCount = items.filter(i => i.qtyInStock <= i.reorderLevel).length;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-700 font-poppins">
+      <InventoryHeader />
       {/* INVENTORY SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-poppins">
         <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-white/5 relative group cursor-default">
@@ -123,6 +125,8 @@ export default function InventoryContainer() {
             setSelectedItem(item);
             setIsModalOpen(true);
           }}
+          onDelete={handleDelete}
+          loading={loading}
         />
       )}
 

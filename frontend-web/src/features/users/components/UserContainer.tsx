@@ -3,6 +3,7 @@ import UserFilters from "./UserFilters";
 import UserTable from "./UserTable";
 import UserDrawer from "./UserDrawer";
 import UserForm from "./UserForm";
+import { UserHeader } from "./UserHeader";
 import type { User, Tab } from "../types";
 import { getUsers, updateUser, createUser, deleteUser } from "../api/user.api";
 import { toast } from "react-hot-toast";
@@ -108,7 +109,9 @@ export default function UserContainer() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-500 font-poppins">
+      <UserHeader />
+
       {/* SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard title="Total Users" value={users.length} color="slate" />

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import VoucherFilters from "./VoucherFilters";
 import VoucherTable from "./VoucherTable";
 import VoucherModal from "./VoucherModal";
+import { VoucherHeader } from "./VoucherHeader";
 import type { Voucher, Tab } from "../types";
 import { getVouchers, deleteVoucher, createVoucher } from "../api/vouchers.api";
 import { toast } from "react-hot-toast";
@@ -68,26 +69,26 @@ export default function VoucherContainer() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* VOUCHER STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 font-poppins">
-        <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-20 h-20 bg-indigo-500/10 rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
-          <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Created</p>
-          <p className="text-3xl font-black text-white">{vouchers.length}</p>
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
+      <VoucherHeader />
+      {/* VOUCHER SUMMARY */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-white/5 relative group cursor-default">
+          <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Active Now</p>
+          <p className="text-3xl font-black text-white">
+            {vouchers.filter(v => v.isActive).length}
+          </p>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Currently Active</p>
-          <p className="text-3xl font-black text-emerald-600">{vouchers.filter(v => v.isActive).length}</p>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group cursor-default transition-all hover:shadow-md">
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Codes</p>
+          <p className="text-3xl font-black text-blue-600">{vouchers.length}</p>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Redeemed</p>
-          <p className="text-3xl font-black text-blue-600">{vouchers.reduce((s, v) => s + v.usedCount, 0)}</p>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Redeem Rate</p>
-          <p className="text-3xl font-black text-indigo-600 tracking-tighter">
-            {vouchers.length ? Math.round((vouchers.reduce((s, v) => s + v.usedCount, 0) / (vouchers.reduce((s, v) => s + v.usageLimit, 0) || 1)) * 100) : 0}%
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group cursor-default transition-all hover:shadow-md">
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Avg Discount</p>
+          <p className="text-3xl font-black text-slate-900">
+            {vouchers.length > 0
+              ? Math.round(vouchers.reduce((acc, v) => acc + (v.discountValue || 0), 0) / vouchers.length)
+              : 0}%
           </p>
         </div>
       </div>

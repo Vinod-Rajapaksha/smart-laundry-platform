@@ -35,7 +35,7 @@ export default function ServiceTable({ data, loading, onEdit, onDelete }: Servic
       header: "Pricing",
       cell: (svc) => (
         <div className="flex flex-col">
-          <span className="font-black text-slate-900 leading-none">Rs.{svc.basePrice.toLocaleString()}</span>
+          <span className="font-black text-slate-900 leading-none">Rs.{(svc.basePrice || 0).toLocaleString()}</span>
           <span className="text-[10px] text-slate-400 font-bold">per {svc.unit}</span>
         </div>
       ),

@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { statusUpdateApi } from "../api/statusUpdate.api";
 import { StatusUpdateTable } from "./StatusUpdateTable";
 import { StatusUpdateConfirmModal } from "./StatusUpdateConfirmModal";
+import { StatusUpdateHeader } from "./StatusUpdateHeader";
 import { type StatusUpdateOrder, type OrderStatus, type Tab, ORDER_STATUS } from "../types";
 
 export const StatusUpdateContainer = () => {
@@ -71,19 +72,14 @@ export const StatusUpdateContainer = () => {
   });
 
   return (
-    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-500 font-poppins pb-20">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Status Command Center</h1>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Real-time Laundry Lifecycle Management</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
+      
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <StatusUpdateHeader />
+        <div className="flex items-center gap-3 pt-2">
           <button
             onClick={fetchOrders}
-            className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-colors shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
           >
             <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
           </button>

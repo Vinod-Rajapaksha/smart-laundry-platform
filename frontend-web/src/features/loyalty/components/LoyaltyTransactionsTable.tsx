@@ -76,7 +76,7 @@ export default function LoyaltyTransactionsTable({ transactions, loading }: Loya
         return (
           <div className={`flex flex-col items-center ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             <span className="text-sm font-black tracking-tight">
-              {isPositive ? '+' : '-'}{Math.abs(data.points).toLocaleString()}
+              {isPositive ? '+' : '-'}{Math.abs(data.points || 0).toLocaleString()}
             </span>
             <span className="text-[9px] font-bold uppercase tracking-tighter opacity-70">
               Loyalty Credits

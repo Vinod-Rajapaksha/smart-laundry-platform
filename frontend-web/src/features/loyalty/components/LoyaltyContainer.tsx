@@ -7,6 +7,7 @@ import LoyaltyTransactionsTable from "./LoyaltyTransactionsTable";
 import type { CustomerLoyalty, LoyaltyTier, LoyaltyTransaction, Tab } from "../types";
 import { getCustomerLoyalty, getLoyaltyTiers, updateLoyaltyTier, getAllTransactions } from "../api/loyalty.api";
 import { toast } from "react-hot-toast";
+import { LoyaltyHeader } from "./LoyaltyHeader";
 
 export default function LoyaltyContainer() {
   const [customers, setCustomers] = useState<CustomerLoyalty[]>([]);
@@ -66,7 +67,8 @@ export default function LoyaltyContainer() {
   });
 
   return (
-    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-500 font-poppins pb-20">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
+      <LoyaltyHeader />
       {/* LOYALTY HIGHLIGHTS */}
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative group cursor-default">

@@ -1,14 +1,15 @@
 import { Table, type TableColumn } from "../../../components/ui/Table";
 import type { InventoryItem } from "../types";
-import { AlertCircle, CheckCircle2, MoreVertical, Package } from "lucide-react";
+import { AlertCircle, CheckCircle2, MoreVertical, Package, Trash2 } from "lucide-react";
 
 interface InventoryTableProps {
   items: InventoryItem[];
   onEdit: (item: InventoryItem) => void;
+  onDelete: (id: string) => void;
   loading?: boolean;
 }
 
-export default function InventoryTable({ items, onEdit, loading }: InventoryTableProps) {
+export default function InventoryTable({ items, onEdit, onDelete, loading }: InventoryTableProps) {
   const columns: TableColumn<InventoryItem>[] = [
     {
       header: "Item Details",
@@ -82,12 +83,20 @@ export default function InventoryTable({ items, onEdit, loading }: InventoryTabl
       header: "Actions",
       className: "text-right",
       cell: (item) => (
-        <button
-          onClick={() => onEdit(item)}
-          className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
-        >
-          <MoreVertical size={18} />
-        </button>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => onEdit(item)}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-blue-600"
+          >
+            <MoreVertical size={18} />
+          </button>
+          <button
+            onClick={() => onDelete(item._id)}
+            className="p-2 hover:bg-rose-50 rounded-lg transition-colors text-slate-400 hover:text-rose-600"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
       ),
     },
   ];

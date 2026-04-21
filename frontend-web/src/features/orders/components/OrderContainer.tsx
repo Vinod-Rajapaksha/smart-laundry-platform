@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import OrderFilters from "./OrderFilters";
 import OrderTable from "./OrderTable";
 import OrderDrawer from "./OrderDrawer";
+import { OrderHeader } from "./OrderHeader";
 import type { Order, Tab, OrderStatus } from "../types";
 import { getOrders, updateOrderStatus, updateOrder, deleteOrder } from "../api/orders.api";
 import { toast } from "react-hot-toast";
@@ -18,8 +19,6 @@ export default function OrderContainer() {
     try {
       setLoading(true);
       const response = await getOrders(activeTab === "All" ? undefined : activeTab);
-      // Backend returns { orders: Order[], pagination: { ... } }
-      // We check if response has orders, if not we assume it might be an array (for safety)
       const ordersData = (response as any).orders || response;
       setOrders(Array.isArray(ordersData) ? ordersData : []);
     } catch (error) {
@@ -40,7 +39,6 @@ export default function OrderContainer() {
       await updateOrderStatus(id, status);
       toast.success(`Order set to ${status}`);
 
-      // Update local state for both the list and the drawer
       setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
       if (selectedOrder?._id === id) {
         setSelectedOrder(prev => prev ? { ...prev, status } : null);
@@ -85,7 +83,8 @@ export default function OrderContainer() {
   ) : [];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
+      <OrderHeader />
       {/* SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">

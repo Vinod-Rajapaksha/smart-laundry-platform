@@ -55,7 +55,7 @@ export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) 
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-1 text-blue-600 font-bold">
             <TrendingUp size={14} />
-            <span>{data.points.toLocaleString()}</span>
+            <span>{(data.points || 0).toLocaleString()}</span>
           </div>
           <span className="text-[10px] text-slate-400 font-medium tracking-tight whitespace-nowrap">Lifetime Balance</span>
         </div>
@@ -66,7 +66,7 @@ export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) 
       className: "text-right",
       cell: (data) => (
         <span className="font-bold text-slate-900">
-          LKR {data.totalSpent.toLocaleString()}
+          LKR {(data.totalSpent || 0).toLocaleString()}
         </span>
       ),
     },

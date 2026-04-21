@@ -10,7 +10,6 @@ import {
   Truck,
   Activity,
   RefreshCcw,
-  Zap
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import KPIStatCard from "./KPIStatCard";
@@ -18,35 +17,29 @@ import RevenueChart from "./RevenueChart";
 import StatusDistributionChart from "./StatusDistributionChart";
 import DateRangeFilter from "./DateRangeFilter";
 import { format } from "date-fns";
+import { DashboardHeader } from "./DashboardHeader";
 
 export default function DashboardContainer() {
   const [data, setData] = useState<DashboardKPIs | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeRange, setActiveRange] = useState<DateRange>("today");
 
   const fetchData = useCallback(async (showToast = false) => {
     try {
-      if (!showToast) setLoading(true);
-      else setRefreshing(true);
-
       const [kpis, ordersResponse] = await Promise.all([
         getDashboardKPIs(activeRange),
         getOrders()
       ]);
-
       const ordersList = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse as any).orders || [];
 
       setData(kpis);
-      // Sort and take latest 5
       setRecentOrders(ordersList.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
 
       if (showToast) toast.success("Dashboard data synchronized");
     } catch (error) {
       toast.error("Cloud synchronization failed");
     } finally {
-      setLoading(false);
       setRefreshing(false);
     }
   }, [activeRange]);
@@ -55,32 +48,12 @@ export default function DashboardContainer() {
     fetchData();
   }, [fetchData]);
 
-  if (loading) return (
-    <div className="p-8 animate-pulse space-y-8">
-      <div className="h-64 bg-slate-100 rounded-[2.5rem] w-full" />
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-slate-100 rounded-3xl" />)}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="h-80 bg-slate-100 rounded-3xl" />
-        <div className="h-80 bg-slate-100 rounded-3xl" />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+    <div className="w-full max-w-[1256px] mx-auto space-y-8 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
 
-      {/* HEADER ACTIONS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            <Zap className="text-amber-500 fill-amber-500" size={28} />
-            Command Center
-          </h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Platform-wide analytics and real-time operations feed.</p>
-        </div>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <DashboardHeader />
+        <div className="flex items-center gap-3 pt-2">
           <DateRangeFilter activeRange={activeRange} onRangeChange={setActiveRange} />
           <button
             disabled={refreshing}
@@ -182,8 +155,8 @@ export default function DashboardContainer() {
                         </span>
                       </p>
                       <p className="text-xs text-slate-500 font-medium">
-                        {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
-                          ? format(new Date(order.createdAt), "HH:mm, MMM dd") 
+                        {order.createdAt && !isNaN(new Date(order.createdAt).getTime())
+                          ? format(new Date(order.createdAt), "HH:mm, MMM dd")
                           : "Time unknown"} • Customer: {typeof order.userId === 'object' ? (order.userId as any).name : String(order.userId || '').substring(0, 8).toUpperCase()}
                       </p>
                     </div>

@@ -3,6 +3,7 @@ import { RefreshCcw, Search, Plus } from "lucide-react";
 import { SupplierStatsGrid } from "./SupplierStats";
 import { SupplierTable } from "./SupplierTable";
 import { SupplierDrawer } from "./SupplierDrawer";
+import { SupplierHeader } from "./SupplierHeader";
 import { useSuppliers } from "../hooks/useSuppliers";
 import type { Supplier } from "../types";
 
@@ -34,13 +35,9 @@ export const SupplierContainer = () => {
   };
 
   return (
-    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-500 font-poppins pb-20">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Supplier Command Center</h1>
-          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Supply Chain Visibility & Vendor Management</p>
-        </div>
+    <div className="w-full max-w-[1256px] mx-auto space-y-8 animate-in fade-in duration-700 font-poppins pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <SupplierHeader />
         <div className="flex items-center gap-3">
           <button 
             onClick={refresh}

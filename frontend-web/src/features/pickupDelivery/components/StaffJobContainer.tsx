@@ -5,6 +5,7 @@ import StaffJobDrawer from "./StaffJobDrawer";
 import type { StaffJob, Tab, JobStatus } from "../types";
 import { getStaffJobs, updateJobStatus } from "../api/pickupDelivery.api";
 import { toast } from "react-hot-toast";
+import { PickupDeliveryHeader } from "./PickupDeliveryHeader";
 
 export default function StaffJobContainer() {
   const [jobs, setJobs] = useState<StaffJob[]>([]);
@@ -70,8 +71,8 @@ export default function StaffJobContainer() {
   });
 
   return (
-    <div className="space-y-6 font-poppins">
-      {/* LOGISTICS OVERVIEW */}
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
+      <PickupDeliveryHeader />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-900 text-white p-7 rounded-[2rem] shadow-2xl relative overflow-hidden group cursor-default">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
