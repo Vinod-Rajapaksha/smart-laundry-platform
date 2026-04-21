@@ -5,8 +5,24 @@ import { ROLES } from '../../core/constants.js';
 import { validate } from '../../middleware/validate.js';
 import * as controller from './controller.js';
 import * as validation from './validation.js';
+import * as deliveryController from './delivery.controller.js';
 
 const router = Router();
+
+// Logistics & Delivery Jobs
+router.get(
+  '/delivery',
+  auth,
+  allowRoles(ROLES.ADMIN, ROLES.STAFF),
+  deliveryController.getJobs
+);
+
+router.patch(
+  '/delivery/:id/status',
+  auth,
+  allowRoles(ROLES.ADMIN, ROLES.STAFF),
+  deliveryController.updateStatus
+);
 
 // Get current user's orders
 router.get(

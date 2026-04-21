@@ -1,5 +1,5 @@
 import { Table, type TableColumn } from "../../../components/ui/Table";
-import type { CustomerLoyalty, LoyaltyTier } from "../types";
+import type { CustomerLoyalty } from "../types";
 import { Award, TrendingUp, User } from "lucide-react";
 
 interface LoyaltyTableProps {
@@ -8,9 +8,9 @@ interface LoyaltyTableProps {
 }
 
 export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) {
-  const getTierColor = (tier: string | LoyaltyTier) => {
-    const tierName = typeof tier === 'string' ? tier : tier.name;
-    switch (tierName?.toLowerCase()) {
+  const getTierColor = (tier: any) => {
+    const tierName = typeof tier === 'string' ? tier : (tier?.name || 'basic');
+    switch (tierName.toLowerCase()) {
       case "platinum": return "text-indigo-600 bg-indigo-50 border-indigo-200";
       case "gold": return "text-amber-600 bg-amber-50 border-amber-200";
       case "silver": return "text-slate-600 bg-slate-50 border-slate-200";
@@ -27,10 +27,12 @@ export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) 
             <User size={16} />
           </div>
           <div>
-            <p className="font-semibold text-slate-900 leading-none mb-1">
-              User ID: {data.userId.substring(0, 8)}
+            <p className="font-bold text-slate-900 leading-none mb-1">
+              {data.userId?.name || "Anonymous Member"}
             </p>
-            <p className="text-[10px] text-slate-400 font-mono tracking-tighter uppercase whitespace-nowrap">ID: {data._id.slice(-8)}</p>
+            <p className="text-[10px] text-slate-400 font-medium tracking-tight whitespace-nowrap">
+              {data.userId?.email || 'No email registered'}
+            </p>
           </div>
         </div>
       ),
@@ -40,7 +42,9 @@ export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) 
       cell: (data) => (
         <div className={`w-fit px-3 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 shadow-sm ${getTierColor(data.tierId)}`}>
           <Award size={12} />
-          <span className="uppercase">{typeof data.tierId === 'string' ? 'Loading tier...' : data.tierId.name}</span>
+          <span className="uppercase">
+            {typeof data.tierId === 'string' ? 'Loading tier...' : (data.tierId?.name || 'Bronze')}
+          </span>
         </div>
       ),
     },
@@ -80,7 +84,7 @@ export default function LoyaltyTable({ customers, loading }: LoyaltyTableProps) 
     return (
       <div className="w-full bg-white rounded-xl border border-slate-200 shadow-sm p-16 flex flex-col items-center justify-center">
         <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mb-4">
-           <Award size={32} className="text-slate-200" />
+          <Award size={32} className="text-slate-200" />
         </div>
         <span className="text-slate-500 font-semibold text-lg">No loyalty records found</span>
         <p className="text-slate-400 text-sm">Customer loyalty profiles will appear here.</p>

@@ -17,3 +17,18 @@ export const getTiers = asyncHandler(async (req: Request, res: Response) => {
   const result = await service.getAllTiers();
   return ApiResponse(res, 200, 'Loyalty tiers fetched', result);
 });
+
+export const getCustomerLoyalty = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.getCustomerLoyaltyRecords();
+  return ApiResponse(res, 200, 'Customer loyalty records fetched', result);
+});
+
+export const updateTier = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.updateLoyaltyTier(req.params.id as string, req.body);
+  return ApiResponse(res, 200, 'Loyalty tier updated successfully', result);
+});
+
+export const getAllTransactions = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.getAllLoyaltyTransactions();
+  return ApiResponse(res, 200, 'All loyalty transactions fetched', result);
+});

@@ -55,10 +55,19 @@ export default function StaffJobContainer() {
     }
   };
 
-  const filteredJobs = jobs.filter((j) =>
-    j.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    j.assignedStaffId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredJobs = jobs.filter((j) => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    // Check orderId (might be string or populated object)
+    const orderNo = typeof j.orderId === 'object' ? (j.orderId as any).orderNo : j.orderId;
+    const orderMatch = String(orderNo || '').toLowerCase().includes(searchLower);
+
+    // Check staff name/id
+    const staffName = typeof j.assignedStaffId === 'object' ? (j.assignedStaffId as any).name : '';
+    const staffMatch = String(staffName || j.assignedStaffId || '').toLowerCase().includes(searchLower);
+
+    return orderMatch || staffMatch;
+  });
 
   return (
     <div className="space-y-6 font-poppins">

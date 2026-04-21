@@ -38,23 +38,35 @@ export default function StaffJobTable({ jobs, onViewDetails, loading }: StaffJob
     },
     {
       header: "Order",
-      cell: (job) => (
-        <div>
-          <p className="font-mono text-xs text-slate-500 font-bold tracking-tighter">ORD-{job.orderId.substring(0, 6)}</p>
-          <p className="text-[9px] text-slate-400 font-medium">Synced {format(new Date(job.createdAt), "HH:mm, MMM dd")}</p>
-        </div>
-      ),
+      cell: (job) => {
+        const orderNo = typeof job.orderId === 'object' ? (job.orderId as any).orderNo : `ORD-${String(job.orderId).substring(0, 6)}`;
+        return (
+          <div>
+            <p className="font-mono text-xs text-slate-900 font-black tracking-tight uppercase">{orderNo}</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Synced {format(new Date(job.createdAt), "HH:mm, MMM dd")}</p>
+          </div>
+        );
+      },
     },
     {
       header: "Assigned Staff",
-      cell: (job) => (
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-lg">
-            {job.assignedStaffId.substring(0, 2).toUpperCase()}
+      cell: (job) => {
+        const staff = typeof job.assignedStaffId === 'object' ? (job.assignedStaffId as any) : null;
+        const displayName = staff?.name || String(job.assignedStaffId).substring(0, 6);
+        const displayInitials = (staff?.name ? staff.name.substring(0, 2) : String(job.assignedStaffId).substring(0, 2)).toUpperCase();
+        
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-white flex items-center justify-center text-[10px] font-black shadow-lg">
+              {displayInitials}
+            </div>
+            <div className="flex flex-col">
+               <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{displayName}</span>
+               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Field Agent</span>
+            </div>
           </div>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">ID: {job.assignedStaffId.substring(0, 6)}</span>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: "Action",

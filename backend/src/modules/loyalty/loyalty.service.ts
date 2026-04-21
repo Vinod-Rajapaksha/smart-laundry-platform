@@ -98,3 +98,25 @@ export const getLoyaltyHistory = async (userId: string) => {
 export const getAllTiers = async () => {
   return await LoyaltyTier.find({ isActive: true }).sort({ minPoints: 1 });
 };
+
+export const updateLoyaltyTier = async (id: string, data: any) => {
+  const tier = await LoyaltyTier.findByIdAndUpdate(id, data, { new: true });
+  if (!tier) throw new ApiError(404, 'Loyalty tier not found');
+  return tier;
+};
+
+export const getCustomerLoyaltyRecords = async () => {
+  return await CustomerLoyalty.find()
+    .populate('userId', 'name email phone avatar membership loyaltyPoints')
+    .populate('tierId')
+    .sort({ points: -1 });
+};
+
+export const getAllLoyaltyTransactions = async () => {
+  return await LoyaltyTransaction.find()
+    .populate({
+      path: 'loyaltyId',
+      populate: { path: 'userId', select: 'name email avatar' }
+    })
+    .sort({ createdAt: -1 });
+};

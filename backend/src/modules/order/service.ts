@@ -120,6 +120,15 @@ export const claimOrder = async (orderId: string, staffId: string) => {
   order.status = nextStatus;
   await order.save();
 
+  // Create associated logistics job
+  try {
+    const jobType = nextStatus === ORDER_STATUS.PICKUP_ASSIGNED ? 'PICKUP' : 'DELIVERY';
+    const { createJobFromOrder } = await import('./delivery.service.js');
+    await createJobFromOrder(order._id.toString(), staffId, jobType);
+  } catch (e) {
+    console.error('Failed to create logistics job track:', e);
+  }
+
   return order;
 };
 
