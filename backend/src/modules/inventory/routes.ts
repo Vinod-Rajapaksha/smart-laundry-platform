@@ -2,50 +2,70 @@ import { Router } from 'express';
 import { auth } from '../../middleware/auth.js';
 import { allowRoles } from '../../middleware/role.js';
 import { ROLES } from '../../core/constants.js';
-import { validate } from '../../middleware/validate.js';
+import {
+  validateBody,
+  validateParams,
+  validateQuery
+} from '../../middleware/validate.js';
 import * as controller from './controller.js';
-import * as validation from './validation.js';
+import {
+  createInventorySchema,
+  updateInventorySchema,
+  inventoryIdParamSchema,
+  getInventoryQuerySchema
+} from '../../validation/inventory.schema.js';
 
 const router = Router();
 
-// Public / Customer routes
 router.get(
   '/category/:category',
   auth,
   controller.getInventoryByCategory
 );
 
-// Admin / Staff routes
 router.use(auth, allowRoles(ROLES.ADMIN, ROLES.STAFF));
 
 router.get(
   '/',
-  validate(validation.validateGetInventory),
+  validateQuery(getInventoryQuerySchema),
   controller.getAllInventory
 );
 
 router.post(
   '/',
-  validate(validation.validateCreateInventory),
+  validateBody(createInventorySchema),
   controller.createInventory
 );
 
 router.get(
   '/:id',
-  validate(validation.validateInventoryId),
+  validateParams(inventoryIdParamSchema),
   controller.getInventoryById
 );
 
 router.patch(
   '/:id',
-  validate(validation.validateUpdateInventory),
+  validateParams(inventoryIdParamSchema),
+  validateBody(updateInventorySchema),
   controller.updateInventory
 );
 
 router.delete(
   '/:id',
-  validate(validation.validateInventoryId),
+  validateParams(inventoryIdParamSchema),
   controller.deleteInventory
+);
+
+router.patch(
+  '/:id/mark-ordered',
+  validateParams(inventoryIdParamSchema),
+  controller.markOrdered
+);
+
+router.patch(
+  '/:id/restock',
+  validateParams(inventoryIdParamSchema),
+  controller.confirmRestock
 );
 
 export default router;
