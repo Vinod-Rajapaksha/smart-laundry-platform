@@ -6,17 +6,22 @@ const loyaltyTierSchema = new mongoose.Schema(
         type: String, 
         required: true, 
         trim: true, 
+        uppercase: true,
     },
     minPoints: { 
         type: Number, 
         required: true, 
         min: 0, 
     },
-    discountPercent: { 
+    discountType: {
+        type: String,
+        enum: ['PERCENTAGE', 'FIXED'],
+        default: 'PERCENTAGE',
+    },
+    discountValue: { 
         type: Number, 
         required: true, 
         min: 0, 
-        max: 100, 
     },
     perks: { 
         type: [String], 

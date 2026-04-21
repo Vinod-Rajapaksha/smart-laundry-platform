@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const revenueSchema = new mongoose.Schema(
+const expenseSchema = new mongoose.Schema(
   {
     name: { 
         type: String, 
@@ -16,15 +16,10 @@ const revenueSchema = new mongoose.Schema(
         type: Date, 
         required: true, 
     },
-    sourceType: { 
-        type: String, 
-        required: true, 
-        trim: true, 
-    },
   },
   { 
     timestamps: true, 
   },
 );
 
-export default mongoose.model('Revenue', revenueSchema);
+export default mongoose.model('Expense', expenseSchema);

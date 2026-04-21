@@ -1,10 +1,17 @@
 import mongoose from 'mongoose';
+import { UNITS } from '../../core/constants.js';
 
 const inventorySchema = new mongoose.Schema(
   {
     categoryName: { 
         type: String, 
         required: true, 
+        trim: true, 
+    },
+    itemId: { 
+        type: String, 
+        unique: true,
+        sparse: true,
         trim: true, 
     },
     name: { 
@@ -19,7 +26,7 @@ const inventorySchema = new mongoose.Schema(
     },
     unit: { 
         type: String, 
-        enum: ['PCS', 'KG', 'L'], 
+        enum: Object.values(UNITS),
         required: true, 
     },
     unitPrice: { 
@@ -37,9 +44,32 @@ const inventorySchema = new mongoose.Schema(
         default: 0, 
         min: 0, 
     },
+    batchQty: {
+        type: Number,
+        default: 1,
+        min: 1,
+    },
+    isOrderPending: {
+        type: Boolean,
+        default: false,
+    },
     isActive: { 
         type: Boolean, 
         default: true, 
+    },
+    isDefault: {
+        type: Boolean,
+        default: false,
+    },
+    description: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    supplierId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Supplier',
+        required: true,
     },
   },
   { 
