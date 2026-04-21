@@ -20,9 +20,9 @@ export default function ReportModal({ isOpen, onClose, onGenerate, loading }: Re
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden font-poppins animate-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 transition-opacity" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300">
+        <div className="flex flex-col h-full">
           {/* HEADER */}
           <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-indigo-50/20">
             <div className="flex items-center gap-4">

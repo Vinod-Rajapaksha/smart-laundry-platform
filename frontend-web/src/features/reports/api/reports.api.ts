@@ -1,4 +1,4 @@
-import { apiFetch } from "../../../services/http/interceptors";
+import { apiFetch, apiDownload } from "../../../services/http/interceptors";
 import type { Report } from "../types";
 
 export const getReports = async () => {
@@ -13,7 +13,7 @@ export const createReport = async (data: Partial<Report>) => {
 };
 
 export const downloadReport = async (id: string) => {
-  return apiFetch<Blob>(`/analytics/reports/download/${id}`, {
+  return apiDownload(`/analytics/reports/download/${id}`, {
     method: "GET",
   });
 };

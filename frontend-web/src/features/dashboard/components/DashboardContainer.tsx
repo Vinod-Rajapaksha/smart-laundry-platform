@@ -10,6 +10,10 @@ import {
   Truck,
   Activity,
   RefreshCcw,
+  Star,
+  Package,
+  Ticket,
+  Layers,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import KPIStatCard from "./KPIStatCard";
@@ -70,7 +74,7 @@ export default function DashboardContainer() {
         <KPIStatCard
           label="Today's Revenue"
           value={`LKR ${(data?.todayRevenue || 0).toLocaleString()}`}
-          trend="+14.2%"
+          trend="Real-time"
           isPositive={true}
           Icon={DollarSign}
           color="blue"
@@ -78,7 +82,7 @@ export default function DashboardContainer() {
         <KPIStatCard
           label="New Orders"
           value={(data?.newOrders || 0).toString()}
-          trend="+5 today"
+          trend="Total Today"
           isPositive={true}
           Icon={ShoppingCart}
           color="indigo"
@@ -86,7 +90,7 @@ export default function DashboardContainer() {
         <KPIStatCard
           label="Active Staff"
           value={(data?.activeStaff || 0).toString()}
-          trend="Steady"
+          trend="On Duty"
           isPositive={true}
           Icon={Users}
           color="emerald"
@@ -94,11 +98,46 @@ export default function DashboardContainer() {
         <KPIStatCard
           label="Logistics Queue"
           value={(data?.pendingDeliveries || 0).toString()}
-          trend="-2"
-          isPositive={false}
+          trend="Pending"
+          isPositive={(data?.pendingDeliveries || 0) < 5}
           Icon={Truck}
           color="amber"
         />
+      </div>
+
+      {/* PLATFORM HEALTH SUMMARY */}
+      <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm">
+        <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-900">
+          <Activity size={20} className="text-indigo-500" />
+          Cross-Module Systems
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-100">
+            <Star size={20} className="text-amber-500" />
+            <span className="text-xl font-black text-slate-900">{data?.averageRating?.toFixed(1) || '0.0'}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg Rating</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-100">
+            <Package size={20} className="text-rose-500" />
+            <span className="text-xl font-black text-slate-900">{data?.lowStockItems || 0}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Low Stock</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-100">
+            <Layers size={20} className="text-blue-500" />
+            <span className="text-xl font-black text-slate-900">{data?.activeServices || 0}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Services</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-100">
+            <Ticket size={20} className="text-emerald-500" />
+            <span className="text-xl font-black text-slate-900">{data?.activeVouchers || 0}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Vouchers</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-100">
+            <Users size={20} className="text-indigo-500" />
+            <span className="text-xl font-black text-slate-900">{data?.totalCustomers || 0}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Customers</span>
+          </div>
+        </div>
       </div>
 
       {/* CHARTS ROW */}
@@ -172,30 +211,6 @@ export default function DashboardContainer() {
                 <p className="font-bold italic">No recent activities recorded</p>
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden flex flex-col justify-end min-h-[400px] shadow-2xl group transition-all hover:scale-[1.01]">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900 z-10" />
-          <img
-            src="https://images.unsplash.com/photo-1545127398-14699f92334b?auto=format&fit=crop&q=80&w=1000"
-            className="absolute top-0 left-0 w-full h-full object-cover grayscale opacity-20 transition-transform duration-1000 group-hover:scale-110"
-            alt="System Operational"
-          />
-          <div className="relative z-20">
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-black uppercase mb-4 inline-block tracking-widest">System Status</span>
-            <h3 className="text-2xl font-black mb-2 leading-tight">Edge Infrastructure Operational</h3>
-            <p className="text-slate-400 text-sm mb-8 leading-relaxed">Cluster synchronization is active across secondary nodes. Load balancing optimized for current traffic density.</p>
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-3">
-                {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black">Node {i}</div>)}
-              </div>
-              <div className="h-px flex-1 bg-slate-800" />
-              <div className="flex items-center gap-2 text-emerald-400">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Active</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -28,7 +28,8 @@ export default function UserContainer() {
       };
       const role = roleMap[activeTab];
       const data = await getUsers(role);
-      setUsers(data);
+      const userData = Array.isArray(data) ? data : (data as any)?.users || [];
+      setUsers(userData);
     } catch (error) {
       toast.error("Failed to fetch users");
       console.error(error);

@@ -28,8 +28,9 @@ export default function FeedbackContainer() {
       };
 
       const status = statusMap[activeTab];
-      const data = await feedbackApi.getFeedbacks(status);
-      setFeedbacks(data);
+      const responseData = await feedbackApi.getFeedbacks(status);
+      const feedbackList = Array.isArray(responseData) ? responseData : (responseData as any)?.feedbacks || [];
+      setFeedbacks(feedbackList);
 
       const statsData = await feedbackApi.getFeedbackStats();
       setStats(statsData);

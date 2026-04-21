@@ -15,6 +15,13 @@ export interface DashboardKPIs {
   pendingDeliveries: number;
   revenueTrend: RevenuePoint[];
   orderStatusDistribution: StatusDistribution[];
+  
+  // Cross-module metrics
+  averageRating?: number;
+  lowStockItems?: number;
+  activeServices?: number;
+  activeVouchers?: number;
+  totalCustomers?: number;
 }
 
 export type DateRange = "today" | "week" | "month" | "year";

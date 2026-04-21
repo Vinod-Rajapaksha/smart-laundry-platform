@@ -49,9 +49,13 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 font-poppins">
-      <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
-        <form onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh]">
+    <>
+      <div
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity"
+        onClick={onClose}
+      />
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
           {/* Header */}
           <div className="p-8 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -192,7 +196,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
           </div>
         </form>
       </div>
-    </div>
+    </>
   );
 }
 

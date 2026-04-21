@@ -41,9 +41,9 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden font-poppins animate-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300">
+        <div className="flex flex-col h-full">
           {/* HEADER */}
           <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div className="flex items-center gap-3">

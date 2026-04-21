@@ -133,3 +133,21 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   throw new ApiError(getMessage(raw) ?? "API request failed", res.status, raw);
 }
+
+export async function apiDownload(path: string, options: RequestInit = {}): Promise<Blob> {
+  const url = `${env.API_URL}${path}`;
+  const accessToken = tokenStorage.getAccess();
+  const headers: Record<string, string> = {
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.ok) {
+    return await res.blob();
+  }
+
+  const raw = await safeJson(res);
+  throw new ApiError(getMessage(raw) ?? "Download request failed", res.status, raw);
+}

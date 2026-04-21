@@ -4,34 +4,96 @@ import Order from '../../database/models/Order.js';
 import Revenue from '../../database/models/Revenue.js';
 import Expense from '../../database/models/Expense.js';
 import Report from '../../database/models/Report.js';
-import { ORDER_STATUS } from '../../core/constants.js';
+import Feedback from '../../database/models/Feedback.js';
+import Inventory from '../../database/models/Inventory.js';
+import Service from '../../database/models/Service.js';
+import Voucher from '../../database/models/Voucher.js';
+import { ORDER_STATUS, ROLES } from '../../core/constants.js';
 import { Response } from 'express';
 
 // 1. Admin Dashboard
 export const getDashboardKPIs = async () => {
-  const [totalOrders, totalCustomers, pendingOrders, completedOrders] = await Promise.all([
-    Order.countDocuments(),
-    User.countDocuments({ role: 'CUSTOMER' }),
-    Order.countDocuments({ status: { $nin: [ORDER_STATUS.DELIVERED, ORDER_STATUS.CANCELLED] } }),
-    Order.countDocuments({ status: ORDER_STATUS.DELIVERED })
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const [
+    todayRevenueRes,
+    newOrders,
+    activeStaff,
+    pendingDeliveries,
+    revenueTrendRaw,
+    statusDistributionRaw,
+    averageRatingRes,
+    lowStockItems,
+    activeServices,
+    activeVouchers,
+    totalCustomers
+  ] = await Promise.all([
+    Order.aggregate([
+      { $match: { createdAt: { $gte: startOfToday }, status: ORDER_STATUS.DELIVERED } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]),
+    Order.countDocuments({ createdAt: { $gte: startOfToday } }),
+    User.countDocuments({ role: ROLES.STAFF, isActive: true }),
+    Order.countDocuments({ 
+        status: { $in: [
+            ORDER_STATUS.READY, 
+            ORDER_STATUS.DELIVERY_ASSIGNED, 
+            ORDER_STATUS.DELIVERY_ON_THE_WAY, 
+            ORDER_STATUS.ON_THE_WAY
+        ]} 
+    }),
+    Order.aggregate([
+        { $match: { status: ORDER_STATUS.DELIVERED } },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+            amount: { $sum: "$totalAmount" }
+          }
+        },
+        { $sort: { _id: 1 } },
+        { $limit: 6 }
+    ]),
+    Order.aggregate([
+        { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]),
+    Feedback.aggregate([
+        { $match: { status: 'approved' } },
+        { $group: { _id: null, avg: { $avg: "$rating" } } }
+    ]),
+    Inventory.countDocuments({ $expr: { $lte: ["$qtyInStock", "$reorderLevel"] } }),
+    Service.countDocuments({ isActive: true }),
+    Voucher.countDocuments({ isActive: true }),
+    User.countDocuments({ role: ROLES.CUSTOMER })
   ]);
 
-  // Aggregate revenue for the last 6 months for the trend chart
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const todayRevenue = todayRevenueRes[0]?.total || 0;
+  
+  const revenueTrend = revenueTrendRaw.map(item => ({
+    date: item._id,
+    amount: item.amount
+  }));
 
-  const revenueTrend = await Order.aggregate([
-    { $match: { createdAt: { $gte: sixMonthsAgo }, status: ORDER_STATUS.DELIVERED } },
-    {
-      $group: {
-        _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-        totalRevenue: { $sum: "$totalAmount" }
-      }
-    },
-    { $sort: { _id: 1 } }
-  ]);
+  const orderStatusDistribution = statusDistributionRaw.map(item => ({
+    status: item._id,
+    count: item.count
+  }));
 
-  return { totalOrders, totalCustomers, pendingOrders, completedOrders, revenueTrend };
+  const averageRating = averageRatingRes[0]?.avg || 0;
+
+  return { 
+    todayRevenue, 
+    newOrders, 
+    activeStaff, 
+    pendingDeliveries, 
+    revenueTrend, 
+    orderStatusDistribution,
+    averageRating,
+    lowStockItems,
+    activeServices,
+    activeVouchers,
+    totalCustomers
+  };
 };
 
 // 2 & 3. Financial Analysis & Monthly Interaction
@@ -138,32 +200,93 @@ export const downloadReport = async (reportId: string, res: Response) => {
   const report = await Report.findById(reportId);
   if (!report) throw new Error('Report not found');
 
-  const preview = await previewReport(report.periodFrom, report.periodTo, ['Revenue', 'Expenses', 'Net Profit']);
+  const periodFrom = new Date(report.periodFrom);
+  const periodTo = new Date(report.periodTo);
+
+  // 1. Core Financials
+  const preview = await previewReport(periodFrom, periodTo, ['Revenue', 'Expenses', 'Net Profit']);
+
+  // 2. Deep Operational Analytics
+  const [completedOrders, allOrders, newCustomers, lowStockItems] = await Promise.all([
+    Order.countDocuments({ createdAt: { $gte: periodFrom, $lte: periodTo }, status: ORDER_STATUS.DELIVERED }),
+    Order.countDocuments({ createdAt: { $gte: periodFrom, $lte: periodTo } }),
+    User.countDocuments({ createdAt: { $gte: periodFrom, $lte: periodTo }, role: ROLES.CUSTOMER }),
+    Inventory.find({ qtyInStock: { $lte: 5 } }).limit(5)
+  ]);
+
+  const successRate = allOrders > 0 ? ((completedOrders / allOrders) * 100).toFixed(1) : '100.0';
 
   // Create real PDF
-  const doc = new PDFDocument({ margin: 50 });
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-  res.setHeader('Content-disposition', `attachment; filename=Report_${reportId}.pdf`);
+  res.setHeader('Content-disposition', `attachment; filename=Report_${report.reportCode || reportId}.pdf`);
   res.setHeader('Content-type', 'application/pdf');
 
   doc.pipe(res);
 
-  doc.fontSize(25).text('Smart Laundry Financial Report', { align: 'center' });
-  doc.moveDown();
+  // BRANDING HEADER
+  doc.rect(0, 0, 600, 100).fill('#1e293b'); // Dark Slate Background
+  doc.fillColor('#ffffff').fontSize(28).font('Helvetica-Bold').text('B & W Laundry', 50, 35);
+  doc.fontSize(10).font('Helvetica').text('Intelligent Operations Command Center', 50, 65);
+  
+  // Title & Meta Document details
+  doc.moveDown(4);
+  doc.fillColor('#0f172a').fontSize(20).font('Helvetica-Bold').text(`Administrative Report: ${report.reportType}`);
+  doc.rect(50, 145, 500, 2).fill('#3b82f6'); // Blue Accent Line
+  
+  doc.moveDown(1.5);
+  doc.fillColor('#475569').fontSize(11).font('Helvetica');
+  doc.text(`Report ID:       ${report.reportCode || report._id}`);
+  doc.text(`Period:            ${periodFrom.toLocaleDateString()}  to  ${periodTo.toLocaleDateString()}`);
+  doc.text(`Generated:      ${new Date().toLocaleString()}`);
 
-  doc.fontSize(12).text(`Type: ${report.reportType}`);
-  doc.text(`Period: ${new Date(report.periodFrom).toLocaleDateString()} to ${new Date(report.periodTo).toLocaleDateString()}`);
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`);
+  // FINANCIAL SUMMARY SECTION
+  doc.moveDown(2);
+  doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('1. Financial Executive Summary');
+  doc.rect(50, doc.y + 5, 500, 1).fill('#e2e8f0');
+  doc.moveDown(1.5);
 
-  doc.moveDown();
-  doc.fontSize(16).text('Summary');
+  doc.font('Helvetica').fontSize(12).fillColor('#334155');
+  doc.text('Total System Revenue:', 50, doc.y, { continued: true }).text(`LKR ${preview.revenueTotal.toFixed(2)}`, { align: 'right' });
   doc.moveDown(0.5);
+  doc.text('Total System Expenses:', 50, doc.y, { continued: true }).text(`LKR ${preview.expenseTotal.toFixed(2)}`, { align: 'right' });
+  doc.moveDown(0.5);
+  doc.font('Helvetica-Bold').fillColor('#10b981').text('Calculated Net Profit:', 50, doc.y, { continued: true }).text(`LKR ${preview.netProfitTotal.toFixed(2)}`, { align: 'right' });
 
-  doc.fontSize(12).text(`Total Revenue: LKR ${preview.revenueTotal.toFixed(2)}`);
-  doc.text(`Total Expenses: LKR ${preview.expenseTotal.toFixed(2)}`);
-  doc.moveDown();
+  // OPERATIONAL METRICS SECTION
+  doc.moveDown(4);
+  doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('2. Operational Efficiency Tracker', 50, doc.y);
+  doc.rect(50, doc.y + 5, 500, 1).fill('#e2e8f0');
+  doc.moveDown(1.5);
 
-  doc.fontSize(14).text(`Net Profit: LKR ${preview.netProfitTotal.toFixed(2)}`, { stroke: true });
+  doc.font('Helvetica').fontSize(12).fillColor('#334155');
+  doc.text(`Total Orders Received: ${allOrders}`);
+  doc.text(`Successfully Fulfilled: ${completedOrders}`);
+  doc.text(`Operational Success Rate: ${successRate}%`);
+  doc.text(`New Customer Acquisitions: ${newCustomers}`);
+
+  // INVENTORY ALERTS SECTION
+  if (lowStockItems.length > 0) {
+    doc.moveDown(3);
+    doc.fillColor('#ef4444').fontSize(16).font('Helvetica-Bold').text('3. Critical Inventory Action Required');
+    doc.rect(50, doc.y + 5, 500, 1).fill('#fecaca');
+    doc.moveDown(1.5);
+
+    doc.font('Helvetica').fontSize(11).fillColor('#475569');
+    lowStockItems.forEach((item, idx) => {
+      doc.text(`${idx + 1}. ${item.name} (Stock Level: ${item.qtyInStock}) - Reorder Imminent`);
+    });
+  } else {
+    doc.moveDown(3);
+    doc.fillColor('#10b981').fontSize(16).font('Helvetica-Bold').text('3. Inventory Status');
+    doc.rect(50, doc.y + 5, 500, 1).fill('#a7f3d0');
+    doc.moveDown(1.5);
+    doc.font('Helvetica').fontSize(11).fillColor('#475569').text('All critical stock levels are stable. No immediate logistics action required.');
+  }
+
+  // FOOTER
+  const pageHeight = doc.page.height;
+  doc.font('Helvetica').fontSize(9).fillColor('#94a3b8').text('CONFIDENTIAL - Smart Laundry Platform Automated Intelligence Report', 50, pageHeight - 50, { align: 'center' });
 
   doc.end();
 };
