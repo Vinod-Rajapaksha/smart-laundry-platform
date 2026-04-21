@@ -9,11 +9,11 @@ export const getProfile = async (userId: string) => {
   return user;
 };
 
-export const updateProfile = async (userId: string, updateData: Partial<{ name: string; telephone: string; address: string }>) => {
+export const updateProfile = async (userId: string, updateData: Partial<{ name: string; telephone: string; address: string; avatar: string }>) => {
   const user = await User.findByIdAndUpdate(
     userId,
     { $set: updateData },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   ).select('-password -refreshToken');
 
   if (!user) {
@@ -80,7 +80,7 @@ export const updateAnyUser = async (id: string, updateData: any) => {
   const user = await User.findByIdAndUpdate(
     id,
     { $set: updateData },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   ).select('-password -refreshToken');
 
   if (!user) {
@@ -94,7 +94,7 @@ export const softDeleteUser = async (id: string) => {
   const user = await User.findByIdAndUpdate(
     id,
     { $set: { isActive: false } },
-    { new: true }
+    { returnDocument: 'after' }
   ).select('-password -refreshToken');
 
   if (!user) {

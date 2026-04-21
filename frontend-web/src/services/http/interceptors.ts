@@ -76,14 +76,18 @@ async function doRefresh(): Promise<RefreshResponse> {
   };
 }
 
-export async function apiFetch<T>( path: string, options: RequestInit = {} ): Promise<T> {
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${env.API_URL}${path}`;
   const accessToken = tokenStorage.getAccess();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(options.headers || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
+
+  if (options.body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
 
   const res = await fetch(url, { ...options, headers });
   const raw = await safeJson(res);

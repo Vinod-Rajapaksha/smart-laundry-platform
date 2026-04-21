@@ -5,6 +5,7 @@ import { allowRoles } from '../../middleware/role.js';
 import { ROLES } from '../../core/constants.js';
 import { validate } from '../../middleware/validate.js';
 import * as validation from './validation.js';
+import { upload } from '../../middleware/upload.js';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.use(auth);
 // Public/Self routes
 router.get('/profile', controller.getProfile);
 router.put('/profile', controller.updateProfile);
+router.post('/profile/avatar', upload.single('avatar'), controller.uploadAvatar);
 
 // Admin-only routes
 router.get(

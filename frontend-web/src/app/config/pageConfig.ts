@@ -14,6 +14,7 @@ import {
   CreditCard,
   Banknote,
   Warehouse,
+  User,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -111,5 +112,10 @@ export const pageConfig: Record<string, PageConfig> = {
   reports: {
     title: "Reports",
     Icon: BarChart3,
+  },
+
+  profile: {
+    title: "Account Settings",
+    Icon: User,
   },
 };

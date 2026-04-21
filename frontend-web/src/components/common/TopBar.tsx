@@ -1,6 +1,7 @@
-import { Bell, LayoutDashboard } from "lucide-react";
+import { Bell, LayoutDashboard, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../../src/features/auth/hooks/useAuth";
+import { NavLink } from "react-router-dom";
 
 type TopbarProps = {
   title?: string;
@@ -23,42 +24,36 @@ export default function Topbar({
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 rounded-full hover:bg-slate-100 transition">
-          <Bell size={20} className="text-slate-600" />
+        <button className="p-2 rounded-full hover:bg-slate-100 transition relative group">
+          <Bell size={20} className="text-slate-600 group-hover:text-blue-500 transition-colors" />
+          <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
         </button>
 
-        <div className="w-px h-8 bg-slate-200" />
+        <div className="w-px h-8 bg-slate-100" />
 
-        {/* User Info */}
-        <div className="flex items-center gap-3">
-            <div className="flex flex-col items-end leading-tight">
-                <span className="text-sm font-semibold text-slate-900">
-                {user?.name || "User Name"}
-                </span>
-                <span className="text-xs text-slate-500">
-                {user?.role || "User"}
-                </span>
-            </div>
+        {/* User Info Link */}
+        <NavLink to="/admin/profile" className="flex items-center gap-3 p-1.5 pr-3 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
+          <div className="flex flex-col items-end leading-tight">
+            <span className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+              {user?.name || "User Name"}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+              {user?.role || "User"} Portal
+            </span>
+          </div>
 
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-2xl overflow-hidden border-2 border-white bg-slate-100 flex items-center justify-center shadow-lg shadow-slate-200 group-hover:shadow-blue-200 transition-all group-hover:scale-105">
             {user?.avatar ? (
-                <img
+              <img
                 src={user.avatar}
                 alt="profile"
                 className="w-full h-full object-cover"
-                />
+              />
             ) : (
-                <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-5 h-5 text-slate-500"
-                >
-                <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
-                </svg>
+              <User size={18} className="text-slate-400" />
             )}
-            </div>
-        </div>
+          </div>
+        </NavLink>
       </div>
     </header>
   );

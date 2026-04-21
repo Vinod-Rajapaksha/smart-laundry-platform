@@ -29,6 +29,7 @@ import LoyaltyPage from "../../features/loyalty/pages/LoyaltyPage";
 import FeedbackPage from "../../features/feedback/pages/FeedbackPage";
 import PickupDeliveryPage from "../../features/pickupDelivery/pages/PickupDeliveryPage";
 import ReportsPage from "../../features/reports/pages/ReportsPage";
+import ProfilePage from "../../features/profile/pages/ProfilePage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
               { path: "feedbacks", element: <FeedbackPage /> },
               { path: "deliveries", element: <PickupDeliveryPage /> },
               { path: "reports", element: <ReportsPage /> },
+              { path: "profile", element: <ProfilePage /> },
             ],
           },
         ],
