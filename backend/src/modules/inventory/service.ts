@@ -13,6 +13,7 @@ interface InventoryInput {
   isActive?: boolean;
   isDefault?: boolean;
   description?: string | null;
+  supplierId?: string | null;
 }
 
 export const createInventory = async (input: InventoryInput) => {
@@ -83,6 +84,7 @@ export const getAllInventory = async (query: any) => {
   const [items, total] = await Promise.all([
     Inventory.find(filter)
       .sort({ categoryName: 1, name: 1 })
+      .populate('supplierId', 'name contactPerson')
       .skip(skip)
       .limit(l),
     Inventory.countDocuments(filter),

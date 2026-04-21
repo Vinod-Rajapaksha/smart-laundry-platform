@@ -22,6 +22,7 @@ import BankTransferPage from "../../features/payments/pages/BankTransferPage";
 import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
 import ServicesPage from "../../features/services/pages/ServicesPage";
 import InventoryPage from "../../features/inventory/pages/InventoryPage";
+import SupplierPage from "../../features/suppliers/pages/SupplierPage";
 import StatusUpdatePage from "../../features/status-update/pages/StatusUpdatePage";
 import VouchersPage from "../../features/vouchers/pages/VouchersPage";
 import LoyaltyPage from "../../features/loyalty/pages/LoyaltyPage";
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
               { path: "bank-verification", element: <BankVerificationPage /> },
               { path: "services", element: <ServicesPage /> },
               { path: "inventory", element: <InventoryPage /> },
+              { path: "suppliers", element: <SupplierPage /> },
               { path: "status-update", element: <StatusUpdatePage /> },
               { path: "vouchers", element: <VouchersPage /> },
               { path: "loyalty", element: <LoyaltyPage /> },

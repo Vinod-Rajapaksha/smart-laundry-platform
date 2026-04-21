@@ -13,6 +13,7 @@ import {
   Settings2,
   CreditCard,
   Banknote,
+  Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -70,6 +71,11 @@ export const pageConfig: Record<string, PageConfig> = {
   inventory: {
     title: "Inventory",
     Icon: Package,
+  },
+
+  suppliers: {
+    title: "Suppliers",
+    Icon: Warehouse,
   },
 
   pricing: {

@@ -15,6 +15,7 @@ import {
   CreditCard,
   Ticket,
   Star,
+  Warehouse,
 } from "lucide-react";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
@@ -71,6 +72,12 @@ const navItems: NavItem[] = [
     label: "Inventory",
     path: "/admin/inventory",
     icon: <Package size={18} />,
+  },
+  {
+    id: "suppliers",
+    label: "Suppliers",
+    path: "/admin/suppliers",
+    icon: <Warehouse size={18} />,
   },
   {
     id: "status-update",
