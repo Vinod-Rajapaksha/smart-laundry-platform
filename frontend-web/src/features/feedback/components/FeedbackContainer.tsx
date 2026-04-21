@@ -1,110 +1,118 @@
-import { useState, useEffect } from "react";
-import FeedbackFilters from "./FeedbackFilters";
-import FeedbackTable from "./FeedbackTable";
-import FeedbackDrawer from "./FeedbackDrawer";
-import type { Feedback, Tab } from "../types";
-import { getFeedbacks, updateFeedbackStatus } from "../api/feedback.api";
-import { toast } from "react-hot-toast";
+import { useState } from "react";
+import { RefreshCcw, Search } from "lucide-react";
+import { FeedbackTable } from "./FeedbackTable";
+import { FeedbackDrawer } from "./FeedbackDrawer";
+import { FeedbackStatsGrid } from "./FeedbackStats";
+import { useFeedback } from "../hooks/useFeedback";
+import type { Feedback } from "../types";
 
 export default function FeedbackContainer() {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("All Feedbacks");
-  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    feedbacks,
+    stats,
+    loading,
+    actionLoading,
+    activeTab,
+    setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    handleUpdateStatus,
+    handleDeleteFeedback,
+    refresh,
+  } = useFeedback();
+
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
 
-  const fetchFeedbacks = async () => {
-    try {
-      setLoading(true);
-      const data = await getFeedbacks();
-      setFeedbacks(data);
-    } catch (error) {
-      toast.error("Failed to fetch feedback");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  const handleOpenDrawer = (feedback: Feedback) => {
+    setSelectedFeedback(feedback);
   };
 
-  useEffect(() => {
-    fetchFeedbacks();
-  }, []);
-
-  const handleToggleStatus = async (id: string, current: boolean) => {
-    try {
-      setActionLoading(true);
-      const newStatus = !current;
-      await updateFeedbackStatus(id, newStatus);
-      toast.success(newStatus ? "Review published" : "Review hidden");
-      setFeedbacks(prev => prev.map(f => f._id === id ? { ...f, isActive: newStatus } : f));
-      
-      if (selectedFeedback?._id === id) {
-        setSelectedFeedback(prev => prev ? { ...prev, isActive: newStatus } : null);
-      }
-    } catch (error) {
-      toast.error("Moderation failed");
-    } finally {
-      setActionLoading(false);
-    }
+  const handleCloseDrawer = () => {
+    setSelectedFeedback(null);
   };
 
-  const filteredFeedbacks = feedbacks.filter((f) => {
-    const matchesSearch = f.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.userId.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (activeTab === "High Rating") return matchesSearch && f.rating >= 4;
-    if (activeTab === "Low Rating") return matchesSearch && f.rating <= 2;
-    if (activeTab === "Inactive") return matchesSearch && !f.isActive;
-    return matchesSearch;
-  });
-
-  const avgRating = feedbacks.length
-    ? (feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length).toFixed(1)
-    : "0.0";
+  const onUpdateStatusAndClose = async (id: string, status: any) => {
+    await handleUpdateStatus(id, status);
+    // Find updated feedback in our list to sync drawer
+    const updated = feedbacks.find(f => f._id === id);
+    if(updated) {
+       setSelectedFeedback({...updated, status});
+    }
+  };
 
   return (
-    <div className="space-y-6 font-poppins">
-      {/* FEEDBACK OVERVIEW */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl flex items-center justify-between group overflow-hidden relative">
-          <div className="absolute inset-0 bg-blue-500/10 scale-150 blur-3xl -translate-y-1/2 -translate-x-1/2 group-hover:bg-blue-500/20 transition-colors duration-700" />
-          <div className="relative z-10">
-            <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Satisfaction Score</p>
-            <p className="text-4xl font-black">{avgRating} <span className="text-sm font-normal text-slate-500">/ 5.0</span></p>
-          </div>
-          <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-amber-400 relative z-10">
-            <span className="text-2xl font-bold">★</span>
-          </div>
+    <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in duration-500 font-poppins pb-20">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Voice Hub</h1>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Unified Customer Sentiment & Moderation</p>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Voices</p>
-          <p className="text-3xl font-black text-slate-900">{feedbacks.length}</p>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Critical Alerts</p>
-          <p className="text-3xl font-black text-rose-600">{feedbacks.filter(f => f.rating <= 2).length}</p>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={refresh}
+            className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-colors shadow-sm"
+          >
+            <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
-      <FeedbackFilters
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <FeedbackStatsGrid stats={stats} loading={loading} />
 
-      <FeedbackTable
-        feedbacks={filteredFeedbacks}
-        onViewDetails={setSelectedFeedback}
-        loading={loading}
-      />
+      {/* FILTERS & SEARCH */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 px-4 md:px-0">
+        <div className="md:col-span-8 flex bg-white p-1 rounded-2xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar">
+          {["All Feedbacks", "Pending Moderation", "High Rating", "Low Rating", "Rejected"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`flex-1 py-2.5 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                activeTab === tab 
+                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" 
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        
+        <div className="md:col-span-4 relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+          <input 
+            type="text"
+            placeholder="Search reviews or customers..."
+            className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/10 transition shadow-sm font-bold text-xs"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {loading && feedbacks.length === 0 ? (
+        <div className="flex items-center justify-center py-40">
+           <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-100 border-b-blue-600"></div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compiling Customer Voices...</p>
+           </div>
+        </div>
+      ) : (
+        <FeedbackTable 
+          feedbacks={feedbacks}
+          onViewDetails={handleOpenDrawer}
+        />
+      )}
 
       <FeedbackDrawer
         isOpen={!!selectedFeedback}
         feedback={selectedFeedback}
-        onClose={() => setSelectedFeedback(null)}
-        onToggleStatus={handleToggleStatus}
+        onClose={handleCloseDrawer}
+        onUpdateStatus={onUpdateStatusAndClose}
+        onDelete={async (id) => {
+           await handleDeleteFeedback(id);
+           handleCloseDrawer();
+        }}
         loading={actionLoading}
       />
     </div>

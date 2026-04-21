@@ -188,7 +188,7 @@ export const updateFeedbackStatus = async (
   if (!mongoose.isValidObjectId(id)) {
     throw new ApiError(400, 'Invalid feedback ID');
   }
- const feedback = await Feedback.findByIdAndUpdate(
+  const feedback = await Feedback.findByIdAndUpdate(
     id,
     { status },
     { new: true, runValidators: true },
@@ -201,6 +201,23 @@ export const updateFeedbackStatus = async (
   }
 
   return feedback;
+};
+
+export const deleteFeedbackAdmin = async (id: string) => {
+  if (!mongoose.isValidObjectId(id)) {
+    throw new ApiError(400, 'Invalid feedback ID');
+  }
+
+  const feedback = await Feedback.findByIdAndDelete(id);
+
+  if (!feedback) {
+    throw new ApiError(404, MESSAGES.NOT_FOUND);
+  }
+
+  return {
+    deleted: true,
+    feedbackId: id,
+  };
 };
 
 export const getFeedbackStats = async () => {

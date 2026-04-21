@@ -86,6 +86,12 @@ export const getFeedbackStats = asyncHandler(async (_req: AuthRequest, res: Resp
   return ApiResponse(res, 200, 'Feedback stats retrieved successfully', stats);
 });
 
+export const deleteFeedbackAdminController = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await feedbackService.deleteFeedbackAdmin(req.params.id as string);
+
+  return ApiResponse(res, 200, 'Feedback deleted successfully by Admin', result);
+});
+
 export const getApprovedFeedbacks = asyncHandler(async (req: AuthRequest, res: Response) => {
   const limit = req.query.limit ? Number(req.query.limit) : 10;
   const feedbacks = await feedbackService.getApprovedFeedbacks(limit);

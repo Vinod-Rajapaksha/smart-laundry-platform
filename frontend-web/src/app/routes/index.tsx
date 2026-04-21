@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
               { path: "status-update", element: <StatusUpdatePage /> },
               { path: "vouchers", element: <VouchersPage /> },
               { path: "loyalty", element: <LoyaltyPage /> },
-              { path: "feedback", element: <FeedbackPage /> },
+              { path: "feedbacks", element: <FeedbackPage /> },
               { path: "deliveries", element: <PickupDeliveryPage /> },
               { path: "reports", element: <ReportsPage /> },
             ],

@@ -73,9 +73,9 @@ const navItems: NavItem[] = [
     icon: <Package size={18} />,
   },
   {
-    id: "update-status",
-    label: "Update Status",
-    path: "/admin/update-status",
+    id: "status-update",
+    label: "Status Update",
+    path: "/admin/status-update",
     icon: <RefreshCcw size={18} />,
   },
   {

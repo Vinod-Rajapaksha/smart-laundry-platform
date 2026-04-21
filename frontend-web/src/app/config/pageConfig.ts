@@ -77,8 +77,8 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: Settings2,
   },
 
-  "update-status": {
-    title: "Update Status",
+  "status-update": {
+    title: "Status Update",
     Icon: RefreshCcw,
   },
 

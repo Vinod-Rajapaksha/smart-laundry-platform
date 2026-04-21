@@ -30,16 +30,14 @@ export default function NotFoundPage() {
             <Home size={20} />
             Return to Dashboard
           </Button>
-          
-          <div className="flex items-center gap-2 text-slate-400 mt-4">
-            <Search size={14} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Double check the URL and try again</span>
-          </div>
         </div>
       </div>
 
       <p className="absolute bottom-8 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-        Platform Integrity Services
+        <div className="flex items-center gap-2 text-slate-400 mt-5">
+          <Search size={14} className="animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Double check the URL and try again</span>
+        </div>
       </p>
     </div>
   );
