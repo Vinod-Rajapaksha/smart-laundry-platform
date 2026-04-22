@@ -46,8 +46,7 @@ export const getFilteredOnlineTransactions = async (status?: string, search?: st
           { gatewayOrderId: searchRegex },
           { gatewayPaymentId: searchRegex },
           { 'order.orderNo': searchRegex },
-          { 'user.firstName': searchRegex },
-          { 'user.lastName': searchRegex },
+          { 'user.name': searchRegex },
         ]
       }
     });

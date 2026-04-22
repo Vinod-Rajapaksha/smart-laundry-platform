@@ -8,21 +8,26 @@ import ApiError from '../../../core/apiError.js';
 export const getTransfersHandler = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.set('Cache-Control', 'no-store');
 
-  const { status, search } = req.query;
-  const result = await getFilteredTransfers(status as string, search as string);
-  
+  const { status, search, startDate, endDate } = req.query;
+  const result = await getFilteredTransfers(
+    status as string,
+    search as string,
+    startDate as string,
+    endDate as string
+  );
+
   return ApiResponse(res, 200, 'Transfers fetched successfully', result);
 });
 
 export const submitTransferHandler = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
-  const { orderId, bankName, referenceNo } = req.body;
+  const { orderId, bankName, referenceNo, accountNo } = req.body;
   const file = req.file;
 
   if (!userId) throw new ApiError(401, 'Unauthorized');
   if (!file) throw new ApiError(400, 'Payment slip is required');
 
-  const result = await submitBankTransfer(userId, orderId, bankName, referenceNo, file);
+  const result = await submitBankTransfer(userId, orderId, bankName, referenceNo, accountNo, file);
 
   return ApiResponse(res, 201, 'Bank transfer submitted successfully', result);
 });
