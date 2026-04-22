@@ -3,6 +3,7 @@
     "name": "B & W Laundry",
     "slug": "B & W Laundry",
     "version": "1.0.0",
+    "scheme": "bnw-laundry",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",

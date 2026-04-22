@@ -8,6 +8,7 @@ import AppHeader from '../../../components/common/AppHeader';
 import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import { paymentService } from '../../../services/customer/paymentService';
+import { Switch } from 'react-native';
 
 type PaymentMode = 'SELECT_CARD' | 'NEW_CARD_WEBVIEW' | 'CHARGING_SAVED';
 
@@ -21,6 +22,7 @@ const CardPaymentScreen = () => {
     const [payhereParams, setPayhereParams] = useState<any>(null);
     const [charging, setCharging] = useState(false);
     const [webViewLoading, setWebViewLoading] = useState(true);
+    const [saveCard, setSaveCard] = useState(false);
     const webViewRef = useRef<WebView>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -64,7 +66,7 @@ const CardPaymentScreen = () => {
         try {
             await paymentService.chargeSavedCard(orderId as string, selectedCard);
             router.replace({
-                pathname: '/(protected)/(customer)/checkout/PaymentStatusScreen',
+                pathname: '/(protected)/(customer)/checkout/payment-status',
                 params: { success: 'true', orderId, method: 'CARD', total }
             });
         } catch (error: any) {
@@ -77,7 +79,7 @@ const CardPaymentScreen = () => {
     const handleNewCard = async () => {
         setLoading(true);
         try {
-            const data = await paymentService.initCardPayment(orderId as string);
+            const data = await paymentService.initCardPayment(orderId as string, saveCard);
             setPayhereParams(data.payhereParams);
             setMode('NEW_CARD_WEBVIEW');
         } catch (error: any) {
@@ -103,7 +105,7 @@ const CardPaymentScreen = () => {
               <p style="color: #94a3b8;">Redirecting to PayHere...</p>
             </div>
           </div>
-         body>
+        </body>
       </html>
     `;
     };
@@ -112,7 +114,7 @@ const CardPaymentScreen = () => {
         const { url } = navState;
         if (url.includes('payment/success') || url.includes('/success')) {
             router.replace({
-                pathname: '/(protected)/(customer)/checkout/PaymentStatusScreen',
+                pathname: '/(protected)/(customer)/checkout/payment-status',
                 params: { success: 'true', orderId, method: 'CARD', total }
             });
         } else if (url.includes('payment/cancel') || url.includes('/cancel')) {
@@ -127,14 +129,14 @@ const CardPaymentScreen = () => {
                 styles.cardItem,
                 selectedCard === item._id && styles.selectedCardItem
             ]}
-            onPress={() => setSelectedCard(item._id)}
+            onPress={() => setSelectedCard(selectedCard === item._id ? null : item._id)}
         >
             <View style={styles.cardInfo}>
                 <View style={[styles.cardIconContainer, { backgroundColor: getCardColor(item.brand) }]}>
-                    <Ionicons 
-                        name={item.brand.toLowerCase() === 'visa' ? 'card' : 'card-outline'} 
-                        size={24} 
-                        color={COLORS.WHITE} 
+                    <Ionicons
+                        name={item.brand.toLowerCase() === 'visa' ? 'card' : 'card-outline'}
+                        size={24}
+                        color={COLORS.WHITE}
                     />
                 </View>
                 <View style={styles.cardDetails}>
@@ -173,7 +175,7 @@ const CardPaymentScreen = () => {
                         </View>
 
                         <Text style={styles.sectionTitle}>Select a Card</Text>
-                        
+
                         {savedCards.length > 0 ? (
                             <FlatList
                                 data={savedCards}
@@ -184,24 +186,29 @@ const CardPaymentScreen = () => {
                             />
                         ) : (
                             <View style={styles.emptyContainer}>
-                                <Ionicons name="card-outline" size={48} color={COLORS.TEXT_LIGHT} />
+                                <Ionicons name="card-outline" size={48} color={COLORS.TEXT_MUTED} />
                                 <Text style={styles.emptyText}>No saved cards found</Text>
                             </View>
                         )}
-
-                        <TouchableOpacity 
-                            style={styles.newCardButton} 
-                            onPress={handleNewCard}
-                        >
-                            <Ionicons name="add-circle-outline" size={20} color={COLORS.PRIMARY} />
-                            <Text style={styles.newCardText}>Use a New Card</Text>
-                        </TouchableOpacity>
+                        {!selectedCard && (
+                            <View style={styles.saveCardContainer}>
+                                <View style={styles.saveCardInfo}>
+                                    <Ionicons name="save-outline" size={20} color={COLORS.TEXT_SECONDARY} />
+                                    <Text style={styles.saveCardText}>Save card for future payments</Text>
+                                </View>
+                                <Switch
+                                    value={saveCard}
+                                    onValueChange={setSaveCard}
+                                    trackColor={{ false: '#CBD5E1', true: COLORS.PRIMARY_LIGHT }}
+                                    thumbColor={saveCard ? COLORS.PRIMARY : '#F1F5F9'}
+                                />
+                            </View>
+                        )}
 
                         <View style={styles.footer}>
                             <TouchableOpacity
-                                style={[styles.payButton, !selectedCard && styles.disabledButton]}
-                                onPress={handlePayWithSavedCard}
-                                disabled={!selectedCard}
+                                style={styles.payButton}
+                                onPress={() => selectedCard ? handlePayWithSavedCard() : handleNewCard()}
                             >
                                 <Text style={styles.payButtonText}>Pay Rs. {total}</Text>
                             </TouchableOpacity>
@@ -227,8 +234,8 @@ const CardPaymentScreen = () => {
                                 <Text style={styles.loaderText}>Securely loading gateway...</Text>
                             </View>
                         )}
-                        <TouchableOpacity 
-                            style={styles.cancelWebView} 
+                        <TouchableOpacity
+                            style={styles.cancelWebView}
                             onPress={() => setMode('SELECT_CARD')}
                         >
                             <Text style={styles.cancelWebViewText}>Cancel and choose saved card</Text>
@@ -334,7 +341,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         marginTop: 12,
-        color: COLORS.TEXT_LIGHT,
+        color: COLORS.TEXT_MUTED,
         fontSize: 14,
     },
     newCardButton: {
@@ -363,7 +370,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     disabledButton: {
-        backgroundColor: COLORS.TEXT_LIGHT,
+        backgroundColor: COLORS.TEXT_MUTED,
     },
     payButtonText: {
         color: COLORS.WHITE,
@@ -413,6 +420,26 @@ const styles = StyleSheet.create({
         color: COLORS.TEXT_SECONDARY,
         marginTop: 8,
         textAlign: 'center',
+    },
+    saveCardContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        marginTop: 8,
+        marginHorizontal: 4,
+    },
+    saveCardInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    saveCardText: {
+        fontSize: 14,
+        color: COLORS.TEXT_PRIMARY,
+        fontWeight: '500',
     }
 });
 

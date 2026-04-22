@@ -26,8 +26,8 @@ export const initCOD = asyncHandler(async (req: Request, res: Response) => {
 export const initCard = asyncHandler(async (req: Request, res: Response) => {
   const orderId = String(req.params.orderId);
   const userId = (req as any).user?.id;
-
-  const data = await initCardPayment(orderId, userId);
+  const { saveCard } = req.body;
+  const data = await initCardPayment(orderId, userId, saveCard);
 
   return ApiResponse(res, 201, 'Card payment initiated successfully', data);
 });

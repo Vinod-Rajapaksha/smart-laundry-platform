@@ -70,7 +70,7 @@ const BankTransferScreen = () => {
       setLoading(false);
       router.push({
         pathname: '/(protected)/(customer)/checkout/payment-status',
-        params: { success: 'true', orderId, method: 'BANK_TRANSFER' }
+        params: { success: 'true', orderId, method: 'BANK_TRANSFER', total }
       });
     }, 1500);
   };

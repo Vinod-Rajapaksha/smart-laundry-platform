@@ -127,7 +127,7 @@ const OrderQrCodeScreen = () => {
   if (loading) return <Loading fullScreen />;
   if (!order) return null;
 
-  const orderNumber = order.orderNo || order._id.substring(0, 8).toUpperCase();
+  const orderNumber = order.orderNo;
 
   return (
     <ScreenWrapper

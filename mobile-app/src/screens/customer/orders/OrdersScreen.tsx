@@ -60,7 +60,7 @@ const OrdersScreen = () => {
     return (
       <View style={styles.orderCard}>
         <View style={styles.cardHeader}>
-          <Text style={styles.orderId}>Order #{item._id.substring(0, 8).toUpperCase()}</Text>
+          <Text style={styles.orderId}>Order #{item.orderNo}</Text>
           <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
             <Text style={[styles.statusText, { color: statusColors.text }]}>{item.status.replace(/_/g, ' ')}</Text>
           </View>

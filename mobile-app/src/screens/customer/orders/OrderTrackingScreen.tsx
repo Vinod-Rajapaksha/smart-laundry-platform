@@ -100,7 +100,7 @@ const OrderTrackingScreen = () => {
         </TouchableOpacity>
         <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Track Order</Text>
       </View>
-      <Text style={{ color: COLORS.TEXT_SECONDARY, fontSize: 14 }}>Order ID: #{order.orderNo || order._id.substring(0, 8).toUpperCase()}</Text>
+      <Text style={{ color: COLORS.TEXT_SECONDARY, fontSize: 14 }}>Order Number: #{order.orderNo}</Text>
     </View>
   );
 

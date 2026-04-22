@@ -16,7 +16,7 @@ const ManualEntryScreen = () => {
 
   const handleManualSearch = async () => {
     if (!orderId) {
-      Alert.alert('Error', 'Please enter a valid Order ID');
+      Alert.alert('Error', 'Please enter a valid Order Number');
       return;
     }
 
@@ -76,12 +76,12 @@ const ManualEntryScreen = () => {
 
         {!attachedImage && (
           <Text style={s.description}>
-            If the QR code is damaged or unscanable, please enter the unique Order ID provided below the QR image.
+            If the QR code is damaged or unscanable, please enter the unique Order Number provided below the QR image.
           </Text>
         )}
 
         <View style={s.inputWrapper}>
-          <Text style={s.inputLabel}>Order ID Information</Text>
+          <Text style={s.inputLabel}>Order Number Information</Text>
           <Input
             placeholder="e.g. #BW-1234..."
             value={orderId}

@@ -104,7 +104,7 @@ export async function initCODPayment(orderId: string, userId: string) {
   };
 }
 
-export async function initCardPayment(orderId: string, userId: string) {
+export async function initCardPayment(orderId: string, userId: string, saveCard: boolean = false) {
   let order;
   if (mongoose.Types.ObjectId.isValid(orderId)) {
     order = await Order.findById(orderId).populate('userId', 'name email telephone address');
@@ -141,8 +141,8 @@ export async function initCardPayment(orderId: string, userId: string) {
   order.paymentStatus = PAYMENT_STATUS.PENDING;
   await order.save();
 
-  const merchantId = process.env.EXPO_PUBLIC_PAYHERE_MERCHANT_ID || '';
-  const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET || '';
+  const merchantId = (process.env.PAYHERE_MERCHANT_ID || '').trim();
+  const merchantSecret = (process.env.PAYHERE_SECRET || '').trim();
   const currency = 'LKR';
   const amountFormatted = order.totalAmount.toFixed(2);
 
@@ -157,9 +157,9 @@ export async function initCardPayment(orderId: string, userId: string) {
     payhereParams: {
       sandbox: true,
       merchant_id: merchantId,
-      return_url: 'smart-laundry-platform://payment/success',
-      cancel_url: 'smart-laundry-platform://payment/cancel',
-      notify_url: `${process.env.EXPO_PUBLIC_API_BASE_URL}/payments/payhere/notify`,
+      return_url: 'https://www.bnwlaundry.lk/payment/success',
+      cancel_url: 'https://www.bnwlaundry.lk/payment/cancel',
+      notify_url: `${process.env.API_BASE_URL}/api/payments/online/payhere/notify`,
       order_id: reference,
       items: 'Laundry Order #' + order._id.toString().substring(0, 8),
       amount: amountFormatted,
@@ -172,6 +172,7 @@ export async function initCardPayment(orderId: string, userId: string) {
       address: customer?.address || 'Sri Lanka',
       city: 'Colombo',
       country: 'Sri Lanka',
+      custom_1: saveCard ? 'SAVE_CARD' : 'NO_SAVE'
     }
   };
 }

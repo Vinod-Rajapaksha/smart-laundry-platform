@@ -47,7 +47,7 @@ const ReceiptScreen = () => {
           {/* Order Details */}
           <View style={styles.row}>
             <Text style={styles.label}>Order Number</Text>
-            <Text style={styles.value}>{order._id.substring(0, 8).toUpperCase()}</Text>
+            <Text style={styles.value}>{order.orderNo}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Date</Text>
@@ -62,8 +62,8 @@ const ReceiptScreen = () => {
 
           {/* Items Preview (Mocking items since Order type has serviceId but might not have item list in basic schema) */}
           <View style={styles.row}>
-            <Text style={styles.itemLabel}>Full Service Laundry</Text>
-            <Text style={styles.value}>Rs {order.totalPrice.toFixed(2)}</Text>
+            <Text style={styles.itemLabel}>Service Charge</Text>
+            <Text style={styles.value}>Rs {order.subtotal.toFixed(2)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.itemLabel}>Delivery Fee</Text>
@@ -75,7 +75,7 @@ const ReceiptScreen = () => {
           {/* Total */}
           <View style={[styles.row, { marginTop: 8 }]}>
             <Text style={styles.totalLabel}>TOTAL AMOUNT</Text>
-            <Text style={styles.totalValue}>Rs {(order.totalPrice + order.deliveryFee).toFixed(2)}</Text>
+            <Text style={styles.totalValue}>Rs {order.totalAmount.toFixed(2)}</Text>
           </View>
 
           <View style={styles.footer}>

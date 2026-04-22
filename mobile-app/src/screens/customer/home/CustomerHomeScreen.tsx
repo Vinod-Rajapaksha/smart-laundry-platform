@@ -121,7 +121,7 @@ const CustomerHomeScreen = () => {
                   variant="primary"
                 />
                 <Text style={[styles.trackingTitle, { marginTop: 12 }]}>
-                  Order ID: #{activeOrder._id.substring(activeOrder._id.length - 8).toUpperCase()}
+                  Order ID: #{activeOrder.orderNo}
                 </Text>
                 <Text style={styles.trackingSubtitle}>
                   Estimated: Today, 2:00 PM

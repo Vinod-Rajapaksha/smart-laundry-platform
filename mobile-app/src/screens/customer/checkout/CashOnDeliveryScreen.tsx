@@ -21,8 +21,8 @@ const CashOnDeliveryScreen = () => {
       await paymentService.initCOD(orderId as string);
 
       router.push({
-        pathname: '/(protected)/(customer)/checkout/PaymentStatusScreen',
-        params: { success: 'true', orderId, method: 'COD' }
+        pathname: '/(protected)/(customer)/checkout/payment-status',
+        params: { success: 'true', orderId, method: 'COD', total }
       });
     } catch (error: any) {
       Alert.alert('Error', error.message);

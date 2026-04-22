@@ -34,7 +34,7 @@ const PickupConfirmationScreen = () => {
         {/* Text Area */}
         <View style={s.textContainer}>
            <Text style={s.title}>Pickup Confirmed{'\n'}Successfully</Text>
-           <Text style={s.orderLabel}>Order ID: <Text style={s.orderId}>#{orderId}</Text></Text>
+           <Text style={s.orderLabel}>Order Number: <Text style={s.orderId}>#{orderId}</Text></Text>
            
            <Text style={s.message}>
              Successfully collected items from <Text style={{ fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>{customerName}</Text>. Your clothes are in good hands and heading to our facility!

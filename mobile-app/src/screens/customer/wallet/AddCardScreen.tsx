@@ -42,9 +42,9 @@ const AddCardScreen = () => {
         <body onload="document.forms[0].submit()">
           <form method="post" action="https://sandbox.payhere.lk/pay/preapprove">
             <input type="hidden" name="merchant_id" value="${params.merchantId}"/>
-            <input type="hidden" name="return_url" value="http://sample.com/payment/success"/>
-            <input type="hidden" name="cancel_url" value="http://sample.com/payment/cancel"/>
-            <input type="hidden" name="notify_url" value="https://your-backend.com/api/payments/online/payhere/notify"/>
+            <input type="hidden" name="return_url" value="https://www.bnwlaundry.lk/payment/success"/>
+            <input type="hidden" name="cancel_url" value="https://www.bnwlaundry.lk/payment/cancel"/>
+            <input type="hidden" name="notify_url" value="https://www.bnwlaundry.lk/api/payments/online/payhere/notify"/>
             <input type="hidden" name="order_id" value="${params.orderId}"/>
             <input type="hidden" name="items" value="Card Verification"/>
             <input type="hidden" name="currency" value="${params.currency}"/>
@@ -53,7 +53,7 @@ const AddCardScreen = () => {
             <input type="hidden" name="last_name" value="${params.customer.lastName}"/>
             <input type="hidden" name="email" value="${params.customer.email}"/>
             <input type="hidden" name="phone" value="${params.customer.phone}"/>
-            <input type="hidden" name="address" value="No 123, Street"/>
+            <input type="hidden" name="address" value="No 123, Colombo Road"/>
             <input type="hidden" name="city" value="Colombo"/>
             <input type="hidden" name="country" value="Sri Lanka"/>
             <input type="hidden" name="hash" value="${params.hash}"/>
@@ -129,7 +129,7 @@ const AddCardScreen = () => {
                 </View>
 
                 <View style={styles.footer}>
-                    <Lock size={16} color={COLORS.TEXT_LIGHT} />
+                    <Lock size={16} color={COLORS.TEXT_MUTED} />
                     <Text style={styles.footerText}>PCI-DSS Level 1 Compliant Security</Text>
                 </View>
             </View>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 12,
-        color: COLORS.TEXT_LIGHT,
+        color: COLORS.TEXT_MUTED,
         fontWeight: '500',
     }
 });

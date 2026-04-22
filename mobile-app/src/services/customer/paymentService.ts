@@ -1,8 +1,8 @@
 import api from '../api';
 
 export const paymentService = {
-  initCardPayment: async (orderId: string) => {
-    const response = await api.post(`/payments/card/init/${orderId}`);
+  initCardPayment: async (orderId: string, saveCard: boolean = false) => {
+    const response = await api.post(`/payments/card/init/${orderId}`, { saveCard });
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to initialize card payment');
   },
