@@ -115,14 +115,6 @@ export const BankVerificationTable = ({ data, loading, onViewDetails }: BankVeri
     <Table
       columns={columns}
       data={data}
-      pagination={{
-        currentPage: 1,
-        totalPages: 1,
-        startItem: 1,
-        endItem: data.length,
-        totalItems: data.length,
-        onPageChange: () => { }
-      }}
     />
   );
 };

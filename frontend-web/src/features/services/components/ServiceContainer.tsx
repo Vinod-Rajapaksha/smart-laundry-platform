@@ -84,16 +84,6 @@ export default function ServiceContainer() {
       
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <ServiceHeader />
-        <button
-          onClick={() => {
-            setEditingService(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all group"
-        >
-          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />
-          <span>Add New Service</span>
-        </button>
       </div>
 
       {/* SERVICE SUMMARY */}
@@ -120,29 +110,42 @@ export default function ServiceContainer() {
       </div>
 
       {/* Category Navigation */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white p-2 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => {
-                  setActiveCategory(cat);
-                  setPage(1);
-                }}
-                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
-                  ? "bg-blue-600 text-white shadow-xl shadow-blue-500/20 scale-[1.05]"
-                  : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl w-fit overflow-x-auto no-scrollbar max-w-full">
+            {CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setActiveCategory(cat);
+                    setPage(1);
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                    isActive
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                   }`}
-              >
-                {cat}
-              </button>
-            )
-          })}
+                >
+                  {cat}
+                </button>
+              )
+            })}
+          </div>
+
+          <button
+            onClick={() => {
+              setEditingService(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-lg active:scale-95 shadow-blue-500/10 whitespace-nowrap"
+          >
+            <Plus size={18} />
+            <span>Add New Service</span>
+          </button>
         </div>
-        <div className="hidden lg:flex items-center gap-4 pr-6 text-slate-400">
-          <div className="h-10 w-[1px] bg-slate-100" />
+        <div className="hidden lg:flex items-center gap-4 text-slate-400">
           <div className="flex items-center gap-2">
             <Activity size={16} className="text-emerald-500" />
             <span className="text-[10px] font-black uppercase tracking-widest">
@@ -157,6 +160,14 @@ export default function ServiceContainer() {
         <ServiceTable
           data={services}
           loading={loading}
+          pagination={{
+            currentPage: page,
+            totalPages: totalPages,
+            startItem: total === 0 ? 0 : (page - 1) * 10 + 1,
+            endItem: Math.min(page * 10, total),
+            totalItems: total,
+            onPageChange: setPage,
+          }}
           onEdit={(svc) => {
             setEditingService(svc);
             setIsModalOpen(true);

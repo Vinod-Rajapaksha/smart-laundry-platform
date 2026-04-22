@@ -113,7 +113,7 @@ export default function InventoryTable({ items, onEdit, onDelete, loading }: Inv
     return (
       <div className="w-full bg-white rounded-xl border border-slate-200 shadow-sm p-16 flex flex-col items-center justify-center">
         <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
-           <Package size={32} className="text-slate-200" />
+          <Package size={32} className="text-slate-200" />
         </div>
         <span className="text-slate-500 font-semibold text-lg">No inventory items</span>
         <p className="text-slate-400 text-sm">Everything is clear for now.</p>

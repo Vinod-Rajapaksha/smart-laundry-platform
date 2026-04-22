@@ -1,4 +1,4 @@
-import { Search, Settings } from "lucide-react";
+import { Search } from "lucide-react";
 import type { Tab } from "../types";
 
 interface LoyaltyFiltersProps {
@@ -25,21 +25,14 @@ export default function LoyaltyFilters({
               key={tab}
               onClick={() => onTabChange(tab)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === tab
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                 }`}
             >
               {tab}
             </button>
           ))}
         </div>
-
-        <button
-          className="p-2.5 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 transition shadow-sm"
-          title="Tier Settings"
-        >
-          <Settings size={20} />
-        </button>
       </div>
 
       <div className="relative w-full md:w-64">

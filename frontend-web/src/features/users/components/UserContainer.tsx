@@ -114,20 +114,10 @@ export default function UserContainer() {
       <UserHeader />
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard title="Total Users" value={users.length} color="slate" />
         <StatCard title="Active Staff" value={users.filter(u => u.role === "STAFF" && u.isActive).length} color="blue" />
         <StatCard title="New Customers" value={users.filter(u => u.role === "CUSTOMER").length} color="indigo" />
-
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl transition-all hover:scale-[1.02] active:scale-95 flex flex-col items-center justify-center gap-2 group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white transition-transform">
-            <Plus size={24} />
-          </div>
-          <span className="text-sm font-bold text-white">Add New User</span>
-        </button>
       </div>
 
       <UserFilters
@@ -135,6 +125,7 @@ export default function UserContainer() {
         onTabChange={setActiveTab}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onAddClick={() => setIsAddModalOpen(true)}
       />
 
       {loading ? (

@@ -1,4 +1,4 @@
-import { Table, type TableColumn } from "../../../components/ui/Table";
+import { Table, type TableColumn, type PaginationProps } from "../../../components/ui/Table";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Edit2, Trash2, Star } from "lucide-react";
@@ -7,11 +7,12 @@ import type { LaundryService } from "../types";
 interface ServiceTableProps {
   data: LaundryService[];
   loading?: boolean;
+  pagination?: PaginationProps;
   onEdit: (service: LaundryService) => void;
   onDelete: (service: LaundryService) => void;
 }
 
-export default function ServiceTable({ data, loading, onEdit, onDelete }: ServiceTableProps) {
+export default function ServiceTable({ data, loading, pagination, onEdit, onDelete }: ServiceTableProps) {
   const columns: TableColumn<LaundryService>[] = [
     {
       header: "Service Details",
@@ -95,6 +96,7 @@ export default function ServiceTable({ data, loading, onEdit, onDelete }: Servic
     <Table
       columns={columns}
       data={data}
+      pagination={pagination}
     />
   );
 }
