@@ -1,25 +1,43 @@
 import { z } from "zod";
+import { FEEDBACK_STATUS } from "../core/constants.js";
 
-export const feedbackStatus = ["pending", "approved", "rejected"] as const;
+const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
 
 export const createFeedbackSchema = z.object({
-  orderId: z.string().min(1, "Order ID is required"),
-  rating: z.number().min(1).max(5, "Rating must be between 1 and 5"),
-  comment: z.string().nullable().optional(),
-  suggestions: z.string().nullable().optional(),
+  orderId: objectIdSchema,
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().max(1000).optional().nullable(),
+  suggestions: z.string().max(1000).optional().nullable(),
   tags: z.array(z.string()).optional(),
 });
 
-export const updateFeedbackSchema = z.object({
-  rating: z.number().min(1).max(5, "Rating must be between 1 and 5").optional(),
-  comment: z.string().nullable().optional(),
-  suggestions: z.string().nullable().optional(),
+export const updateMyFeedbackSchema = z.object({
+  rating: z.coerce.number().int().min(1).max(5).optional(),
+  comment: z.string().max(1000).optional().nullable(),
+  suggestions: z.string().max(1000).optional().nullable(),
   tags: z.array(z.string()).optional(),
+}).refine(data => Object.keys(data).length > 0, {
+  message: "At least one field must be provided for update",
 });
 
-export const feedbackStatusSchema = z.object({
-  status: z.enum(feedbackStatus),
+export const updateFeedbackStatusSchema = z.object({
+  status: z.enum(Object.values(FEEDBACK_STATUS) as [string, ...string[]]),
+});
+
+export const getFeedbacksQuerySchema = z.object({
+  page: z.string().optional().transform(v => v ? parseInt(v) : undefined),
+  limit: z.string().optional().transform(v => v ? parseInt(v) : undefined),
+  status: z.enum(Object.values(FEEDBACK_STATUS) as [string, ...string[]]).optional(),
+  rating: z.string().optional().transform(v => v ? parseInt(v) : undefined),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
+export const feedbackIdParamSchema = z.object({
+  id: objectIdSchema,
 });
 
 export type CreateFeedbackInput = z.infer<typeof createFeedbackSchema>;
-export type UpdateFeedbackInput = z.infer<typeof updateFeedbackSchema>;
+export type UpdateMyFeedbackInput = z.infer<typeof updateMyFeedbackSchema>;
+export type UpdateFeedbackStatusInput = z.infer<typeof updateFeedbackStatusSchema>;
+export type GetFeedbacksQueryInput = z.infer<typeof getFeedbacksQuerySchema>;
