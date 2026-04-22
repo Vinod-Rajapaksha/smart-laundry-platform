@@ -8,6 +8,18 @@ export const createVoucher = asyncHandler(async (req: Request, res: Response) =>
   return ApiResponse(res, 201, 'Voucher created successfully', data);
 });
 
+export const updateVoucher = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const data = await service.updateVoucher(id as string, req.body);
+  return ApiResponse(res, 200, 'Voucher updated successfully', data);
+});
+
+export const deleteVoucher = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  await service.deleteVoucher(id as string);
+  return ApiResponse(res, 200, 'Voucher deleted successfully');
+});
+
 export const getAllVouchers = asyncHandler(async (req: Request, res: Response) => {
   const data = await service.getAllVouchers(req.query);
   return ApiResponse(res, 200, 'Vouchers fetched successfully', data);
