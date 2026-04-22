@@ -61,6 +61,11 @@ export const downloadReceipt = asyncHandler(async (req: Request, res: Response) 
   return res.status(200).send(buffer);
 });
 
+export const cancelOrder = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.cancelOrder(req.params.id as string, (req as any).user.id);
+  return ApiResponse(res, 200, 'Order cancelled successfully', result);
+});
+
 export const updateOrder = asyncHandler(async (req: Request, res: Response) => {
   const result = await service.updateAnyOrder(req.params.id as string, req.body);
   return ApiResponse(res, 200, 'Order updated successfully', result);
