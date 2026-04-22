@@ -1,13 +1,12 @@
 export function generateOrderNo(): string {
   const now = new Date();
 
-  const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
 
-  const randomPart = randomUppercase(4);
+  const randomPart = randomUppercase(3);
 
-  return `ORD-${yyyy}${mm}${dd}-${randomPart}`;
+  return `ORD-${mm}${dd}-${randomPart}`;
 }
 
 export function generateBankReference(): string {
@@ -20,6 +19,11 @@ export function generateBankReference(): string {
   const randomPart = randomUppercase(4);
 
   return `REF-${yyyy}${mm}${dd}-${randomPart}`;
+}
+
+export function generateInventoryId(): string {
+  const randomPart = randomUppercase(4);
+  return `INV-${randomPart}`;
 }
 
 function randomUppercase(length: number): string {
