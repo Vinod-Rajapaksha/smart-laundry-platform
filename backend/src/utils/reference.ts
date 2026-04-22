@@ -21,6 +21,11 @@ export function generateBankReference(): string {
   return `REF-${yyyy}${mm}${dd}-${randomPart}`;
 }
 
+export function generateInventoryId(): string {
+  const randomPart = randomUppercase(4);
+  return `INV-${randomPart}`;
+}
+
 function randomUppercase(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let out = '';

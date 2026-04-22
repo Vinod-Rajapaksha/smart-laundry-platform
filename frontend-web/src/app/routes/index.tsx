@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 import NotFoundPage from "../../pages/NotFoundPage";
 import UnauthorizedPage from "../../pages/UnauthorizedPage";
@@ -31,8 +31,10 @@ import PickupDeliveryPage from "../../features/pickupDelivery/pages/PickupDelive
 import ReportsPage from "../../features/reports/pages/ReportsPage";
 import ProfilePage from "../../features/profile/pages/ProfilePage";
 
+import LandingPage from "../../features/public-site/pages/LandingPage";
+
 export const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/login" replace /> },
+  { path: "/", element: <LandingPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/unauthorized", element: <UnauthorizedPage /> },
 

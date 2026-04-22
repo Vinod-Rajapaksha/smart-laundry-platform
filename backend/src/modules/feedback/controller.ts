@@ -101,8 +101,12 @@ export const getApprovedFeedbacks = asyncHandler(async (req: AuthRequest, res: R
 
 export const getMyAllFeedbacksController = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-
   const feedbacks = await feedbackService.getMyAllFeedbacks(userId);
 
   return ApiResponse(res, 200, 'My feedbacks retrieved successfully', feedbacks);
+});
+
+export const getFeedbackSummary = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const summary = await feedbackService.getFeedbackSummary();
+  return ApiResponse(res, 200, 'Feedback summary generated successfully', summary);
 });

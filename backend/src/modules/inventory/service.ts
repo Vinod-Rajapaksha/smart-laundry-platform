@@ -1,8 +1,10 @@
 import Inventory from '../../database/models/Inventory.js';
 import ApiError from '../../core/apiError.js';
 import { DEFAULT_PAGINATION } from '../../core/constants.js';
+import { generateInventoryId } from '../../utils/reference.js';
 
 interface InventoryInput {
+  itemId?: string;
   categoryName: string;
   name: string;
   sku?: string | null;
@@ -17,7 +19,16 @@ interface InventoryInput {
 }
 
 export const createInventory = async (input: InventoryInput) => {
-  // If this item is marked as default, unset others in same category
+  if (!input.itemId) {
+    let itemId = generateInventoryId();
+    let exists = await Inventory.exists({ itemId });
+    while (exists) {
+      itemId = generateInventoryId();
+      exists = await Inventory.exists({ itemId });
+    }
+    input.itemId = itemId;
+  }
+
   if (input.isDefault) {
     await Inventory.updateMany(
       { categoryName: input.categoryName },
@@ -37,7 +48,6 @@ export const updateInventory = async (id: string, input: Partial<InventoryInput>
 
   const category = input.categoryName || existing.categoryName;
 
-  // If setting to default, unset others in the same category
   if (input.isDefault) {
     await Inventory.updateMany(
       { categoryName: category },

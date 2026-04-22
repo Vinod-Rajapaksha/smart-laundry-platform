@@ -13,6 +13,7 @@ import userRoutes from '../modules/user/routes.js';
 import loyaltyRoutes from '../modules/loyalty/loyalty.routes.js';
 import scanRoutes from '../modules/scan/routes.js';
 import supplierRoutes from '../modules/supplier/routes.js';
+import settingsRoutes from '../modules/settings/routes.js';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/users', userRoutes);
 router.use('/loyalty', loyaltyRoutes);
 router.use('/scan', scanRoutes);
 router.use('/suppliers', supplierRoutes);
+router.use('/settings', settingsRoutes);
 
 export default router;

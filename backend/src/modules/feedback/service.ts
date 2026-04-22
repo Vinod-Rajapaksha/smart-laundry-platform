@@ -281,6 +281,38 @@ export const getApprovedFeedbacks = async (limit = 10) => {
   return feedbacks;
 };
 
+export const getFeedbackSummary = async () => {
+  const { getSetting } = await import('../settings/service.js');
+  const isEnabled = await getSetting('ai_summary_enabled', true);
+
+  if (!isEnabled) {
+    return { summary: '', sentiment: 'neutral' };
+  }
+
+  const feedbacks = await Feedback.find({ 
+    status: FEEDBACK_STATUS.APPROVED,
+    comment: { $nin: [null, ''] }
+  })
+    .select('comment')
+    .limit(20)
+    .lean();
+
+  const comments = feedbacks.map((f) => f.comment as string);
+  
+  if (comments.length === 0) {
+    return { summary: '', sentiment: 'neutral' };
+  }
+
+  const { generateReviewSummary } = await import('../../utils/ai.service.js');
+  const summary = await generateReviewSummary(comments);
+
+  return {
+    summary,
+    sentiment: 'positive',
+    count: comments.length
+  };
+};
+
 export const getMyFeedbackForOrder = async (userId: string, orderId: string) => {
   if (!mongoose.isValidObjectId(orderId)) {
     throw new ApiError(400, 'Invalid order ID');

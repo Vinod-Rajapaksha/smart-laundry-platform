@@ -9,6 +9,8 @@ const inventorySchema = new mongoose.Schema(
     },
     itemId: { 
         type: String, 
+        unique: true,
+        sparse: true,
         trim: true, 
     },
     name: { 

@@ -14,6 +14,7 @@ import {
 
 const router = Router();
 router.get('/public', controller.getApprovedFeedbacks);
+router.get('/public/summary', controller.getFeedbackSummary);
 
 router.post('/',auth,allowRoles(ROLES.CUSTOMER),validateCreateFeedback,controller.createFeedback,);
 

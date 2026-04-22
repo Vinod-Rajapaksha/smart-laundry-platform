@@ -23,4 +23,15 @@ export const feedbackApi = {
       method: "DELETE",
     });
   },
+
+  getAISettings: async () => {
+    return apiFetch<{ aiSummaryEnabled: boolean }>("/settings/feedback");
+  },
+
+  updateAISummaryToggle: async (enabled: boolean) => {
+    return apiFetch<any>("/settings/feedback/ai-toggle", {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    });
+  },
 };
