@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { User, UserRole, StaffType } from "../types";
-import { Save, X, Loader2 } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 
 interface UserFormProps {
   initialData?: User | null;

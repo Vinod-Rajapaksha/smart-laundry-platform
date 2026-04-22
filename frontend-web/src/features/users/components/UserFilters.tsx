@@ -1,5 +1,5 @@
 import { Search, Plus } from "lucide-react";
-import { Tab } from "../types";
+import type { Tab } from "../types";
 
 interface UserFiltersProps {
   activeTab: Tab;
@@ -26,11 +26,10 @@ export default function UserFilters({
             <button
               key={tab}
               onClick={() => onTabChange(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                activeTab === tab
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${activeTab === tab
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-              }`}
+                }`}
             >
               {tab}
             </button>

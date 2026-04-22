@@ -7,7 +7,7 @@ import { UserHeader } from "./UserHeader";
 import type { User, Tab } from "../types";
 import { getUsers, updateUser, createUser, deleteUser } from "../api/user.api";
 import { toast } from "react-hot-toast";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function UserContainer() {
   const [users, setUsers] = useState<User[]>([]);
