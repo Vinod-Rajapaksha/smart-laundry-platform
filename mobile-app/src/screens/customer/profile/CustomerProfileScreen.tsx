@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { User, MapPin, Bell, Shield, LogOut, ChevronRight, Edit2, Star, Crown } from 'lucide-react-native';
-import { useAppDispatch } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { logoutUser } from '../../../store/slices/auth.slice';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
@@ -15,28 +15,13 @@ import { notify } from '../../../utils/notify';
 const CustomerProfileScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProfile = async () => {
-    try {
-      const data = await profileService.getProfile();
-      setProfile(data);
-    } catch (error: any) {
-      notify.error('Error', error.message || 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const profile = useAppSelector((state) => state.auth.user);
+  const [loading, setLoading] = useState(false); // No longer loading initially since we use Redux state
 
   const handleLogout = async () => {
     notify.confirm(
-      'Logout', 
-      'Are you sure you want to log out?', 
+      'Logout',
+      'Are you sure you want to log out?',
       async () => {
         await dispatch(logoutUser());
         router.replace('/(public)/auth/login');
@@ -69,7 +54,7 @@ const CustomerProfileScreen = () => {
       scroll
     >
       <View style={styles.scrollContent}>
-        
+
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
@@ -80,7 +65,7 @@ const CustomerProfileScreen = () => {
             <Text style={styles.emailText}>{profile?.email}</Text>
             <Text style={styles.phoneText}>{profile?.telephone}</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editButton}
             onPress={() => router.push({ pathname: '/(protected)/(customer)/profile/edit-profile', params: { profileStr: JSON.stringify(profile) } })}
           >
@@ -92,8 +77,8 @@ const CustomerProfileScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Settings</Text>
           <View style={styles.menuCard}>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push({ pathname: '/(protected)/(customer)/profile/edit-profile', params: { profileStr: JSON.stringify(profile) } })}
             >
@@ -107,7 +92,7 @@ const CustomerProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push({ pathname: '/(protected)/(customer)/profile/addresses', params: { address: profile?.address || '' } })}
             >
@@ -121,7 +106,7 @@ const CustomerProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push('/(protected)/(customer)/profile/notifications')}
             >
@@ -135,7 +120,7 @@ const CustomerProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.menuItem, styles.menuItemLast]}
               onPress={() => router.push('/(protected)/(customer)/profile/settings')}
             >
@@ -156,8 +141,8 @@ const CustomerProfileScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Rewards & Benefits</Text>
           <View style={styles.menuCard}>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push('/(protected)/(customer)/loyalty')}
             >
@@ -171,7 +156,7 @@ const CustomerProfileScreen = () => {
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.menuItem, styles.menuItemLast]}
               onPress={() => router.push('/(protected)/(customer)/loyalty/membership')}
             >

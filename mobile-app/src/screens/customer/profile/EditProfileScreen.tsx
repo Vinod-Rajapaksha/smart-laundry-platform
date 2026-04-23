@@ -2,14 +2,19 @@ import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Alert } fro
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Profile.styles';
 import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { updateUser } from '../../../store/slices/auth.slice';
 
 const EditProfileScreen = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const params = useLocalSearchParams();
   const profile: UserProfile | null = params.profileStr ? JSON.parse(params.profileStr as string) : null;
 
@@ -25,7 +30,16 @@ const EditProfileScreen = () => {
 
     setSaving(true);
     try {
-      await profileService.updateProfile({ name, telephone });
+      const updatedProfile = await profileService.updateProfile({ name, telephone });
+      
+      // Update global state
+      dispatch(updateUser(updatedProfile));
+      
+      // Update persistence
+      if (user) {
+        await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
+      }
+
       Alert.alert('Success', 'Profile updated successfully!', [
         { text: 'OK', onPress: () => router.back() }
       ]);

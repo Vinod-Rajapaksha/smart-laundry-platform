@@ -1,14 +1,15 @@
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Clock, MapPin, CheckCircle2, Circle, Package, AlertCircle } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import MapView, { Marker, UrlTile } from 'react-native-maps';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Orders.styles';
 import { orderService } from '../../../services/customer/orderService';
 import { Order, OrderStatus } from '../../../types/order.types';
-import { subscribeToOrderStatus, unsubscribeFromOrderStatus } from '../../../services/socketService';
+import { subscribeToOrderStatus, unsubscribeFromOrderStatus, subscribeToStaffLocation, unsubscribeFromStaffLocation } from '../../../services/socketService';
 
 const OrderTrackingScreen = () => {
   const router = useRouter();
@@ -16,6 +17,9 @@ const OrderTrackingScreen = () => {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [staffLocation, setStaffLocation] = useState<{ lat: number, lng: number } | null>(null);
+  const mapRef = useRef<MapView>(null);
 
   const fetchOrderDetails = async () => {
     try {
@@ -33,16 +37,21 @@ const OrderTrackingScreen = () => {
   useEffect(() => {
     fetchOrderDetails();
 
-    // Subscribe to real-time updates
     subscribeToOrderStatus((data: any) => {
-      // If the update is for this specific order, refresh the data
       if (data.orderId === orderId) {
         fetchOrderDetails();
       }
     });
 
+    subscribeToStaffLocation((data: any) => {
+      if (data.orderId === orderId && data.location) {
+        setStaffLocation(data.location);
+      }
+    });
+
     return () => {
       unsubscribeFromOrderStatus();
+      unsubscribeFromStaffLocation();
     };
   }, [orderId]);
 
@@ -59,7 +68,6 @@ const OrderTrackingScreen = () => {
     );
   }
 
-  // Define the ordered steps for tracking
   const ORDER_STATUS_STEPS: { status: OrderStatus; title: string }[] = [
     { status: 'PENDING', title: 'Order Placed' },
     { status: 'CONFIRMED', title: 'Order Confirmed' },
@@ -71,13 +79,11 @@ const OrderTrackingScreen = () => {
     { status: 'DELIVERED', title: 'Delivered' },
   ];
 
-  // Helper to check if a status has been completed
   const isStatusReached = (status: OrderStatus) => {
     if (!order) return false;
     return (order.trackingLogs || []).some(log => log.status === status) || order.status === status;
   };
 
-  // Helper to get time for a status
   const getStatusTime = (status: OrderStatus) => {
     if (!order) return null;
     const log = (order.trackingLogs || []).find(l => l.status === status);
@@ -91,6 +97,12 @@ const OrderTrackingScreen = () => {
     current: order.status === step.status,
     time: getStatusTime(step.status) || (order.status === step.status ? 'Ongoing' : 'Pending')
   }));
+
+  const isMapActive = ['OUT_FOR_DELIVERY', 'PICKUP_SCHEDULED'].includes(order.status);
+  const isPickup = ['PENDING', 'CONFIRMED', 'PICKUP_SCHEDULED'].includes(order.status);
+
+  const destLat = isPickup ? order.pickupLat : order.deliveryLat;
+  const destLng = isPickup ? order.pickupLng : order.deliveryLng;
 
   const header = (
     <View style={styles.header}>
@@ -111,7 +123,6 @@ const OrderTrackingScreen = () => {
       scroll
     >
       <View style={{ padding: 20 }}>
-        {/* Live Status Header */}
         <View style={trackingStyles.statusCard}>
           <View style={[trackingStyles.iconCircle, order.status === 'CANCELLED' && { backgroundColor: COLORS.ERROR_BACKGROUND }]}>
             {order.status === 'CANCELLED' ? (
@@ -133,6 +144,43 @@ const OrderTrackingScreen = () => {
             <Text style={{ color: COLORS.ERROR_TEXT, fontWeight: '600' }}>
               This order has been cancelled. Please contact support for more information.
             </Text>
+          </View>
+        )}
+
+        {isMapActive && destLat && destLng && (
+          <View style={trackingStyles.mapWrapper}>
+            <MapView
+              ref={mapRef}
+              style={StyleSheet.absoluteFill}
+              mapType="none"
+              initialRegion={{
+                latitude: staffLocation?.lat || destLat,
+                longitude: staffLocation?.lng || destLng,
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05,
+              }}
+            >
+              <UrlTile
+                urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                maximumZ={19}
+                flipY={false}
+              />
+
+              <Marker coordinate={{ latitude: destLat, longitude: destLng }} title="Your Location">
+                <MapPin size={34} color={COLORS.PRIMARY} fill={COLORS.PRIMARY_LIGHT} />
+              </Marker>
+              {staffLocation && (
+                <Marker coordinate={{ latitude: staffLocation.lat, longitude: staffLocation.lng }} title="Driver Location">
+                  <View style={trackingStyles.staffPin}>
+                    <View style={trackingStyles.staffPinInner} />
+                  </View>
+                </Marker>
+              )}
+            </MapView>
+            <View style={trackingStyles.liveIndicator}>
+              <View style={trackingStyles.liveDot} />
+              <Text style={trackingStyles.liveText}>Live Tracking</Text>
+            </View>
           </View>
         )}
 
@@ -247,6 +295,58 @@ const trackingStyles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.TEXT_PRIMARY,
     marginTop: 4,
+  },
+  mapWrapper: {
+    height: 250,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 24,
+    borderWidth: 1.5,
+    borderColor: COLORS.BORDER_LIGHT,
+    backgroundColor: COLORS.WHITE,
+  },
+  staffPin: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  staffPinInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.SUCCESS,
+    borderWidth: 2,
+    borderColor: COLORS.WHITE,
+  },
+  liveIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: COLORS.WHITE,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: COLORS.BLACK,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.ERROR,
+    marginRight: 6,
+  },
+  liveText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.TEXT_PRIMARY,
   },
   stepsContainer: {
     backgroundColor: COLORS.WHITE,

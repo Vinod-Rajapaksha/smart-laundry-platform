@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Truck, ShoppingBag, ChevronRight, CheckCircle2 } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import AppHeader from '../../../components/common/AppHeader';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { setServiceMode, nextStep } from '../../../store/slices/customer/reservation.slice';
+import { setServiceMode, nextStep, resetReservation } from '../../../store/slices/customer/reservation.slice';
 import { COLORS } from '../../../theme/colors';
 import { commonStyles } from './styles/common.styles';
 import styles from './styles/ServiceMode.styles';
@@ -13,6 +14,10 @@ const ServiceModeScreen = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { serviceMode } = useAppSelector((state) => state.reservation);
+
+    useEffect(() => {
+        dispatch(resetReservation());
+    }, []);
 
     const handleSelectMode = (mode: 'PICKUP_DELIVERY' | 'SELF_SERVICE') => {
         dispatch(setServiceMode(mode));
@@ -33,19 +38,7 @@ const ServiceModeScreen = () => {
             scroll
         >
             <View style={commonStyles.container}>
-                {/* Step Indicator moved here for correct positioning */}
-                <View style={[commonStyles.stepIndicator, { marginTop: 10, marginBottom: 24 }]}>
-                    {[1, 2, 3, 4, 5].map((s) => (
-                        <View
-                            key={s}
-                            style={[
-                                commonStyles.stepDot,
-                                s === 1 && commonStyles.stepDotActive,
-                                s < 1 && { backgroundColor: COLORS.PRIMARY } // For future steps
-                            ]}
-                        />
-                    ))}
-                </View>
+
 
                 <Text style={commonStyles.title}>How would you like to receive our service?</Text>
                 <Text style={commonStyles.subtitle}>

@@ -31,6 +31,10 @@ export interface Order {
   reservedDateTime: string;
   pickupAddress?: string;
   deliveryAddress?: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  deliveryLat?: number;
+  deliveryLng?: number;
   weightKg?: number;
   options?: Array<{
     inventoryId: string;

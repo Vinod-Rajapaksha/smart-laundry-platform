@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Navigation, MapPin, Phone, CheckCircle } from 'lucide-react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, UrlTile, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
+import polyline from '@mapbox/polyline';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import { scanService } from '../../../services/staff/scanService';
 import { notify } from '../../../utils/notify';
+import { emitStaffLocation } from '../../../services/socketService';
+import { osmService } from '../../../services/maps/osmService';
 
 const { width, height } = Dimensions.get('window');
 
-/**
- * Screen providing a map-view and navigation for Staff (Drivers).
- * Features destination info and quick actions for arrival confirmation.
- */
 const StaffTrackingScreen = () => {
   const router = useRouter();
   const { orderId } = useLocalSearchParams();
@@ -22,17 +21,20 @@ const StaffTrackingScreen = () => {
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
   const [staffLocation, setStaffLocation] = useState<any>(null);
+  const [routeCoords, setRouteCoords] = useState<{ latitude: number, longitude: number }[]>([]);
+
+  const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
+    let subscription: Location.LocationSubscription;
+
     const initTracking = async () => {
       try {
         setLoading(true);
 
-        // 1. Get Order Details
         const orderData = await scanService.getOrderById(orderId as string);
         setOrder(orderData);
 
-        // 2. Initial Location Permission & Get Current
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           notify.error('Permission Denied', 'Location access is required for tracking');
@@ -42,15 +44,35 @@ const StaffTrackingScreen = () => {
         let location = await Location.getCurrentPositionAsync({});
         setStaffLocation(location.coords);
 
-        // 3. Subscribe to location updates
-        const subscription = await Location.watchPositionAsync(
+        const isPickup = orderData?.status?.includes('PICKUP') || orderData?.status === 'PENDING';
+        const destLat = isPickup ? orderData?.pickupLat : orderData?.deliveryLat;
+        const destLng = isPickup ? orderData?.pickupLng : orderData?.deliveryLng;
+
+        if (destLat && destLng) {
+          const encodedPolyline = await osmService.getDirections(
+            location.coords.latitude, location.coords.longitude,
+            destLat, destLng
+          );
+
+          if (encodedPolyline) {
+            const decoded = polyline.decode(encodedPolyline);
+            const coords = decoded.map((point: any) => ({
+              latitude: point[0],
+              longitude: point[1]
+            }));
+            setRouteCoords(coords);
+          }
+        }
+
+        subscription = await Location.watchPositionAsync(
           { accuracy: Location.Accuracy.High, distanceInterval: 10 },
           (newLoc) => {
-            setStaffLocation(newLoc.coords);
+            const coords = newLoc.coords;
+            setStaffLocation(coords);
+            emitStaffLocation(orderId as string, { lat: coords.latitude, lng: coords.longitude });
           }
         );
 
-        return () => subscription.remove();
       } catch (error) {
         notify.error('Tracking Error', 'Could not initialize map tracking');
       } finally {
@@ -59,6 +81,12 @@ const StaffTrackingScreen = () => {
     };
 
     initTracking();
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, [orderId]);
 
   const handleCall = () => {
@@ -86,8 +114,9 @@ const StaffTrackingScreen = () => {
       {/* Real Map View */}
       <View style={trackStyles.mapContainer}>
         <MapView
-          provider={PROVIDER_GOOGLE}
+          ref={mapRef}
           style={StyleSheet.absoluteFill}
+          mapType="none"
           initialRegion={{
             latitude: staffLocation?.latitude || destCoords.latitude,
             longitude: staffLocation?.longitude || destCoords.longitude,
@@ -95,6 +124,20 @@ const StaffTrackingScreen = () => {
             longitudeDelta: 0.05,
           }}
         >
+          <UrlTile
+            urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+            maximumZ={19}
+            flipY={false}
+          />
+
+          {routeCoords.length > 0 && (
+            <Polyline
+              coordinates={routeCoords}
+              strokeColor={COLORS.PRIMARY}
+              strokeWidth={4}
+            />
+          )}
+
           {/* Rider Marker */}
           {staffLocation && (
             <Marker coordinate={staffLocation} title="Your Location">
@@ -115,7 +158,6 @@ const StaffTrackingScreen = () => {
         </MapView>
       </View>
 
-      {/* Floating Header Overlay */}
       <View style={trackStyles.headerOverlay}>
         <TouchableOpacity onPress={() => router.back()} style={trackStyles.backBtn}>
           <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
@@ -133,7 +175,7 @@ const StaffTrackingScreen = () => {
           </View>
           <View style={{ flex: 1, marginLeft: 20 }}>
             <Text style={trackStyles.destTitle}>
-              {order?.status?.includes('PICKUP') ? 'Pickup Items' : 'Deliver Order'}
+              {isPickup ? 'Pickup Items' : 'Deliver Order'}
             </Text>
             <Text style={trackStyles.addressText} numberOfLines={1}>
               {isPickup ? order?.pickupAddress : order?.deliveryAddress}
@@ -176,19 +218,9 @@ const trackStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E2E8F0',
   },
-  mapPlaceholder: {
-    alignItems: 'center',
-  },
-  mapText: {
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: 12,
-    fontSize: 14,
-    fontWeight: '600',
-  },
   userPin: {
-    position: 'absolute',
-    top: height * 0.4,
-    left: width * 0.3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pinOuter: {
     width: 30,
@@ -207,9 +239,8 @@ const trackStyles = StyleSheet.create({
     borderColor: COLORS.WHITE,
   },
   destPinMarker: {
-    position: 'absolute',
-    top: height * 0.35,
-    right: width * 0.25,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerOverlay: {
     position: 'absolute',

@@ -16,7 +16,8 @@ const ServiceDetailsScreen = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const reservation = useAppSelector((state) => state.reservation);
-    const { serviceId, weightKg, pickupAddress, deliveryAddress, serviceMode, selectedOptions } = reservation;
+    const user = useAppSelector((state) => state.auth.user);
+    const { serviceId, weightKg, pickupAddress, deliveryAddress, pickupLat, pickupLng, deliveryLat, deliveryLng, serviceMode, selectedOptions } = reservation;
 
     const [services, setServices] = useState<Service[]>([]);
     const [options, setOptions] = useState<InventoryItem[]>([]);
@@ -40,12 +41,9 @@ const ServiceDetailsScreen = () => {
             setServices(servicesData);
             setOptions([...detergentData, ...softenerData, ...finishingData]);
 
-            // Fetch profile for default address if empty
-            if (!pickupAddress) {
-                const profile = await profileService.getProfile();
-                if (profile.address) {
-                    dispatch(setAddress({ pickup: profile.address, delivery: profile.address }));
-                }
+            // Use auth user address for default if reservation address is empty
+            if (!pickupAddress && user?.address) {
+                dispatch(setAddress({ pickup: user.address, delivery: user.address }));
             }
         } catch (error) {
             console.error('Error fetching initial data:', error);
@@ -54,6 +52,13 @@ const ServiceDetailsScreen = () => {
             setLoading(false);
         }
     };
+
+    // Keep address in sync if user updates it in profile while reservation is active
+    useEffect(() => {
+        if (!pickupAddress && user?.address) {
+            dispatch(setAddress({ pickup: user.address, delivery: user.address }));
+        }
+    }, [user?.address, pickupAddress]);
 
     const selectedService = services.find(s => s._id === serviceId);
 
@@ -84,6 +89,10 @@ const ServiceDetailsScreen = () => {
                 weightKg,
                 pickupAddress,
                 deliveryAddress,
+                pickupLat,
+                pickupLng,
+                deliveryLat,
+                deliveryLng,
                 options: selectedOptions.map(o => o.inventoryId),
                 paymentMethod: 'COD', // Default
                 subtotal: totals.subtotal + totals.optionsTotal,
@@ -114,17 +123,6 @@ const ServiceDetailsScreen = () => {
             >
                 <ChevronLeft size={24} color={COLORS.TEXT_PRIMARY} />
             </TouchableOpacity>
-            <View style={commonStyles.stepIndicator}>
-                {[1, 2, 3].map((s) => (
-                    <View
-                        key={s}
-                        style={[
-                            commonStyles.stepDot,
-                            s <= 2 && commonStyles.stepDotActive
-                        ]}
-                    />
-                ))}
-            </View>
         </View>
     );
 
@@ -201,25 +199,43 @@ const ServiceDetailsScreen = () => {
                         </View>
                     </View>
 
-                    {/* 3. Address Inputs (Conditional) */}
+                    {/* 3. Address Selection (Conditional) */}
                     {serviceMode === 'PICKUP_DELIVERY' && (
                         <View style={styles.section}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                                 <MapPin size={20} color={COLORS.PRIMARY} />
                                 <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Collection & Return</Text>
                             </View>
-                            <TextInput
-                                style={[styles.input, { marginBottom: 12 }]}
-                                placeholder="Pickup Address"
-                                value={pickupAddress || ''}
-                                onChangeText={(val) => dispatch(setAddress({ pickup: val }))}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Delivery Address"
-                                value={deliveryAddress || ''}
-                                onChangeText={(val) => dispatch(setAddress({ delivery: val }))}
-                            />
+                            
+                            <TouchableOpacity 
+                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12, marginBottom: 12 }]} 
+                                onPress={() => router.push('/(protected)/(customer)/reservation/address')}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 12, color: COLORS.TEXT_MUTED, fontWeight: '600' }}>Pickup Location</Text>
+                                        <Text style={{ fontSize: 15, color: pickupAddress ? COLORS.TEXT_PRIMARY : COLORS.TEXT_MUTED, marginTop: 4 }}>
+                                            {pickupAddress || 'Tap to select on map'}
+                                        </Text>
+                                    </View>
+                                    <ChevronLeft size={20} color={COLORS.TEXT_MUTED} style={{ transform: [{ rotate: '180deg' }] }} />
+                                </View>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12 }]} 
+                                onPress={() => router.push('/(protected)/(customer)/reservation/address')}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 12, color: COLORS.TEXT_MUTED, fontWeight: '600' }}>Delivery Location</Text>
+                                        <Text style={{ fontSize: 15, color: deliveryAddress ? COLORS.TEXT_PRIMARY : COLORS.TEXT_MUTED, marginTop: 4 }}>
+                                            {deliveryAddress || 'Tap to select on map'}
+                                        </Text>
+                                    </View>
+                                    <ChevronLeft size={20} color={COLORS.TEXT_MUTED} style={{ transform: [{ rotate: '180deg' }] }} />
+                                </View>
+                            </TouchableOpacity>
                         </View>
                     )}
 

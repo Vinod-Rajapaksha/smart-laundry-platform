@@ -37,6 +37,24 @@ export const unsubscribeFromOrderStatus = () => {
   }
 };
 
+export const emitStaffLocation = (orderId: string, location: { lat: number, lng: number }) => {
+  if (socket) {
+    socket.emit('staff_location_update', { orderId, location });
+  }
+};
+
+export const subscribeToStaffLocation = (callback: (data: any) => void) => {
+  if (socket) {
+    socket.on('staff_location_update', callback);
+  }
+};
+
+export const unsubscribeFromStaffLocation = () => {
+  if (socket) {
+    socket.off('staff_location_update');
+  }
+};
+
 export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
