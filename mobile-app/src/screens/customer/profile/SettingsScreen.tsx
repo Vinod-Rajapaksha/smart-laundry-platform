@@ -6,9 +6,14 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Profile.styles';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import { notify } from '../../../utils/notify';
+import { useAppDispatch } from '../../../store/hooks';
+import { logoutUser } from '../../../store/slices/auth.slice';
+import profileService from '../../../services/customer/profileService';
 
 const SettingsScreen = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 
   const settingsSections = [
@@ -29,13 +34,20 @@ const SettingsScreen = () => {
   ];
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    notify.confirm(
       'Delete Account',
       'Are you sure you want to delete your account? This action is permanent and cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => { } }
-      ]
+      async () => {
+        try {
+          await profileService.deleteProfile();
+          notify.success('Success', 'Your account has been deleted.');
+          await dispatch(logoutUser());
+          router.replace('/(public)/auth/login');
+        } catch (error: any) {
+          notify.error('Error', error.message || 'Failed to delete account');
+        }
+      },
+      'Delete'
     );
   };
 

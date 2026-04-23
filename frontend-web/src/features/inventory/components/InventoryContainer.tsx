@@ -4,8 +4,11 @@ import InventoryFilters from "./InventoryFilters";
 import InventoryTable from "./InventoryTable";
 import InventoryModal from "./InventoryModal";
 import type { InventoryItem, Tab } from "../types";
-import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem } from "../api/inventory.api";
+import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem, markOrdered, restockItem } from "../api/inventory.api";
 import { toast } from "react-hot-toast";
+import RestockModal from "./RestockModal";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { AlertTriangle, PackageCheck } from "lucide-react";
 
 export default function InventoryContainer() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -15,6 +18,22 @@ export default function InventoryContainer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmText: string;
+    onConfirm: () => void;
+    icon: any;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    confirmText: "Confirm",
+    onConfirm: () => {},
+    icon: null
+  });
 
   const fetchItems = async () => {
     try {
@@ -59,17 +78,67 @@ export default function InventoryContainer() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("This will permanently remove this item from inventory. Continue?")) return;
+    setConfirmConfig({
+      open: true,
+      title: "Delete Item",
+      description: "This will permanently remove this item from inventory. This action cannot be undone.",
+      confirmText: "Remove",
+      icon: <AlertTriangle size={32} className="text-red-500" />,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await deleteInventoryItem(id);
+          toast.success("Item removed");
+          fetchItems();
+        } catch (error) {
+          toast.error("Delete failed");
+        } finally {
+          setActionLoading(false);
+          setConfirmConfig(prev => ({ ...prev, open: false }));
+        }
+      }
+    });
+  };
+
+  const handleReorder = async (qty: number) => {
+    if (!selectedItem) return;
+    
     try {
       setActionLoading(true);
-      await deleteInventoryItem(id);
-      toast.success("Item removed");
+      // Calls backend which sends real email using SMTP
+      await markOrdered(selectedItem._id, qty);
+      
+      toast.success("Official reorder email sent successfully");
+      setIsRestockModalOpen(false);
       fetchItems();
     } catch (error) {
-      toast.error("Delete failed");
+      toast.error("Failed to send reorder email. Check server configuration.");
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleConfirmRestock = async (id: string) => {
+    setConfirmConfig({
+      open: true,
+      title: "Confirm Arrival",
+      description: "Confirm that this stock order has arrived and items have been counted and verified?",
+      confirmText: "Confirm Arrival",
+      icon: <PackageCheck size={32} className="text-emerald-500" />,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await restockItem(id);
+          toast.success("Inventory levels updated");
+          fetchItems();
+        } catch (error) {
+          toast.error("Update failed");
+        } finally {
+          setActionLoading(false);
+          setConfirmConfig(prev => ({ ...prev, open: false }));
+        }
+      }
+    });
   };
 
   const filteredItems = items.filter((item) =>
@@ -126,6 +195,11 @@ export default function InventoryContainer() {
             setIsModalOpen(true);
           }}
           onDelete={handleDelete}
+          onReorder={(item) => {
+            setSelectedItem(item);
+            setIsRestockModalOpen(true);
+          }}
+          onConfirmRestock={handleConfirmRestock}
           loading={loading}
         />
       )}
@@ -136,6 +210,23 @@ export default function InventoryContainer() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         loading={actionLoading}
+      />
+
+      <RestockModal 
+        isOpen={isRestockModalOpen}
+        item={selectedItem}
+        onClose={() => setIsRestockModalOpen(false)}
+        onConfirm={handleReorder}
+      />
+
+      <ConfirmDialog
+        open={confirmConfig.open}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        confirmText={confirmConfig.confirmText}
+        onConfirm={confirmConfig.onConfirm}
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, open: false }))}
+        icon={confirmConfig.icon}
       />
     </div>
   );

@@ -5,10 +5,18 @@ import {
   Landmark,
   Package,
   RefreshCcw,
-  Megaphone,
   MessageSquare,
   Truck,
   BarChart3,
+  Ticket,
+  Star,
+  Settings2,
+  CreditCard,
+  Banknote,
+  Warehouse,
+  User,
+  Layers,
+  WashingMachine,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,9 +41,44 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: ShoppingCart,
   },
 
+  "payments": {
+    title: "Payments",
+    Icon: CreditCard,
+  },
+
+  "ledger": {
+    title: "Consolidated Ledger",
+    Icon: LayoutDashboard,
+  },
+
+  "online": {
+    title: "Card Payments",
+    Icon: CreditCard,
+  },
+
+  cod: {
+    title: "Cash on Delivery",
+    Icon: Banknote,
+  },
+
+  "bank-transfer": {
+    title: "Bank Transfer Ledger",
+    Icon: Landmark,
+  },
+
   "bank-verification": {
     title: "Bank Transfer Verification",
     Icon: Landmark,
+  },
+
+  services: {
+    title: "Services",
+    Icon: WashingMachine,
+  },
+
+  categories: {
+    title: "Categories",
+    Icon: Layers,
   },
 
   inventory: {
@@ -43,14 +86,29 @@ export const pageConfig: Record<string, PageConfig> = {
     Icon: Package,
   },
 
-  "update-status": {
-    title: "Update Status",
+  suppliers: {
+    title: "Suppliers",
+    Icon: Warehouse,
+  },
+
+  pricing: {
+    title: "Pricing Rules",
+    Icon: Settings2,
+  },
+
+  "status-update": {
+    title: "Status Update",
     Icon: RefreshCcw,
   },
 
-  promotions: {
-    title: "Promotions",
-    Icon: Megaphone,
+  vouchers: {
+    title: "Voucher Management",
+    Icon: Ticket,
+  },
+
+  loyalty: {
+    title: "Loyalty Program",
+    Icon: Star,
   },
 
   feedbacks: {
@@ -66,5 +124,10 @@ export const pageConfig: Record<string, PageConfig> = {
   reports: {
     title: "Reports",
     Icon: BarChart3,
+  },
+
+  profile: {
+    title: "Account Settings",
+    Icon: User,
   },
 };

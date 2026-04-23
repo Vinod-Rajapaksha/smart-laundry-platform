@@ -1,6 +1,22 @@
 import { z } from "zod";
 
-export const orderStatus = ["CREATED", "PICKED_UP", "IN_PROGRESS", "COMPLETED", "DELIVERED", "CANCELLED"] as const;
+export const orderStatus = [
+  "ORDER_PLACED",
+  "PICKUP_ASSIGNED",
+  "PICKUP_ON_THE_WAY",
+  "PICKUP_ARRIVED",
+  "PICKED_UP",
+  "HANDED_OVER",
+  "WASHING",
+  "DRYING",
+  "PROCESSING",
+  "READY",
+  "DELIVERY_ASSIGNED",
+  "DELIVERY_ON_THE_WAY",
+  "DELIVERY_ARRIVED",
+  "DELIVERED",
+  "CANCELLED"
+] as const;
 
 export const createOrderSchema = z.object({
   serviceId: z.string().min(1, "Service ID is required"),

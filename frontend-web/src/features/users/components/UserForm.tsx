@@ -1,5 +1,8 @@
-import { useState } from "react";
-import type { User, UserRole, StaffType } from "../types";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { User } from "../types";
+import { createUserSchema, updateUserSchema } from "../../../validation/user.schema";
 import { Save, Loader2 } from "lucide-react";
 
 interface UserFormProps {
@@ -10,69 +13,98 @@ interface UserFormProps {
 }
 
 export default function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFormProps) {
-  const [formData, setFormData] = useState({
-    name: initialData?.name || "",
-    email: initialData?.email || "",
-    telephone: initialData?.telephone || "",
-    address: initialData?.address || "",
-    role: initialData?.role || "CUSTOMER" as UserRole,
-    staffType: initialData?.staffType || "" as StaffType | "",
-    salary: initialData?.salary || "",
-    password: "", // Only for new users
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(formData);
-  };
-
   const isNew = !initialData;
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<any>({
+    resolver: zodResolver(isNew ? createUserSchema : updateUserSchema),
+    defaultValues: {
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      telephone: initialData?.telephone || "",
+      address: initialData?.address || "",
+      role: initialData?.role || "CUSTOMER",
+      staffType: initialData?.staffType || null,
+      salary: initialData?.salary || null,
+      password: "",
+    },
+  });
+
+  const selectedRole = watch("role");
+
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name,
+        email: initialData.email,
+        telephone: initialData.telephone,
+        address: initialData.address || "",
+        role: initialData.role,
+        staffType: initialData.staffType || null,
+        salary: initialData.salary || null,
+        password: "",
+      });
+    } else {
+      reset({
+        name: "",
+        email: "",
+        telephone: "",
+        address: "",
+        role: "CUSTOMER",
+        staffType: null,
+        salary: null,
+        password: "",
+      });
+    }
+  }, [initialData, reset]);
+
+  const handleFormSubmit = async (data: any) => {
+    const payload = { ...data };
+    if (!isNew && !payload.password) {
+      delete payload.password;
+    }
+    await onSubmit(payload);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
           <input
-            required
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
+            {...register("name")}
+            className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.name ? 'border-red-500' : ''}`}
             placeholder="John Doe"
           />
+          {errors.name && <p className="text-xs text-red-500 mt-1 font-bold">{errors.name.message as string}</p>}
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
           <input
-            required
             type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
+            {...register("email")}
+            className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.email ? 'border-red-500' : ''}`}
             placeholder="john@example.com"
           />
+          {errors.email && <p className="text-xs text-red-500 mt-1 font-bold">{errors.email.message as string}</p>}
         </div>
 
         {isNew && (
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Password</label>
             <input
-              required={isNew}
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
+              {...register("password")}
+              className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.password ? 'border-red-500' : ''}`}
               placeholder="••••••••"
             />
+            {errors.password && <p className="text-xs text-red-500 mt-1 font-bold">{errors.password.message as string}</p>}
           </div>
         )}
 
@@ -80,20 +112,16 @@ export default function UserForm({ initialData, onSubmit, onCancel, isLoading }:
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Telephone</label>
             <input
-              required
-              name="telephone"
-              value={formData.telephone}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
-              placeholder="+94 77 123 4567"
+              {...register("telephone")}
+              className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.telephone ? 'border-red-500' : ''}`}
+              placeholder="0771234567"
             />
+            {errors.telephone && <p className="text-xs text-red-500 mt-1 font-bold">{errors.telephone.message as string}</p>}
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Role</label>
             <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
+              {...register("role")}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white"
             >
               <option value="CUSTOMER">Customer</option>
@@ -103,14 +131,12 @@ export default function UserForm({ initialData, onSubmit, onCancel, isLoading }:
           </div>
         </div>
 
-        {formData.role === "STAFF" && (
+        {selectedRole === "STAFF" && (
           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Staff Type</label>
               <select
-                name="staffType"
-                value={formData.staffType}
-                onChange={handleChange}
+                {...register("staffType")}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white"
               >
                 <option value="">Select Type</option>
@@ -123,9 +149,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isLoading }:
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Monthly Salary</label>
               <input
                 type="number"
-                name="salary"
-                value={formData.salary}
-                onChange={handleChange}
+                {...register("salary", { valueAsNumber: true })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
                 placeholder="50000"
               />
@@ -136,9 +160,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isLoading }:
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Address</label>
           <input
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
+            {...register("address")}
             className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
             placeholder="123, Main Street, Colombo"
           />

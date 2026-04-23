@@ -21,11 +21,11 @@ import { ROUTES } from "../../../../src/constants/routes";
 import { COLORS } from "../../../../src/theme/colors";
 
 import AuthHeader from "./components/AuthHeader";
-import AuthRoleTabs from "./components/AuthRoleTabs";
 import { authSharedStyles } from "./styles/auth.shared.styles";
-import { validateLoginForm } from "./validation/login.validation";
+import { loginStyles } from "./styles/login.styles";
+import { loginSchema } from "../../../validation/auth.schema";
 
-type LoginRoleTab = "customer" | "staff";
+
 
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
@@ -34,11 +34,10 @@ export default function LoginScreen() {
     (state) => state.auth
   );
 
-  const [activeTab, setActiveTab] = useState<LoginRoleTab>("customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [localError, setLocalError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const normalizedRole = useMemo(() => {
     if (!user?.role) return null;
@@ -62,53 +61,33 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated, normalizedRole]);
 
-  const handleTabChange = (tab: LoginRoleTab) => {
-    setActiveTab(tab);
-    setLocalError("");
-    dispatch(clearAuthError());
-  };
+
 
   const handleLogin = async () => {
     dispatch(clearAuthError());
 
-    const validationError = validateLoginForm(email, password);
-    if (validationError) {
-      setLocalError(validationError);
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
-
-    setLocalError("");
+    setErrors({});
 
     const resultAction = await dispatch(
       loginUser({
         email: email.trim().toLowerCase(),
         password,
-        role: activeTab.toUpperCase(),
       } as any)
     );
 
     if (loginUser.rejected.match(resultAction)) {
       return;
     }
-
-    const loggedUser = resultAction.payload as any;
-    const serverRole = String(loggedUser?.role || "").toUpperCase();
-
-    if (activeTab === "customer" && serverRole !== "CUSTOMER") {
-      setLocalError("This account is not a customer account.");
-      return;
-    }
-
-    if (
-      activeTab === "staff" &&
-      serverRole !== "STAFF" &&
-      serverRole !== "ADMIN"
-    ) {
-      setLocalError("This account is not a staff account.");
-    }
   };
-
-  const displayError = localError || error || "";
 
   return (
     <SafeAreaView style={authSharedStyles.safeArea}>
@@ -123,19 +102,16 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={authSharedStyles.card}>
+          <View style={loginStyles.card}>
             <AuthHeader
               title="Welcome Back"
               subtitle="Please enter your details to sign in"
               icon="washing-machine"
             />
-
-            <AuthRoleTabs activeTab={activeTab} onChange={handleTabChange} />
-
             <View style={authSharedStyles.form}>
               <View style={authSharedStyles.inputGroup}>
                 <Text style={authSharedStyles.label}>Email</Text>
-                <View style={authSharedStyles.inputWrapper}>
+                <View style={[authSharedStyles.inputWrapper, errors.email && { borderColor: COLORS.ERROR }]}>
                   <Ionicons
                     name="mail-outline"
                     size={20}
@@ -144,7 +120,10 @@ export default function LoginScreen() {
                   />
                   <TextInput
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(val) => {
+                      setEmail(val);
+                      if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                    }}
                     placeholder="name@gmail.com"
                     placeholderTextColor={COLORS.TEXT_MUTED}
                     keyboardType="email-address"
@@ -154,6 +133,7 @@ export default function LoginScreen() {
                     style={authSharedStyles.input}
                   />
                 </View>
+                {errors.email && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.email}</Text>}
               </View>
 
               <View style={authSharedStyles.inputGroup}>
@@ -164,7 +144,7 @@ export default function LoginScreen() {
                   </Pressable>
                 </View>
 
-                <View style={authSharedStyles.inputWrapper}>
+                <View style={[authSharedStyles.inputWrapper, errors.password && { borderColor: COLORS.ERROR }]}>
                   <Feather
                     name="lock"
                     size={20}
@@ -173,7 +153,10 @@ export default function LoginScreen() {
                   />
                   <TextInput
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(val) => {
+                      setPassword(val);
+                      if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+                    }}
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.TEXT_MUTED}
                     secureTextEntry={!showPassword}
@@ -193,9 +176,10 @@ export default function LoginScreen() {
                     />
                   </Pressable>
                 </View>
+                {errors.password && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.password}</Text>}
               </View>
 
-              {!!displayError && (
+              {!!error && (
                 <View
                   style={[authSharedStyles.messageBox, authSharedStyles.errorBox]}
                 >
@@ -204,7 +188,7 @@ export default function LoginScreen() {
                     size={18}
                     color={COLORS.ERROR_TEXT}
                   />
-                  <Text style={authSharedStyles.errorText}>{displayError}</Text>
+                  <Text style={authSharedStyles.errorText}>{error}</Text>
                 </View>
               )}
 

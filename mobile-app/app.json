@@ -1,8 +1,9 @@
 {
   "expo": {
     "name": "B & W Laundry",
-    "slug": "B & W Laundry",
+    "slug": "bnw-laundry",
     "version": "1.0.0",
+    "scheme": "bnw-laundry",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -28,7 +29,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2e786955-cf3d-4e9d-a652-5ec1187145b6"
+      },
+      "router": {}
+    }
   }
 }

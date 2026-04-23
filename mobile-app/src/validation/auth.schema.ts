@@ -5,7 +5,7 @@ export const roles = ["ADMIN", "STAFF", "CUSTOMER"] as const;
 export const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Valid email is required"),
-  telephone: z.string().regex(/^(\+94|0)7\d{8}$/, "Telephone must be a valid mobile number (07XXXXXXXX or +947XXXXXXXX)"),
+  telephone: z.string().regex(/^(\+94|0)7\d{8}$/, "Telephone must be a valid mobile number"),
   address: z.string().optional(),
   password: z.string().regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,

@@ -121,7 +121,7 @@ const CustomerHomeScreen = () => {
     >
       <View style={styles.content}>
         {/* Tracking Card */}
-        {activeOrder ? (
+        {activeOrder && activeOrder.status !== 'CANCELLED' ? (
           <View style={styles.trackingCard}>
             <View style={styles.trackingHeader}>
               <View>
@@ -133,7 +133,7 @@ const CustomerHomeScreen = () => {
                   Order ID: #{activeOrder.orderNo}
                 </Text>
                 <Text style={styles.trackingSubtitle}>
-                  Estimated: Today, 2:00 PM
+                  Last Update: {new Date(activeOrder.updatedAt).toLocaleString()}
                 </Text>
               </View>
               <View style={[styles.serviceIconContainer, { backgroundColor: COLORS.PRIMARY_SOFT, marginBottom: 0 }]}>
@@ -144,11 +144,20 @@ const CustomerHomeScreen = () => {
             <View style={styles.trackingActions}>
               <Button
                 title="Track Order"
-                onPress={() => router.push(`/(protected)/(customer)/orders/${activeOrder._id}`)}
+                onPress={() => router.push({
+                  pathname: '/(protected)/(customer)/orders/tracking',
+                  params: { orderId: activeOrder._id }
+                })}
                 style={styles.trackButton}
               />
-              <TouchableOpacity style={styles.infoButton}>
-                <Info color={COLORS.TEXT_SECONDARY} size={20} />
+              <TouchableOpacity 
+                style={styles.infoButton}
+                onPress={() => router.push(`/(protected)/(customer)/orders/${activeOrder._id}`)}
+              >
+                <Info
+                  color={COLORS.TEXT_SECONDARY}
+                  size={20}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -172,6 +181,7 @@ const CustomerHomeScreen = () => {
               key={service.id}
               style={styles.serviceCard}
               activeOpacity={0.7}
+              onPress={() => router.push('/(protected)/(customer)/reservation/service-mode')}
             >
               <View style={styles.serviceIconContainer}>
                 <service.icon color={COLORS.PRIMARY} size={28} />

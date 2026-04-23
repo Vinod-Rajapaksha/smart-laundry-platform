@@ -9,6 +9,8 @@ export interface AuthUser {
   address?: string;
   role: UserRole;
   isActive?: boolean;
+  avatar?: string | null;
+  avatarUrl?: string;
 }
 
 export interface RegisterData {

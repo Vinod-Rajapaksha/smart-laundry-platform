@@ -8,12 +8,16 @@ import {
   Landmark,
   Package,
   RefreshCcw,
-  Megaphone,
   MessageSquare,
   Truck,
   BarChart3,
   LogOut,
   CreditCard,
+  Ticket,
+  Star,
+  Warehouse,
+  User,
+  Layers,
 } from "lucide-react";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
@@ -36,9 +40,9 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard size={18} />,
   },
   {
-    id: "customers",
-    label: "Customers",
-    path: "/admin/customers",
+    id: "users",
+    label: "Users",
+    path: "/admin/users",
     icon: <Users size={18} />,
   },
   {
@@ -60,22 +64,46 @@ const navItems: NavItem[] = [
     icon: <Landmark size={18} />,
   },
   {
+    id: "services",
+    label: "Services",
+    path: "/admin/services",
+    icon: <WashingMachine size={18} />,
+  },
+  {
+    id: "categories",
+    label: "Categories",
+    path: "/admin/categories",
+    icon: <Layers size={18} />,
+  },
+  {
     id: "inventory",
     label: "Inventory",
     path: "/admin/inventory",
     icon: <Package size={18} />,
   },
   {
-    id: "update-status",
-    label: "Update Status",
-    path: "/admin/update-status",
+    id: "suppliers",
+    label: "Suppliers",
+    path: "/admin/suppliers",
+    icon: <Warehouse size={18} />,
+  },
+  {
+    id: "status-update",
+    label: "Status Update",
+    path: "/admin/status-update",
     icon: <RefreshCcw size={18} />,
   },
   {
-    id: "promotions",
-    label: "Promotions",
-    path: "/admin/promotions",
-    icon: <Megaphone size={18} />,
+    id: "vouchers",
+    label: "Vouchers",
+    path: "/admin/vouchers",
+    icon: <Ticket size={18} />,
+  },
+  {
+    id: "loyalty",
+    label: "Loyalty",
+    path: "/admin/loyalty",
+    icon: <Star size={18} />,
   },
   {
     id: "feedbacks",
@@ -117,7 +145,7 @@ export default function AsideSidebar() {
   return (
     <>
       <aside className="w-64 h-screen flex flex-col bg-white border-r border-slate-200">
-        
+
         {/* HEADER */}
         <div className="flex items-center gap-3 p-6 h-[88px] shrink-0">
           <div className="w-10 h-10 flex items-center justify-center bg-blue-500 rounded-full text-white">
@@ -140,10 +168,9 @@ export default function AsideSidebar() {
               to={item.path}
               end={item.id === "dashboard"}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  isActive
-                    ? "bg-blue-100 text-blue-600 font-semibold"
-                    : "text-slate-600 hover:bg-slate-100"
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive
+                  ? "bg-blue-100 text-blue-600 font-semibold"
+                  : "text-slate-600 hover:bg-slate-100"
                 }`
               }
             >
@@ -154,38 +181,32 @@ export default function AsideSidebar() {
         </nav>
 
         {/* FOOTER */}
-        <div className="p-4 border-t border-slate-200 shrink-0">
+        <div className="p-4 border-t border-slate-200 shrink-0 hover:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
-            
-            {/* Avatar */}
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center">
-              {user?.avatar ? (
-                <img src={user.avatar} alt="profile" className="w-full h-full object-cover" />
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-5 h-5 text-slate-500"
-                >
-                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
-                </svg>
-              )}
-            </div>
 
-            {/* User Info */}
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">
-                {user?.name || "Admin"}
-              </p>
-              <p className="text-xs text-slate-500">
-                {user?.role || "Admin"}
-              </p>
-            </div>
+            {/* Avatar & Info Link */}
+            <NavLink to="/admin/profile" className="flex items-center gap-3 flex-1 overflow-hidden group">
+               <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center shrink-0 group-hover:border-blue-500 transition-colors">
+                 {user?.avatar ? (
+                   <img src={user.avatar} alt="profile" className="w-full h-full object-cover" />
+                 ) : (
+                    <User size={16} className="text-slate-500" />
+                 )}
+               </div>
+
+               <div className="flex-1 min-w-0">
+                 <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                   {user?.name || "Admin"}
+                 </p>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                   {user?.role || "Admin"}
+                 </p>
+               </div>
+            </NavLink>
 
             {/* Logout */}
-            <button onClick={handleLogout}>
-              <LogOut size={16} className="text-slate-600 hover:text-red-500" />
+            <button onClick={handleLogout} className="p-2 hover:bg-rose-50 rounded-xl transition-colors shrink-0">
+               <LogOut size={16} className="text-slate-400 hover:text-rose-500" />
             </button>
           </div>
         </div>

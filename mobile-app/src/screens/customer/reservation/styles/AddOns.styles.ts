@@ -43,7 +43,6 @@ export const styles = StyleSheet.create({
   },
   cardActive: {
     borderColor: COLORS.PRIMARY,
-    backgroundColor: COLORS.PRIMARY_SOFT,
   },
   iconBox: {
     width: 56,

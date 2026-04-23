@@ -12,6 +12,13 @@ export const createVoucher = async (data: Partial<Voucher>) => {
   });
 };
 
+export const updateVoucher = async (id: string, data: Partial<Voucher>) => {
+  return apiFetch<Voucher>(`/promotions/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+};
+
 export const deleteVoucher = async (id: string) => {
   return apiFetch<void>(`/promotions/${id}`, {
     method: "DELETE",

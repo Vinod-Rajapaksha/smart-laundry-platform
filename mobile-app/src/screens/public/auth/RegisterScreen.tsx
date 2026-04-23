@@ -25,7 +25,7 @@ import PasswordStrength from "./components/PasswordStrength";
 import { authSharedStyles } from "./styles/auth.shared.styles";
 import { registerStyles } from "./styles/register.styles";
 import { getPasswordStrength } from "./utils/passwordStrength";
-import { validateRegisterForm } from "./validation/register.validation";
+import { registerSchema } from "../../../validation/auth.schema";
 
 export default function RegisterScreen() {
   const dispatch = useAppDispatch();
@@ -39,7 +39,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [localError, setLocalError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -55,21 +55,34 @@ export default function RegisterScreen() {
     dispatch(clearAuthError());
     setSuccessMessage("");
 
-    const validationError = validateRegisterForm({
-      fullName,
+    const validation = registerSchema.safeParse({
+      name: fullName,
       email,
-      phone,
+      telephone: phone,
       password,
-      confirmPassword,
-      agreeTerms,
+      role: "CUSTOMER",
     });
 
-    if (validationError) {
-      setLocalError(validationError);
-      return;
+    const newErrors: Record<string, string> = {};
+    if (!validation.success) {
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
     }
 
-    setLocalError("");
+    if (!passwordsMatch) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!agreeTerms) {
+      newErrors.agreeTerms = "You must agree to the Terms & Conditions";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
 
     const payload = {
       name: fullName.trim(),
@@ -99,8 +112,6 @@ export default function RegisterScreen() {
     }, 1200);
   };
 
-  const displayError = localError || error || "";
-
   return (
     <SafeAreaView style={authSharedStyles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.BACKGROUND} />
@@ -115,7 +126,7 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={authSharedStyles.containerCentered}>
-            <View style={authSharedStyles.card}>
+            <View style={registerStyles.card}>
               <AuthHeader
                 title="Register"
                 subtitle="Join us to manage your laundry services"
@@ -125,7 +136,7 @@ export default function RegisterScreen() {
               <View style={authSharedStyles.form}>
                 <View style={authSharedStyles.inputGroup}>
                   <Text style={authSharedStyles.label}>Full Name</Text>
-                  <View style={authSharedStyles.inputWrapper}>
+                  <View style={[authSharedStyles.inputWrapper, errors.name && { borderColor: COLORS.ERROR }]}>
                     <Feather
                       name="user"
                       size={18}
@@ -137,16 +148,20 @@ export default function RegisterScreen() {
                       placeholder="Full Name"
                       placeholderTextColor={COLORS.TEXT_MUTED}
                       value={fullName}
-                      onChangeText={setFullName}
+                      onChangeText={(val) => {
+                        setFullName(val);
+                        if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
+                      }}
                       autoCapitalize="words"
                       autoComplete="name"
                     />
                   </View>
+                  {errors.name && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.name}</Text>}
                 </View>
 
                 <View style={authSharedStyles.inputGroup}>
                   <Text style={authSharedStyles.label}>Email</Text>
-                  <View style={authSharedStyles.inputWrapper}>
+                  <View style={[authSharedStyles.inputWrapper, errors.email && { borderColor: COLORS.ERROR }]}>
                     <Ionicons
                       name="mail-outline"
                       size={18}
@@ -162,14 +177,18 @@ export default function RegisterScreen() {
                       autoCorrect={false}
                       autoComplete="email"
                       value={email}
-                      onChangeText={setEmail}
+                      onChangeText={(val) => {
+                        setEmail(val);
+                        if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                      }}
                     />
                   </View>
+                  {errors.email && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.email}</Text>}
                 </View>
 
                 <View style={authSharedStyles.inputGroup}>
                   <Text style={authSharedStyles.label}>Phone</Text>
-                  <View style={authSharedStyles.inputWrapper}>
+                  <View style={[authSharedStyles.inputWrapper, errors.telephone && { borderColor: COLORS.ERROR }]}>
                     <Feather
                       name="phone"
                       size={18}
@@ -183,14 +202,18 @@ export default function RegisterScreen() {
                       keyboardType="phone-pad"
                       autoComplete="tel"
                       value={phone}
-                      onChangeText={setPhone}
+                      onChangeText={(val) => {
+                        setPhone(val);
+                        if (errors.telephone) setErrors(prev => ({ ...prev, telephone: "" }));
+                      }}
                     />
                   </View>
+                  {errors.telephone && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.telephone}</Text>}
                 </View>
 
                 <View style={authSharedStyles.inputGroup}>
                   <Text style={authSharedStyles.label}>Password</Text>
-                  <View style={authSharedStyles.inputWrapper}>
+                  <View style={[authSharedStyles.inputWrapper, errors.password && { borderColor: COLORS.ERROR }]}>
                     <Feather
                       name="lock"
                       size={18}
@@ -206,7 +229,10 @@ export default function RegisterScreen() {
                       autoCorrect={false}
                       autoComplete="new-password"
                       value={password}
-                      onChangeText={setPassword}
+                      onChangeText={(val) => {
+                        setPassword(val);
+                        if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+                      }}
                     />
                     <Pressable
                       onPress={() => setShowPassword((prev) => !prev)}
@@ -219,6 +245,7 @@ export default function RegisterScreen() {
                       />
                     </Pressable>
                   </View>
+                  {errors.password && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.password}</Text>}
 
                   <PasswordStrength
                     score={strength.score}
@@ -229,7 +256,7 @@ export default function RegisterScreen() {
 
                 <View style={authSharedStyles.inputGroup}>
                   <Text style={authSharedStyles.label}>Confirm Password</Text>
-                  <View style={authSharedStyles.inputWrapper}>
+                  <View style={[authSharedStyles.inputWrapper, errors.confirmPassword && { borderColor: COLORS.ERROR }]}>
                     <Feather
                       name="shield"
                       size={18}
@@ -245,7 +272,10 @@ export default function RegisterScreen() {
                       autoCorrect={false}
                       autoComplete="new-password"
                       value={confirmPassword}
-                      onChangeText={setConfirmPassword}
+                      onChangeText={(val) => {
+                        setConfirmPassword(val);
+                        if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: "" }));
+                      }}
                     />
                     <Pressable
                       onPress={() =>
@@ -260,22 +290,21 @@ export default function RegisterScreen() {
                       />
                     </Pressable>
                   </View>
-
-                  {!passwordsMatch && (
-                    <Text style={registerStyles.inlineErrorText}>
-                      Passwords do not match
-                    </Text>
-                  )}
+                  {errors.confirmPassword && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.confirmPassword}</Text>}
                 </View>
 
                 <Pressable
                   style={registerStyles.termsRow}
-                  onPress={() => setAgreeTerms((prev) => !prev)}
+                  onPress={() => {
+                    setAgreeTerms((prev) => !prev);
+                    if (errors.agreeTerms) setErrors(prev => ({ ...prev, agreeTerms: "" }));
+                  }}
                 >
                   <View
                     style={[
                       registerStyles.checkbox,
                       agreeTerms && registerStyles.checkboxChecked,
+                      errors.agreeTerms && { borderColor: COLORS.ERROR },
                     ]}
                   >
                     {agreeTerms && <Feather name="check" size={12} color="#fff" />}
@@ -288,8 +317,9 @@ export default function RegisterScreen() {
                     <Text style={registerStyles.linkText}>Privacy Policy</Text>.
                   </Text>
                 </Pressable>
+                {errors.agreeTerms && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginBottom: 12, marginLeft: 32 }}>{errors.agreeTerms}</Text>}
 
-                {!!displayError && (
+                {!!error && (
                   <View
                     style={[authSharedStyles.messageBox, authSharedStyles.errorBox]}
                   >
@@ -298,7 +328,7 @@ export default function RegisterScreen() {
                       size={18}
                       color={COLORS.ERROR_TEXT}
                     />
-                    <Text style={authSharedStyles.errorText}>{displayError}</Text>
+                    <Text style={authSharedStyles.errorText}>{error}</Text>
                   </View>
                 )}
 
