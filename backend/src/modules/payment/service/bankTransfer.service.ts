@@ -5,15 +5,15 @@ import Payment from '../../../database/models/Payment.js';
 import ApiError from '../../../core/apiError.js';
 import { uploadToCloudinary } from '../../../utils/cloudinary.js';
 import { processSlipOCR } from '../../../utils/ocrService.js';
-import { PAYMENT_METHODS } from '../../../core/constants.js';
+import { PAYMENT_METHODS, PAYMENT_STATUS } from '../../../core/constants.js';
 
 export const getFilteredTransfers = async (status?: string, search?: string) => {
   const pipeline: any[] = [];
 
   // Match status if provided
   if (status && status !== 'All Transactions') {
-    pipeline.push({ 
-      $match: { verifyStatus: status.toUpperCase() } 
+    pipeline.push({
+      $match: { verifyStatus: status.toUpperCase() }
     });
   }
 
@@ -72,7 +72,7 @@ export const getFilteredTransfers = async (status?: string, search?: string) => 
   pipeline.push({ $sort: { createdAt: -1 } });
 
   const validResults = await BankTransfer.aggregate(pipeline);
-    
+
   console.log(`Bank Verification Results: ${validResults.length} records found`);
   return validResults;
 };
@@ -127,8 +127,8 @@ export const submitBankTransfer = async (
     await bankTransfer.save();
   }
 
-  order.paymentMethod = 'BANK_TRANSFER';
-  order.paymentStatus = 'PENDING';
+  order.paymentMethod = PAYMENT_METHODS.BANK_TRANSFER;
+  order.paymentStatus = PAYMENT_STATUS.PENDING;
   await order.save();
 
   return bankTransfer;
@@ -158,16 +158,13 @@ export const verifyTransfer = async (
 
   const payment = await Payment.findById(transfer.paymentId);
   if (payment) {
-    payment.status = status === 'APPROVED' ? 'PAID' : 'FAILED';
+    payment.status = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
     if (status === 'APPROVED') payment.paidAt = new Date();
     await payment.save();
 
     const order = await Order.findById(payment.orderId);
     if (order) {
-      order.paymentStatus = status === 'APPROVED' ? 'PAID' : 'FAILED';
-      if (status === 'APPROVED' && order.status === 'PENDING') {
-        order.status = 'CONFIRMED';
-      }
+      order.paymentStatus = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
       await order.save();
     }
   }

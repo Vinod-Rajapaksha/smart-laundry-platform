@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { Provider } from "react-redux";
 import { store } from "../src/store/store";
+import { NotificationWrapper } from "../src/components/notifications/NotificationWrapper";
 
 import { useFonts } from "expo-font";
 import {
@@ -38,7 +39,9 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <NotificationWrapper>
+        <Stack screenOptions={{ headerShown: false }} />
+      </NotificationWrapper>
       <Toast />
     </Provider>
   );

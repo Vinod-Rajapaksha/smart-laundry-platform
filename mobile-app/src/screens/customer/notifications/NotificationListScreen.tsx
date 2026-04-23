@@ -1,43 +1,49 @@
-import { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, Gift, CreditCard, ShoppingBag, ArrowRight } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Notifications.styles';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { fetchNotifications, markAsRead, markAllAsRead } from '../../../store/slices/customer/notification.slice';
+import { NotificationType } from '../../../constants/notifications';
 
 const NotificationListScreen = () => {
   const router = useRouter();
-  const [notifications, setNotifications] = useState([
-    {
-      _id: '1',
-      title: 'Order Delivered!',
-      message: 'Your order #ORD-1234 has been delivered successully. Please rate your experience.',
-      type: 'ORDER_UPDATE',
-      isRead: false,
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: '2',
-      title: 'New Voucher Available',
-      message: 'You have a new 50% OFF voucher waiting for you. Redeem it today!',
-      type: 'PROMOTION',
-      isRead: true,
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ]);
+  const dispatch = useAppDispatch();
+  const { notifications, loading } = useAppSelector((state) => state.notifications);
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = () => {
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, []);
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    await dispatch(fetchNotifications());
+    setRefreshing(false);
   };
 
-  const getIcon = (type: string) => {
+  const handleNotificationPress = (notification: any) => {
+    if (!notification.isRead) {
+      dispatch(markAsRead(notification._id));
+    }
+
+    if (notification.data?.orderId) {
+      router.push(`/customer/orders/${notification.data.orderId}`);
+    }
+  };
+
+  const handleClearAll = () => {
+    dispatch(markAllAsRead());
+  };
+
+  const getIcon = (type: NotificationType) => {
     switch (type) {
-      case 'ORDER_UPDATE': return <ShoppingBag size={24} color={COLORS.PRIMARY} />;
-      case 'PROMOTION': return <Gift size={24} color="#F59E0B" />;
-      case 'PAYMENT': return <CreditCard size={24} color="#8B5CF6" />;
+      case NotificationType.ORDER_UPDATE: return <ShoppingBag size={24} color={COLORS.PRIMARY} />;
+      case NotificationType.PROMOTION: return <Gift size={24} color="#F59E0B" />;
+      case NotificationType.PAYMENT: return <CreditCard size={24} color="#8B5CF6" />;
       default: return <Bell size={24} color={COLORS.PRIMARY} />;
     }
   };
@@ -45,7 +51,7 @@ const NotificationListScreen = () => {
   const renderNotification = ({ item }: any) => (
     <TouchableOpacity
       style={[styles.notificationItem, !item.isRead && styles.notificationItemUnread]}
-      onPress={() => { }}
+      onPress={() => handleNotificationPress(item)}
     >
       <View style={[styles.iconContainer, { backgroundColor: item.isRead ? '#F1F5F9' : '#DBEAFE' }]}>
         {getIcon(item.type)}
@@ -69,11 +75,21 @@ const NotificationListScreen = () => {
         </TouchableOpacity>
         <Text style={styles.title}>Notifications</Text>
       </View>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={handleClearAll}>
         <Text style={styles.markReadText}>Clear all</Text>
       </TouchableOpacity>
     </View>
   );
+
+  if (loading && !refreshing && notifications.length === 0) {
+    return (
+      <ScreenWrapper header={header} scroll={false}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper

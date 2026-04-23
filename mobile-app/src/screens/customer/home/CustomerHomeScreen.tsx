@@ -17,8 +17,9 @@ import { COLORS } from '../../../theme/colors';
 import styles from './styles/HomeScreen.styles';
 import { orderService } from '../../../services/customer/orderService';
 import { Order } from '../../../types/order.types';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/store';
+import { useAppSelector } from '../../../store/hooks';
+import FeedbackModal from '../../../components/customer/FeedbackModal';
+import Avatar from '../../../components/common/Avatar';
 
 const SERVICES = [
   { id: '1', name: 'Wash & Fold', desc: 'Everyday Items', icon: WashingMachine },
@@ -29,17 +30,29 @@ const SERVICES = [
 
 const CustomerHomeScreen = () => {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const user = useAppSelector((state) => state.auth.user);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [feedbackOrder, setFeedbackOrder] = useState<Order | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const fetchActiveOrder = async () => {
     try {
       const order = await orderService.getActiveOrder();
       setActiveOrder(order);
+
+      const allOrders = await orderService.getMyOrders();
+      const unreviewedDeliveredOrder = allOrders.find(
+        o => o.status === 'DELIVERED' && !o.isReviewed
+      );
+
+      if (unreviewedDeliveredOrder) {
+        setFeedbackOrder(unreviewedDeliveredOrder);
+        setModalVisible(true);
+      }
     } catch (error) {
-      console.error('Failed to fetch active order:', error);
+      console.error('Failed to fetch orders:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -59,24 +72,20 @@ const CustomerHomeScreen = () => {
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.userInfo}>
-        {user?.avatarUrl ? (
-          <Image
-            source={{ uri: user.avatarUrl }}
-            style={styles.avatar}
-          />
-        ) : (
-          <View style={styles.avatarFallback}>
-            <Text style={styles.avatarFallbackText}>
-              {user?.name?.charAt(0).toUpperCase() || 'C'}
-            </Text>
-          </View>
-        )}
-        <View>
+      <TouchableOpacity
+        style={styles.userInfo}
+        onPress={() => router.push('/(protected)/(customer)/profile')}
+      >
+        <Avatar
+          name={user?.name || 'Customer'}
+          source={user?.avatar}
+          size={45}
+        />
+        <View style={{ marginLeft: 12 }}>
           <Text style={styles.welcomeText}>Welcome Back</Text>
           <Text style={styles.userName}>Hello, {user?.name?.split(' ')[0] || 'Customer'}!</Text>
         </View>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(protected)/(customer)/notifications')}>
         <Bell color={COLORS.TEXT_PRIMARY} size={22} />
       </TouchableOpacity>
@@ -117,7 +126,7 @@ const CustomerHomeScreen = () => {
             <View style={styles.trackingHeader}>
               <View>
                 <Badge
-                  label={`In Progress - ${activeOrder.status.replace('_', ' ')}`}
+                  label={`In Progress - ${activeOrder.status.replace(/_/g, ' ')}`}
                   variant="primary"
                 />
                 <Text style={[styles.trackingTitle, { marginTop: 12 }]}>
@@ -173,6 +182,13 @@ const CustomerHomeScreen = () => {
           ))}
         </View>
       </View>
+
+      <FeedbackModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        order={feedbackOrder}
+        onSubmitSuccess={fetchActiveOrder}
+      />
     </ScreenWrapper>
   );
 };

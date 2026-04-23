@@ -7,7 +7,7 @@ import * as Location from 'expo-location';
 import polyline from '@mapbox/polyline';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
-import { scanService } from '../../../services/staff/scanService';
+import { staffOrderService } from '../../../services/staff/staffOrderService';
 import { notify } from '../../../utils/notify';
 import { emitStaffLocation } from '../../../services/socketService';
 import { osmService } from '../../../services/maps/osmService';
@@ -20,6 +20,7 @@ const StaffTrackingScreen = () => {
 
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
+  const [arrivalLoading, setArrivalLoading] = useState(false);
   const [staffLocation, setStaffLocation] = useState<any>(null);
   const [routeCoords, setRouteCoords] = useState<{ latitude: number, longitude: number }[]>([]);
 
@@ -32,8 +33,11 @@ const StaffTrackingScreen = () => {
       try {
         setLoading(true);
 
-        const orderData = await scanService.getOrderById(orderId as string);
+        const orderData = await staffOrderService.getOrderById(orderId as string);
         setOrder(orderData);
+        if (orderData.status === 'PICKUP_ARRIVED' || orderData.status === 'DELIVERY_ARRIVED') {
+          setIsArrived(true);
+        }
 
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
@@ -92,6 +96,21 @@ const StaffTrackingScreen = () => {
   const handleCall = () => {
     if (order?.userId?.telephone) {
       Linking.openURL(`tel:${order.userId.telephone}`);
+    }
+  };
+
+  const [isArrived, setIsArrived] = useState(false);
+
+  const handleArrival = async () => {
+    try {
+      setArrivalLoading(true);
+      await staffOrderService.notifyArrival(orderId as string);
+      notify.success('Notification Sent', 'Customer has been notified of your arrival');
+      setIsArrived(true);
+    } catch (error: any) {
+      notify.error('Error', error.message || 'Failed to notify arrival');
+    } finally {
+      setArrivalLoading(false);
     }
   };
 
@@ -199,14 +218,20 @@ const StaffTrackingScreen = () => {
         </View>
 
         <TouchableOpacity
-          style={trackStyles.arrivalBtn}
-          onPress={() => router.push({
-            pathname: '/(protected)/(staff)/scan/qr-scanner',
-            params: { orderId: order?._id }
-          })}
+          style={[trackStyles.arrivalBtn, isArrived && { backgroundColor: COLORS.SUCCESS }]}
+          onPress={handleArrival}
+          disabled={arrivalLoading || isArrived}
         >
-          <CheckCircle size={20} color={COLORS.WHITE} />
-          <Text style={trackStyles.arrivalBtnText}>I have Arrived</Text>
+          {arrivalLoading ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <>
+              <CheckCircle size={20} color={COLORS.WHITE} />
+              <Text style={trackStyles.arrivalBtnText}>
+                {isArrived ? 'Arrived' : 'I have Arrived'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </ScreenWrapper>

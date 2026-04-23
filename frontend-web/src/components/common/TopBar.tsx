@@ -1,7 +1,8 @@
-import { Bell, LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../../src/features/auth/hooks/useAuth";
 import { NavLink } from "react-router-dom";
+import NotificationCenter from "../notifications/NotificationCenter";
 
 type TopbarProps = {
   title?: string;
@@ -24,10 +25,7 @@ export default function Topbar({
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 rounded-full hover:bg-slate-100 transition relative group">
-          <Bell size={20} className="text-slate-600 group-hover:text-blue-500 transition-colors" />
-          <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
-        </button>
+        <NotificationCenter />
 
         <div className="w-px h-8 bg-slate-100" />
 

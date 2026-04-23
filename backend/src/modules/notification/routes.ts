@@ -8,7 +8,8 @@ const router = Router();
 
 router.use(auth);
 
-router.get('/my', controller.getMyNotifications);
+router.get('/', controller.getMyNotifications);
+router.patch('/token', controller.updatePushToken);
 router.patch('/:id/read', validate(validation.validateNotificationId), controller.markAsRead);
 router.patch('/read-all', controller.markAllAsRead);
 router.delete('/:id', validate(validation.validateNotificationId), controller.deleteNotification);

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { User, Bell, Shield, Settings, LogOut, ChevronRight, Edit2 } from 'lucide-react-native';
+import { User, Bell, Shield, Settings, LogOut, ChevronRight, Edit2, MapPin } from 'lucide-react-native';
 import { useAppDispatch } from '../../../store/hooks';
 import { logoutUser } from '../../../store/slices/auth.slice';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
@@ -10,12 +10,8 @@ import styles from './styles/Profile.styles';
 import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
 import { notify } from '../../../utils/notify';
+import Avatar from '../../../components/common/Avatar';
 
-/**
- * Premium Staff Profile Screen.
- * Provides access to personal info, settings, and account management.
- * Integrated with real-time backend data.
- */
 const StaffProfileScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -52,10 +48,6 @@ const StaffProfileScreen = () => {
     );
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  };
-
   if (loading && !profile) {
     return (
       <View style={styles.loaderContainer}>
@@ -76,9 +68,11 @@ const StaffProfileScreen = () => {
 
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>{profile ? getInitials(profile.name) : 'S'}</Text>
-          </View>
+          <Avatar
+            name={profile?.name || 'Staff'}
+            source={profile?.avatar}
+            size={70}
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.nameText}>{profile?.name}</Text>
             <Text style={styles.emailText}>{profile?.email}</Text>
@@ -112,7 +106,21 @@ const StaffProfileScreen = () => {
               </View>
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuTitle}>Personal Details</Text>
-                <Text style={styles.menuSubtitle}>Update name and contact number</Text>
+                <Text style={styles.menuSubtitle}>Update name and email</Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push({ pathname: '/(protected)/(staff)/profile/addresses', params: { address: profile?.address || '' } })}
+            >
+              <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+                <MapPin size={20} color="#22C55E" />
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>Saved Addresses</Text>
+                <Text style={styles.menuSubtitle}>Manage your work locations</Text>
               </View>
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>

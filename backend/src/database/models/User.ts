@@ -74,6 +74,7 @@ const userSchema = new mongoose.Schema(
         type: String,
         enum: Object.values(LOYALTY_TIER_NAME),
         default: LOYALTY_TIER_NAME.BRONZE,
+        uppercase: true,
       },
       validUntil: {
         type: Date,
@@ -83,6 +84,11 @@ const userSchema = new mongoose.Schema(
         type: Number,
         default: 500,
       }
+    },
+    pushToken: {
+      type: String,
+      default: null,
+      trim: true,
     }
   },
   {

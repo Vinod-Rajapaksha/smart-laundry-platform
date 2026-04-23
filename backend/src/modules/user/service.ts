@@ -1,5 +1,5 @@
 import User from '../../database/models/User.js';
-import { hashPassword } from '../../utils/password.js';
+import { hashPassword, comparePassword } from '../../utils/password.js';
 
 export const getProfile = async (userId: string) => {
   const user = await User.findById(userId).select('-password -refreshToken');
@@ -9,7 +9,14 @@ export const getProfile = async (userId: string) => {
   return user;
 };
 
-export const updateProfile = async (userId: string, updateData: Partial<{ name: string; telephone: string; address: string; avatar: string }>) => {
+export const updateProfile = async (userId: string, updateData: Partial<{ name: string; telephone: string; address: string; avatar: string; email: string }>) => {
+  if (updateData.email) {
+    const existingUser = await User.findOne({ email: updateData.email, _id: { $ne: userId } });
+    if (existingUser) {
+      throw new Error('Email already in use by another account');
+    }
+  }
+
   const user = await User.findByIdAndUpdate(
     userId,
     { $set: updateData },
@@ -21,6 +28,18 @@ export const updateProfile = async (userId: string, updateData: Partial<{ name: 
   }
   
   return user;
+};
+
+export const changePassword = async (userId: string, { currentPassword, newPassword }: any) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+
+  const isMatch = await comparePassword(currentPassword, user.password);
+  if (!isMatch) throw new Error('Current password does not match');
+
+  user.password = await hashPassword(newPassword);
+  await user.save();
+  return true;
 };
 
 export const getUsers = async (filters: { role?: string; isActive?: boolean; search?: string }) => {

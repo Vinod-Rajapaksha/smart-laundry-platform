@@ -6,6 +6,7 @@ import {
   verifyRefreshToken,
   AuthPayload,
 } from "../../utils/jwt.js";
+import ApiError from "../../core/apiError.js";
 import { Role } from "../../core/constants.js";
 import { sendSms } from "../../utils/smsService.js";
 
@@ -27,14 +28,6 @@ type RefreshInput = {
   refreshToken: string;
 };
 
-type AppError = Error & { statusCode?: number };
-
-const createError = (message: string, statusCode: number): AppError => {
-  const err = new Error(message) as AppError;
-  err.statusCode = statusCode;
-  return err;
-};
-
 export const register = async ({
   name,
   email,
@@ -45,7 +38,7 @@ export const register = async ({
 }: RegisterInput) => {
   const existingUser = await User.findOne({ email });
 
-  if (existingUser) throw createError("Email is already in use", 409);
+  if (existingUser) throw new ApiError(409, "Email is already in use");
 
   const hashed = await hashPassword(password);
 
@@ -68,11 +61,11 @@ export const register = async ({
 export const login = async ({ email, password }: LoginInput) => {
   const user = await User.findOne({ email });
 
-  if (!user) throw createError("Invalid email or password", 401);
-  if (!user.isActive) throw createError("Account is disabled", 403);
+  if (!user) throw new ApiError(401, "Invalid email or password");
+  if (!user.isActive) throw new ApiError(403, "Account is disabled");
 
   const isMatch = await comparePassword(password, user.password);
-  if (!isMatch) throw createError("Invalid email or password", 401);
+  if (!isMatch) throw new ApiError(401, "Invalid email or password");
 
   const payload: AuthPayload = {
     id: user._id.toString(),
@@ -98,13 +91,13 @@ export const refreshToken = async ({ refreshToken }: RefreshInput) => {
   try {
     decoded = verifyRefreshToken(refreshToken);
   } catch {
-    throw createError("Invalid refresh token", 401);
+    throw new ApiError(401, "Invalid refresh token");
   }
 
   const user = await User.findById(decoded.id);
 
-  if (!user || !user.isActive) throw createError("User not found or inactive", 401);
-  if (user.refreshToken !== refreshToken) throw createError("Refresh token does not match", 401);
+  if (!user || !user.isActive) throw new ApiError(401, "User not found or inactive");
+  if (user.refreshToken !== refreshToken) throw new ApiError(401, "Refresh token does not match");
 
   const payload: AuthPayload = {
     id: user._id.toString(),
@@ -123,7 +116,7 @@ export const refreshToken = async ({ refreshToken }: RefreshInput) => {
 export const logout = async (userId: string) => {
   const user = await User.findById(userId);
 
-  if (!user) throw createError("User not found", 404);
+  if (!user) throw new ApiError(404, "User not found");
 
   user.refreshToken = null;
   await user.save();
@@ -160,7 +153,7 @@ export const verifyOtp = async (email: string, otp: string) => {
     otpExpiresAt: { $gt: new Date() }
   });
 
-  if (!user) throw createError("Invalid or expired OTP", 400);
+  if (!user) throw new ApiError(400, "Invalid or expired OTP");
 
   return true;
 };
@@ -172,7 +165,7 @@ export const resetPassword = async (email: string, otp: string, newPassword: str
     otpExpiresAt: { $gt: new Date() }
   });
 
-  if (!user) throw createError("Invalid or expired OTP", 400);
+  if (!user) throw new ApiError(400, "Invalid or expired OTP");
 
   const hashed = await hashPassword(newPassword);
 

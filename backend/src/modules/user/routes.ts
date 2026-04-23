@@ -15,6 +15,7 @@ router.use(auth);
 router.get('/profile', controller.getProfile);
 router.put('/profile', controller.updateProfile);
 router.post('/profile/avatar', upload.single('avatar'), controller.uploadAvatar);
+router.post('/profile/change-password', controller.changePassword);
 
 // Admin-only routes
 router.get(

@@ -28,3 +28,10 @@ export const deleteNotification = asyncHandler(async (req: Request, res: Respons
   await service.deleteNotification(id as string, userId);
   return ApiResponse(res, 204, 'Notification deleted successfully', null);
 });
+
+export const updatePushToken = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const { token } = req.body;
+  await service.updatePushToken(userId, token);
+  return ApiResponse(res, 200, 'Push token updated successfully', null);
+});

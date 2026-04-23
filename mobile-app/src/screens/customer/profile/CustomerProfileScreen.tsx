@@ -7,16 +7,14 @@ import { logoutUser } from '../../../store/slices/auth.slice';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Profile.styles';
-import profileService from '../../../services/customer/profileService';
-import { UserProfile } from '../../../types/user.types';
-
 import { notify } from '../../../utils/notify';
+import Avatar from '../../../components/common/Avatar';
 
 const CustomerProfileScreen = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.auth.user);
-  const [loading, setLoading] = useState(false); // No longer loading initially since we use Redux state
+  const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
     notify.confirm(
@@ -38,10 +36,6 @@ const CustomerProfileScreen = () => {
     );
   }
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  };
-
   const header = (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>My Profile</Text>
@@ -57,9 +51,11 @@ const CustomerProfileScreen = () => {
 
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>{profile ? getInitials(profile.name) : 'U'}</Text>
-          </View>
+          <Avatar
+            name={profile?.name || 'User'}
+            source={profile?.avatar}
+            size={70}
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.nameText}>{profile?.name}</Text>
             <Text style={styles.emailText}>{profile?.email}</Text>
@@ -87,7 +83,7 @@ const CustomerProfileScreen = () => {
               </View>
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuTitle}>Personal Information</Text>
-                <Text style={styles.menuSubtitle}>Update your name and phone</Text>
+                <Text style={styles.menuSubtitle}>Update your name, phone and email</Text>
               </View>
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>
@@ -116,6 +112,20 @@ const CustomerProfileScreen = () => {
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuTitle}>Notifications</Text>
                 <Text style={styles.menuSubtitle}>Manage your alert preferences</Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/(protected)/(customer)/profile/feedback-history')}
+            >
+              <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+                <Star size={20} color="#16A34A" />
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>My Reviews</Text>
+                <Text style={styles.menuSubtitle}>View and manage your feedback</Text>
               </View>
               <ChevronRight size={20} color={COLORS.TEXT_MUTED} />
             </TouchableOpacity>

@@ -4,9 +4,10 @@ import Order from '../../../database/models/Order.js';
 import BankTransfer from '../../../database/models/BankTransfer.js';
 import CashOnDelivery from '../../../database/models/CashOnDelivery.js';
 import ApiError from '../../../core/apiError.js';
-import { PAYMENT_METHODS, PAYMENT_STATUS } from '../../../core/constants.js';
+import { PAYMENT_METHODS, PAYMENT_STATUS, NOTIFICATION_TYPES } from '../../../core/constants.js';
 import { generateBankReference } from '../../../utils/reference.js';
 import * as loyaltyService from '../../loyalty/loyalty.service.js';
+import { createNotification } from '../../notification/service.js';
 import crypto from 'crypto';
 
 async function generateUniqueReference(): Promise<string> {
@@ -177,7 +178,6 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
   };
 }
 
-
 export async function updatePaymentStatus(id: string, paymentStatus: string) {
   const order = await Order.findById(id);
   if (!order) throw new ApiError(404, 'Order not found');
@@ -186,8 +186,14 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
   order.paymentStatus = paymentStatus;
   await order.save();
 
-  // If status changed to PAID, award 10 loyalty points
+  // Notification for payment status update
   if (paymentStatus === PAYMENT_STATUS.PAID && oldStatus !== PAYMENT_STATUS.PAID) {
+    await createNotification(String(order.userId), {
+      title: 'Payment Successful',
+      message: `Your payment for order ${order.orderNo} has been received.`,
+      type: NOTIFICATION_TYPES.PAYMENT,
+      data: { orderId: order._id, status: PAYMENT_STATUS.PAID }
+    });
     await loyaltyService.awardLoyaltyPoints(String(order.userId), 10, String(order._id));
   }
 
@@ -196,7 +202,6 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
 
 export async function getPaymentDashboardStats() {
   const [totalRevenueData, successRateData, methodSplit] = await Promise.all([
-    // Total Revenue (MoM - this month vs last month)
     Payment.aggregate([
       { $match: { status: PAYMENT_STATUS.PAID } },
       {
@@ -328,8 +333,14 @@ export async function adminVerifyPayment(paymentId: string, status: 'PAID' | 'FA
     order.paymentStatus = status;
     if (status === PAYMENT_STATUS.PAID) {
       order.paidAt = new Date();
-      // Award loyalty points
+      // Award loyalty points & Notification
       if (oldStatus !== PAYMENT_STATUS.PAID) {
+        await createNotification(String(order.userId), {
+          title: 'Payment Verified',
+          message: `Your payment for order ${order.orderNo} has been verified by admin.`,
+          type: NOTIFICATION_TYPES.PAYMENT,
+          data: { orderId: order._id, status: PAYMENT_STATUS.PAID }
+        });
         await loyaltyService.awardLoyaltyPoints(String(order.userId), 10, String(order._id));
       }
     }

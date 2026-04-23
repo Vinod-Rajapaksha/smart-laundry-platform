@@ -130,39 +130,56 @@ const ScanResultScreen = () => {
 
         {/* Actions */}
         <View style={s.actions}>
-           {(result.status === 'PENDING' || result.status === 'PLACED') && (
-             <TouchableOpacity 
-               style={s.confirmBtn}
-               onPress={() => handleUpdateStatus('PICKED_UP')}
-               disabled={loading}
-             >
-                {loading ? (
-                  <ActivityIndicator color={COLORS.WHITE} />
-                ) : (
-                  <>
-                    <ShieldCheck size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
-                    <Text style={s.confirmBtnText}>Confirm Pickup</Text>
-                  </>
-                )}
-             </TouchableOpacity>
-           )}
+          {result.status === 'PICKUP_ARRIVED' && (
+            <TouchableOpacity 
+              style={s.confirmBtn}
+              onPress={() => handleUpdateStatus('PICKED_UP')}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.WHITE} />
+              ) : (
+                <>
+                  <ShieldCheck size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
+                  <Text style={s.confirmBtnText}>Confirm Pickup</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
-           {result.status === 'READY_FOR_DELIVERY' && (
-             <TouchableOpacity 
-               style={[s.confirmBtn, { backgroundColor: '#1E293B' }]}
-               onPress={() => handleUpdateStatus('DELIVERED')}
-               disabled={loading}
-             >
-                {loading ? (
-                  <ActivityIndicator color={COLORS.WHITE} />
-                ) : (
-                  <>
-                    <Package size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
-                    <Text style={s.confirmBtnText}>Confirm Delivery</Text>
-                  </>
-                )}
-             </TouchableOpacity>
-           )}
+          {result.status === 'PICKED_UP' && (
+            <TouchableOpacity 
+              style={[s.confirmBtn, { backgroundColor: '#8B5CF6' }]}
+              onPress={() => handleUpdateStatus('HANDED_OVER')}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.WHITE} />
+              ) : (
+                <>
+                  <Package size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
+                  <Text style={s.confirmBtnText}>Handover to Laundry</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {result.status === 'DELIVERY_ARRIVED' && (
+            <TouchableOpacity 
+              style={[s.confirmBtn, { backgroundColor: '#1E293B' }]}
+              onPress={() => handleUpdateStatus('DELIVERED')}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.WHITE} />
+              ) : (
+                <>
+                  <Package size={20} color={COLORS.WHITE} style={{ marginRight: 8 }} />
+                  <Text style={s.confirmBtnText}>Confirm Delivery</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
       </ScrollView>

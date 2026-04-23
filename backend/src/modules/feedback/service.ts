@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import ApiError from '../../core/apiError.js';
-import { FEEDBACK_STATUS, MESSAGES } from '../../core/constants.js';
+import { FEEDBACK_STATUS, MESSAGES, ORDER_STATUS } from '../../core/constants.js';
 import { getPagination } from '../../core/pagination.js';
 import Feedback from '../../database/models/Feedback.js';
 import Order from '../../database/models/Order.js';
@@ -14,7 +14,7 @@ interface CreateFeedbackInput {
 }
 
 interface GetFeedbacksQuery {
-   page?: string;
+  page?: string;
   limit?: string;
   status?: string;
   hasSuggestions?: string;
@@ -38,11 +38,11 @@ export const createFeedback = async (userId: string, input: CreateFeedbackInput)
     throw new ApiError(404, 'Order not found or does not belong to you');
   }
 
-  if (order.status !== 'completed') {
+  if (order.status !== ORDER_STATUS.DELIVERED) {
     throw new ApiError(400, 'Feedback can only be given for completed orders');
   }
 
- const existing = await Feedback.findOne({ orderId: input.orderId });
+  const existing = await Feedback.findOne({ orderId: input.orderId });
   if (existing) {
     throw new ApiError(409, 'Feedback has already been submitted for this order');
   }
@@ -59,11 +59,14 @@ export const createFeedback = async (userId: string, input: CreateFeedbackInput)
     status: FEEDBACK_STATUS.PENDING,
   });
 
+  order.isReviewed = true;
+  await order.save();
+
   return feedback;
 };
 
 export const getAllFeedbacks = async (query: GetFeedbacksQuery) => {
-  const { page, limit, status ,hasSuggestions} = query;
+  const { page, limit, status, hasSuggestions } = query;
   const { page: currentPage, limit: perPage, skip } = getPagination(page, limit);
 
   const filter: Record<string, unknown> = {};
@@ -74,7 +77,7 @@ export const getAllFeedbacks = async (query: GetFeedbacksQuery) => {
   }
   const [feedbacks, total] = await Promise.all([
     Feedback.find(filter)
-       .populate('userId', 'name ')
+      .populate('userId', 'name ')
       .populate('orderId', 'orderNo ')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -289,7 +292,7 @@ export const getFeedbackSummary = async () => {
     return { summary: '', sentiment: 'neutral' };
   }
 
-  const feedbacks = await Feedback.find({ 
+  const feedbacks = await Feedback.find({
     status: FEEDBACK_STATUS.APPROVED,
     comment: { $nin: [null, ''] }
   })
@@ -298,7 +301,7 @@ export const getFeedbackSummary = async () => {
     .lean();
 
   const comments = feedbacks.map((f) => f.comment as string);
-  
+
   if (comments.length === 0) {
     return { summary: '', sentiment: 'neutral' };
   }

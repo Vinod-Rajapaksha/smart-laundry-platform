@@ -93,6 +93,15 @@ router.patch(
   controller.claimOrder
 );
 
+// Notify Arrival (staff only)
+router.post(
+  '/:id/arrive',
+  auth,
+  allowRoles(ROLES.STAFF, ROLES.ADMIN),
+  validate(validation.validateOrderId),
+  controller.notifyArrival
+);
+
 // Download order receipt
 router.get(
   '/:id/receipt',

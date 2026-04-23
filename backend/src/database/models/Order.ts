@@ -114,6 +114,10 @@ const orderSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    isReviewed: {
+      type: Boolean,
+      default: false,
+    },
   },
   { 
     timestamps: true, 

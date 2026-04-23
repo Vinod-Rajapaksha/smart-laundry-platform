@@ -43,7 +43,7 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
   await User.findByIdAndUpdate(userId, {
     $inc: { loyaltyPoints: pointsAmount },
     $set: {
-      'membership.level': nextTier?.name || LOYALTY_TIER_NAME.BRONZE,
+      'membership.level': (nextTier?.name || LOYALTY_TIER_NAME.BRONZE).toUpperCase(),
       'membership.validUntil': expiryDate
     }
   });

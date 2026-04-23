@@ -17,6 +17,12 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
   return ApiResponse(res, 200, 'User profile updated successfully', result);
 });
 
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  await service.changePassword(userId, req.body);
+  return ApiResponse(res, 200, 'Password changed successfully');
+});
+
 export const uploadAvatar = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new ApiError(400, 'Please upload an image file');

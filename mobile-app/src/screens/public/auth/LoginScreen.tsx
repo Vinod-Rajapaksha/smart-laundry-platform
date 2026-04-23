@@ -21,11 +21,11 @@ import { ROUTES } from "../../../../src/constants/routes";
 import { COLORS } from "../../../../src/theme/colors";
 
 import AuthHeader from "./components/AuthHeader";
-import AuthRoleTabs from "./components/AuthRoleTabs";
 import { authSharedStyles } from "./styles/auth.shared.styles";
+import { loginStyles } from "./styles/login.styles";
 import { validateLoginForm } from "./validation/login.validation";
 
-type LoginRoleTab = "customer" | "staff";
+
 
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
@@ -34,7 +34,6 @@ export default function LoginScreen() {
     (state) => state.auth
   );
 
-  const [activeTab, setActiveTab] = useState<LoginRoleTab>("customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -62,11 +61,7 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated, normalizedRole]);
 
-  const handleTabChange = (tab: LoginRoleTab) => {
-    setActiveTab(tab);
-    setLocalError("");
-    dispatch(clearAuthError());
-  };
+
 
   const handleLogin = async () => {
     dispatch(clearAuthError());
@@ -83,28 +78,11 @@ export default function LoginScreen() {
       loginUser({
         email: email.trim().toLowerCase(),
         password,
-        role: activeTab.toUpperCase(),
       } as any)
     );
 
     if (loginUser.rejected.match(resultAction)) {
       return;
-    }
-
-    const loggedUser = resultAction.payload as any;
-    const serverRole = String(loggedUser?.role || "").toUpperCase();
-
-    if (activeTab === "customer" && serverRole !== "CUSTOMER") {
-      setLocalError("This account is not a customer account.");
-      return;
-    }
-
-    if (
-      activeTab === "staff" &&
-      serverRole !== "STAFF" &&
-      serverRole !== "ADMIN"
-    ) {
-      setLocalError("This account is not a staff account.");
     }
   };
 
@@ -123,15 +101,12 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={authSharedStyles.card}>
+          <View style={loginStyles.card}>
             <AuthHeader
               title="Welcome Back"
               subtitle="Please enter your details to sign in"
               icon="washing-machine"
             />
-
-            <AuthRoleTabs activeTab={activeTab} onChange={handleTabChange} />
-
             <View style={authSharedStyles.form}>
               <View style={authSharedStyles.inputGroup}>
                 <Text style={authSharedStyles.label}>Email</Text>

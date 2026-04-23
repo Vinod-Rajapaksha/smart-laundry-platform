@@ -115,7 +115,7 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={authSharedStyles.containerCentered}>
-            <View style={authSharedStyles.card}>
+            <View style={registerStyles.card}>
               <AuthHeader
                 title="Register"
                 subtitle="Join us to manage your laundry services"

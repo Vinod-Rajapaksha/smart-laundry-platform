@@ -4,12 +4,12 @@ import Order from '../../database/models/Order.js';
 import Service from '../../database/models/Service.js';
 import Inventory from '../../database/models/Inventory.js';
 import ApiError from '../../core/apiError.js';
-import { PAYMENT_STATUS, ORDER_STATUS, DEFAULT_PAGINATION } from '../../core/constants.js';
+import { PAYMENT_STATUS, ORDER_STATUS, DEFAULT_PAGINATION, LOYALTY_RULES, NOTIFICATION_TYPES } from '../../core/constants.js';
 import { generateOrderNo } from '../../utils/reference.js';
 import { getIO } from '../../core/socket.js';
 import * as voucherService from '../voucher/service.js';
 import * as loyaltyService from '../loyalty/loyalty.service.js';
-import { LOYALTY_RULES } from '../../core/constants.js';
+import { createNotification } from '../notification/service.js';
 
 interface CreateOrderInput {
   serviceId: string;
@@ -35,7 +35,7 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     throw new ApiError(404, 'Service not found');
   }
 
-  const subtotal = service.price * (input.weightKg || 1); 
+  const subtotal = service.price * (input.weightKg || 1);
   let extraFromOptions = 0;
   const selectedOptions = [];
 
@@ -96,6 +96,22 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     options: selectedOptions,
   });
 
+  // Notify Admins
+  try {
+    const User = await import('../../database/models/User.js').then(m => m.default);
+    const admins = await User.find({ role: 'ADMIN' });
+    for (const admin of admins) {
+      await createNotification(admin._id.toString(), {
+        title: 'New Order Received',
+        message: `A new order ${order.orderNo} has been placed by a customer.`,
+        type: NOTIFICATION_TYPES.ORDER_UPDATE,
+        data: { orderId: order._id }
+      });
+    }
+  } catch (e) {
+    console.error('Failed to notify admins:', e);
+  }
+
   return order;
 };
 
@@ -107,9 +123,8 @@ export const claimOrder = async (orderId: string, staffId: string) => {
     throw new ApiError(400, 'Order already assigned to another rider');
   }
 
-  // Determine next status based on current status
   let nextStatus = order.status;
-  if (order.status === ORDER_STATUS.ORDER_PLACED || order.status === ORDER_STATUS.PENDING) {
+  if (order.status === ORDER_STATUS.ORDER_PLACED) {
     nextStatus = ORDER_STATUS.PICKUP_ASSIGNED;
   } else if (order.status === ORDER_STATUS.READY) {
     nextStatus = ORDER_STATUS.DELIVERY_ASSIGNED;
@@ -120,7 +135,6 @@ export const claimOrder = async (orderId: string, staffId: string) => {
   order.status = nextStatus;
   await order.save();
 
-  // Create associated logistics job
   try {
     const jobType = nextStatus === ORDER_STATUS.PICKUP_ASSIGNED ? 'PICKUP' : 'DELIVERY';
     const { createJobFromOrder } = await import('./delivery.service.js');
@@ -140,7 +154,7 @@ export const getAvailableOrders = async (query: any) => {
 
   const filter = {
     staffId: null,
-    status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PENDING, ORDER_STATUS.READY] },
+    status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.READY] },
     isActive: true
   };
 
@@ -172,7 +186,13 @@ export const getStaffTasks = async (staffId: string, query: any) => {
   const skip = (p - 1) * l;
 
   const filter: any = { staffId };
-  if (status) filter.status = status;
+  if (status) {
+    if (Array.isArray(status)) {
+      filter.status = { $in: status };
+    } else {
+      filter.status = status;
+    }
+  }
 
   const [orders, total] = await Promise.all([
     Order.find(filter)
@@ -195,33 +215,69 @@ export const getStaffTasks = async (staffId: string, query: any) => {
   };
 };
 
+export const notifyArrival = async (orderId: string, staffId: string) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new ApiError(404, 'Order not found');
+
+  try {
+    let nextStatus: any = ORDER_STATUS.PICKUP_ARRIVED;
+    if (order.status === ORDER_STATUS.DELIVERY_ASSIGNED || order.status === ORDER_STATUS.DELIVERY_ON_THE_WAY) {
+      nextStatus = ORDER_STATUS.DELIVERY_ARRIVED;
+    }
+
+    order.status = nextStatus;
+    await order.save();
+
+    await createNotification(order.userId.toString(), {
+      title: 'Staff Member Arrived!',
+      message: `Our staff member has arrived at your location for order #${order.orderNo}. Please be ready for pickup/delivery.`,
+      type: NOTIFICATION_TYPES.ORDER_UPDATE,
+      data: {
+        orderId: order._id,
+        status: nextStatus,
+        orderNo: order.orderNo
+      }
+    });
+  } catch (e) {
+    console.error('Failed to send arrival notification:', e);
+    throw new ApiError(500, 'Failed to send notification');
+  }
+
+  return { success: true };
+};
+
 export const updateOrderStatus = async (id: string, status: string, updateBy: string) => {
+  const updateData: any = { status, updateBy };
+
+  if (status === ORDER_STATUS.HANDED_OVER) {
+    updateData.staffId = null;
+  }
+
   const order = await Order.findByIdAndUpdate(
     id,
-    { $set: { status, updateBy } },
+    { $set: updateData },
     { new: true }
   );
   if (!order) {
     throw new ApiError(404, 'Order not found');
   }
 
-  // Push real-time update to the specific customer via Socket.io
   try {
-    const io = getIO();
-    io.to(`user_${order.userId.toString()}`).emit('orderStatusUpdated', {
-      orderId: order._id,
-      status: order.status,
-      timestamp: new Date().toISOString()
+    await createNotification(order.userId.toString(), {
+      title: `Order Status Updated: ${order.orderNo}`,
+      message: `Your order status has been updated to ${order.status}.`,
+      type: NOTIFICATION_TYPES.ORDER_UPDATE,
+      data: { orderId: order._id, status: order.status }
     });
   } catch (e) {
-    console.error('Socket execution failed (possibly not initialized)', e);
+    console.error('Failed to create notification:', e);
   }
 
   if (status === ORDER_STATUS.DELIVERED) {
     try {
       await loyaltyService.awardLoyaltyPoints(
-        order.userId.toString(), 
-        LOYALTY_RULES.POINTS_PER_ORDER || 10, 
+        order.userId.toString(),
+        LOYALTY_RULES.POINTS_PER_ORDER || 10,
         order._id.toString()
       );
     } catch (e) {
@@ -491,7 +547,7 @@ export const updateAnyOrder = async (id: string, updateData: any) => {
     { $set: updateData },
     { new: true, runValidators: true }
   ).populate('userId', 'name email telephone')
-   .populate('serviceId', 'name price');
+    .populate('serviceId', 'name price');
 
   if (!order) {
     throw new ApiError(404, 'Order not found');

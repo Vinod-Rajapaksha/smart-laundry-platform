@@ -18,6 +18,7 @@ export interface StaffOrder {
   pickupLng?: number;
   deliveryLat?: number;
   deliveryLng?: number;
+  staffId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,7 +34,7 @@ export const staffOrderService = {
     throw new Error(response.data.message || 'Failed to fetch available orders');
   },
 
-  getAssignedTasks: async (status?: string): Promise<StaffOrder[]> => {
+  getAssignedTasks: async (status?: string | string[]): Promise<StaffOrder[]> => {
     const response = await api.get('/orders/tasks', {
       params: { status }
     });
@@ -49,5 +50,29 @@ export const staffOrderService = {
       return response.data.data;
     }
     throw new Error(response.data.message || 'Failed to claim order');
+  },
+
+  getOrderById: async (orderId: string): Promise<StaffOrder> => {
+    const response = await api.get(`/orders/${orderId}`);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to fetch order details');
+  },
+
+  updateOrderStatus: async (orderId: string, status: string): Promise<StaffOrder> => {
+    const response = await api.patch(`/orders/${orderId}/status`, { status });
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to update order status');
+  },
+
+  notifyArrival: async (orderId: string): Promise<any> => {
+    const response = await api.post(`/orders/${orderId}/arrive`);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to notify arrival');
   }
 };

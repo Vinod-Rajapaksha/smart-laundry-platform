@@ -3,6 +3,7 @@ export interface UserProfile {
   name: string;
   email: string;
   telephone: string;
+  avatar?: string | null;
   address?: string;
   role: 'ADMIN' | 'STAFF' | 'CUSTOMER';
   isActive: boolean;
@@ -14,4 +15,5 @@ export interface UpdateProfilePayload {
   name?: string;
   telephone?: string;
   address?: string;
+  email?: string;
 }

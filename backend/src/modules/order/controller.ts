@@ -32,6 +32,11 @@ export const getStaffTasks = asyncHandler(async (req: Request, res: Response) =>
   return ApiResponse(res, 200, 'Staff tasks fetched successfully', result);
 });
 
+export const notifyArrival = asyncHandler(async (req: Request, res: Response) => {
+  const result = await service.notifyArrival(req.params.id as string, (req as any).user.id);
+  return ApiResponse(res, 200, 'Arrival notification sent successfully', result);
+});
+
 export const getOrderById = asyncHandler(async (req: Request, res: Response) => {
   const result = await service.getOrderById(req.params.id as string);
   return ApiResponse(res, 200, 'Order fetched successfully', result);

@@ -8,6 +8,7 @@ import Order from '../../../database/models/Order.js';
 import SavedCard from '../../../database/models/SavedCard.js';
 import User from '../../../database/models/User.js';
 import ApiError from '../../../core/apiError.js';
+import { createNotification } from '../../notification/service.js';
 import crypto from 'crypto';
 
 //  GET HASH (NORMAL PAYMENT)
@@ -87,6 +88,17 @@ export const chargeSavedCardHandler = asyncHandler(async (req: AuthRequest, res:
     order.status = 'PROCESSING';
     await order.save();
 
+    try {
+      await createNotification(order.userId.toString(), {
+        title: 'Payment Successful',
+        message: `Your card payment for order ${order.orderNo} was successful.`,
+        type: 'PAYMENT',
+        data: { orderId: order._id, status: 'PAID' }
+      });
+    } catch (e) {
+      console.error('Failed to send payment notification:', e);
+    }
+
     return ApiResponse(res, 200, 'Payment successful via saved card', result);
   }
 
@@ -159,6 +171,13 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
     order.paymentStatus = 'PAID';
     order.status = 'PROCESSING';
     await order.save();
+
+    await createNotification(order.userId.toString(), {
+      title: 'Payment Successful',
+      message: `Your card payment for order ${order.orderNo} was successful.`,
+      type: 'PAYMENT',
+      data: { orderId: order._id, status: 'PAID' }
+    });
   }
 
   return res.status(200).send('OK');

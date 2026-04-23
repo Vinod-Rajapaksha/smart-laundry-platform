@@ -19,6 +19,7 @@ const OrderTrackingScreen = () => {
   const [loading, setLoading] = useState(true);
 
   const [staffLocation, setStaffLocation] = useState<{ lat: number, lng: number } | null>(null);
+  const [showMap, setShowMap] = useState(false);
   const mapRef = useRef<MapView>(null);
 
   const fetchOrderDetails = async () => {
@@ -68,38 +69,55 @@ const OrderTrackingScreen = () => {
     );
   }
 
-  const ORDER_STATUS_STEPS: { status: OrderStatus; title: string }[] = [
-    { status: 'PENDING', title: 'Order Placed' },
-    { status: 'CONFIRMED', title: 'Order Confirmed' },
-    { status: 'PICKUP_SCHEDULED', title: 'Pickup Scheduled' },
-    { status: 'PICKED_UP', title: 'Picked Up' },
-    { status: 'IN_WASH', title: 'Laundry in Progress' },
-    { status: 'READY_FOR_DELIVERY', title: 'Ready for Delivery' },
-    { status: 'OUT_FOR_DELIVERY', title: 'Out for Delivery' },
-    { status: 'DELIVERED', title: 'Delivered' },
+  const ORDER_STATUS_STEPS = [
+    { key: 'PLACED', title: 'Order Placed', statuses: ['ORDER_PLACED'], icon: <Package size={18} color={COLORS.PRIMARY} /> },
+    { key: 'PICKUP_ASSIGNED', title: 'Rider Assigned', statuses: ['PICKUP_ASSIGNED'], icon: <CheckCircle2 size={18} color={COLORS.PRIMARY} /> },
+    { key: 'PICKUP_WAY', title: 'Rider Arriving', statuses: ['PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED'], icon: <MapPin size={18} color={COLORS.PRIMARY} /> },
+    { key: 'PICKED_UP', title: 'Picked Up', statuses: ['PICKED_UP'], icon: <Package size={18} color={COLORS.PRIMARY} /> },
+    { key: 'HANDED_OVER', title: 'At Laundry', statuses: ['HANDED_OVER'], icon: <CheckCircle2 size={18} color={COLORS.PRIMARY} /> },
+    { key: 'PROCESSING', title: 'Cleaning & Drying', statuses: ['WASHING', 'DRYING', 'PROCESSING'], icon: <Clock size={18} color={COLORS.PRIMARY} /> },
+    { key: 'READY', title: 'Ready for Delivery', statuses: ['READY'], icon: <CheckCircle2 size={18} color={COLORS.PRIMARY} /> },
+    { key: 'DELIVERY_ASSIGNED', title: 'Delivery Rider Assigned', statuses: ['DELIVERY_ASSIGNED'], icon: <CheckCircle2 size={18} color={COLORS.PRIMARY} /> },
+    { key: 'DELIVERY_WAY', title: 'Out for Delivery', statuses: ['DELIVERY_ON_THE_WAY', 'DELIVERY_ARRIVED'], icon: <MapPin size={18} color={COLORS.PRIMARY} /> },
+    { key: 'DELIVERED', title: 'Delivered', statuses: ['DELIVERED'], icon: <CheckCircle2 size={18} color={COLORS.PRIMARY} /> },
   ];
 
-  const isStatusReached = (status: OrderStatus) => {
+  const isStepReached = (stepStatuses: string[]) => {
     if (!order) return false;
-    return (order.trackingLogs || []).some(log => log.status === status) || order.status === status;
+    const allStatuses = [
+      'ORDER_PLACED',
+      'PICKUP_ASSIGNED', 'PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED', 'PICKED_UP',
+      'HANDED_OVER', 'WASHING', 'DRYING', 'PROCESSING', 'READY',
+      'DELIVERY_ASSIGNED', 'DELIVERY_ON_THE_WAY', 'DELIVERY_ARRIVED', 'DELIVERED'
+    ];
+
+    const currentIndex = allStatuses.indexOf(order.status);
+    const stepIndices = stepStatuses.map(s => allStatuses.indexOf(s));
+
+    return currentIndex >= Math.max(...stepIndices) || stepStatuses.includes(order.status);
   };
 
-  const getStatusTime = (status: OrderStatus) => {
-    if (!order) return null;
-    const log = (order.trackingLogs || []).find(l => l.status === status);
+  const getStepTime = (stepStatuses: string[]) => {
+    if (!order || !order.trackingLogs) return null;
+    const log = order.trackingLogs.find(l => stepStatuses.includes(l.status));
     if (!log) return null;
     return new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const steps = ORDER_STATUS_STEPS.map((step) => ({
     ...step,
-    completed: isStatusReached(step.status),
-    current: order.status === step.status,
-    time: getStatusTime(step.status) || (order.status === step.status ? 'Ongoing' : 'Pending')
+    completed: isStepReached(step.statuses),
+    current: step.statuses.includes(order.status),
+    time: getStepTime(step.statuses) || (step.statuses.includes(order.status) ? 'Ongoing' : 'Pending')
   }));
 
-  const isMapActive = ['OUT_FOR_DELIVERY', 'PICKUP_SCHEDULED'].includes(order.status);
-  const isPickup = ['PENDING', 'CONFIRMED', 'PICKUP_SCHEDULED'].includes(order.status);
+  const isRiderMoving = [
+    'PICKUP_ON_THE_WAY', 'DELIVERY_ON_THE_WAY'
+  ].includes(order.status);
+
+  const isPickup = [
+    'ORDER_PLACED', 'PICKUP_ASSIGNED', 'PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED'
+  ].includes(order.status);
 
   const destLat = isPickup ? order.pickupLat : order.deliveryLat;
   const destLng = isPickup ? order.pickupLng : order.deliveryLng;
@@ -139,15 +157,19 @@ const OrderTrackingScreen = () => {
           </View>
         </View>
 
-        {order.status === 'CANCELLED' && (
-          <View style={[trackingStyles.statusCard, { backgroundColor: COLORS.ERROR_BACKGROUND, borderColor: COLORS.ERROR_BORDER }]}>
-            <Text style={{ color: COLORS.ERROR_TEXT, fontWeight: '600' }}>
-              This order has been cancelled. Please contact support for more information.
+        {isRiderMoving && (
+          <TouchableOpacity
+            style={[trackingStyles.viewMapBtn, showMap && { backgroundColor: COLORS.TEXT_PRIMARY }]}
+            onPress={() => setShowMap(!showMap)}
+          >
+            <MapPin size={20} color={COLORS.WHITE} />
+            <Text style={trackingStyles.viewMapBtnText}>
+              {showMap ? 'Close Live Tracking' : 'Track Rider Live Location'}
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
 
-        {isMapActive && destLat && destLng && (
+        {showMap && isRiderMoving && destLat && destLng && (
           <View style={trackingStyles.mapWrapper}>
             <MapView
               ref={mapRef}
@@ -190,7 +212,9 @@ const OrderTrackingScreen = () => {
             <View key={index} style={trackingStyles.stepRow}>
               <View style={trackingStyles.indicatorContainer}>
                 {step.completed ? (
-                  <CheckCircle2 size={24} color={COLORS.PRIMARY} fill={COLORS.PRIMARY_LIGHT} />
+                  <View style={trackingStyles.completedIcon}>
+                    {step.icon}
+                  </View>
                 ) : (
                   <Circle size={24} color={COLORS.BORDER} />
                 )}
@@ -348,6 +372,25 @@ const trackingStyles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.TEXT_PRIMARY,
   },
+  viewMapBtn: {
+    backgroundColor: COLORS.PRIMARY,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 20,
+    marginBottom: 20,
+    gap: 10,
+    shadowColor: COLORS.PRIMARY,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  viewMapBtnText: {
+    color: COLORS.WHITE,
+    fontSize: 16,
+    fontWeight: '800',
+  },
   stepsContainer: {
     backgroundColor: COLORS.WHITE,
     borderRadius: 24,
@@ -362,6 +405,15 @@ const trackingStyles = StyleSheet.create({
   indicatorContainer: {
     alignItems: 'center',
     width: 24,
+  },
+  completedIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.PRIMARY_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -4, // Center against the 24px container
   },
   line: {
     width: 2,

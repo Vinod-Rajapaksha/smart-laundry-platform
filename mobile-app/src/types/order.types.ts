@@ -1,11 +1,17 @@
 export type OrderStatus = 
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'PICKUP_SCHEDULED'
+  | 'ORDER_PLACED'
+  | 'PICKUP_ASSIGNED'
+  | 'PICKUP_ON_THE_WAY'
+  | 'PICKUP_ARRIVED'
   | 'PICKED_UP'
-  | 'IN_WASH'
-  | 'READY_FOR_DELIVERY'
-  | 'OUT_FOR_DELIVERY'
+  | 'HANDED_OVER'
+  | 'WASHING'
+  | 'DRYING'
+  | 'PROCESSING'
+  | 'READY'
+  | 'DELIVERY_ASSIGNED'
+  | 'DELIVERY_ON_THE_WAY'
+  | 'DELIVERY_ARRIVED'
   | 'DELIVERED'
   | 'CANCELLED';
 
@@ -45,6 +51,7 @@ export interface Order {
   voucherId?: string;
   discountTotal?: number;
   trackingLogs: TrackingLog[];
+  isReviewed?: boolean;
   createdAt: string;
   updatedAt: string;
 }

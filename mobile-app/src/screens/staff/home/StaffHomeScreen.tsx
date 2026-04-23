@@ -11,6 +11,7 @@ import styles from '../styles/Staff.styles';
 import { staffService, StaffStats } from '../../../services/staff/staffService';
 import { notify } from '../../../utils/notify';
 import { useAppSelector } from '../../../store/hooks';
+import Avatar from '../../../components/common/Avatar';
 
 const StaffHomeScreen = () => {
   const router = useRouter();
@@ -47,10 +48,20 @@ const StaffHomeScreen = () => {
 
   const header = (
     <View style={styles.headerContainer}>
-      <View>
-        <Text style={styles.welcomeText}>Welcome,</Text>
-        <Text style={styles.userNameText}>{user?.name || 'Staff Member'}</Text>
-      </View>
+      <TouchableOpacity 
+        style={{ flexDirection: 'row', alignItems: 'center' }}
+        onPress={() => router.push('/(protected)/(staff)/profile')}
+      >
+        <Avatar 
+          name={user?.name || 'Staff'} 
+          source={user?.avatar} 
+          size={45} 
+        />
+        <View style={{ marginLeft: 12 }}>
+          <Text style={styles.welcomeText}>Welcome,</Text>
+          <Text style={styles.userNameText}>{user?.name || 'Staff Member'}</Text>
+        </View>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.notifButton}
         onPress={() => router.push('/(protected)/(staff)/notifications/list')}
@@ -128,7 +139,7 @@ const StaffHomeScreen = () => {
 
         <TouchableOpacity
           style={styles.actionCard}
-          onPress={() => router.push('/(protected)/(staff)/scan')}
+          onPress={() => router.push('/(protected)/(staff)/(tabs)/scan')}
         >
           <View style={[styles.actionIconBox, { backgroundColor: '#EEF2FF' }]}>
             <QrCode size={26} color={COLORS.PRIMARY} />
@@ -142,7 +153,7 @@ const StaffHomeScreen = () => {
 
         <TouchableOpacity
           style={styles.actionCard}
-          onPress={() => router.push('/(protected)/(staff)/orders')}
+          onPress={() => router.push('/(protected)/(staff)/(tabs)/orders')}
         >
           <View style={[styles.actionIconBox, { backgroundColor: '#FDF2F8' }]}>
             <ClipboardList size={26} color="#DB2777" />

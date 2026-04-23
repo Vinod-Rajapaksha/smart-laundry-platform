@@ -15,7 +15,10 @@ export const StatusUpdateTable = ({ orders, onUpdateStatus }: StatusUpdateTableP
       case ORDER_STATUS.PROCESSING: return "bg-blue-100 text-blue-700";
       case ORDER_STATUS.DRYING: return "bg-sky-100 text-sky-700";
       case ORDER_STATUS.WASHING: return "bg-indigo-100 text-indigo-700";
+      case ORDER_STATUS.HANDED_OVER: return "bg-purple-100 text-purple-700";
       case ORDER_STATUS.PICKED_UP: return "bg-amber-100 text-amber-700";
+      case ORDER_STATUS.PICKUP_ARRIVED:
+      case ORDER_STATUS.DELIVERY_ARRIVED: return "bg-teal-100 text-teal-700";
       case ORDER_STATUS.DELIVERED: return "bg-slate-100 text-slate-500";
       case ORDER_STATUS.CANCELLED: return "bg-rose-100 text-rose-700";
       default: return "bg-slate-100 text-slate-700";
@@ -44,9 +47,9 @@ export const StatusUpdateTable = ({ orders, onUpdateStatus }: StatusUpdateTableP
       cell: (order) => (
         <div className="flex flex-col">
           <div className="flex gap-1.5 flex-wrap">
-             <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">
-                {order.serviceId?.name || "Laundry"}
-             </span>
+            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">
+              {order.serviceId?.name || "Laundry"}
+            </span>
           </div>
           <p className="text-[10px] font-bold text-slate-900 mt-1">LKR {order.totalAmount.toLocaleString()}</p>
         </div>
@@ -74,7 +77,7 @@ export const StatusUpdateTable = ({ orders, onUpdateStatus }: StatusUpdateTableP
                 variant="outline"
                 size="sm"
                 onClick={() => onUpdateStatus(order, nextStatus)}
-                className="flex items-center gap-2 pr-4 h-10 rounded-2xl border-blue-100 bg-blue-50/30 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm border font-black text-[10px] uppercase tracking-widest group"
+                className="flex items-center gap-2 pr-4 h-10 rounded-2xl border-blue-100 bg-blue-50/30 text-blue-600 hover:bg-blue-600 hover:text-blue-600 transition-all shadow-sm border font-black text-[10px] uppercase tracking-widest group"
               >
                 <div className="p-1 bg-blue-100 rounded-lg group-hover:bg-blue-400 text-blue-600 group-hover:text-white transition-colors">
                   <ArrowRightCircle size={14} />
@@ -82,10 +85,10 @@ export const StatusUpdateTable = ({ orders, onUpdateStatus }: StatusUpdateTableP
                 <span>Move to {nextStatus.replace(/_/g, ' ')}</span>
               </Button>
             ) : (
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 rounded-2xl border border-dashed border-slate-200 text-[10px] font-bold uppercase tracking-widest">
-                    <History size={14} />
-                    <span>Processing...</span>
-                </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-400 rounded-2xl border border-dashed border-slate-200 text-[10px] font-bold uppercase tracking-widest">
+                <History size={14} />
+                <span>Processing...</span>
+              </div>
             )}
           </div>
         );

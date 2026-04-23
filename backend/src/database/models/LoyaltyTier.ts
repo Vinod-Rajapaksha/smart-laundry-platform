@@ -6,6 +6,7 @@ const loyaltyTierSchema = new mongoose.Schema(
         type: String, 
         required: true, 
         trim: true, 
+        uppercase: true,
     },
     minPoints: { 
         type: Number, 

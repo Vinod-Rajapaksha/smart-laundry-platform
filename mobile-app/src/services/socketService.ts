@@ -4,23 +4,20 @@ let socket: Socket | null = null;
 
 export const initializeSocket = (userId: string) => {
   if (!socket) {
-    // Determine the base URL dynamically based on environment
-    const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL 
-      ? process.env.EXPO_PUBLIC_API_BASE_URL.replace('/api/v1', '') 
-      : 'http://localhost:5000';
-    
+    const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+
     socket = io(BASE_URL, {
       transports: ['websocket'],
       autoConnect: true,
     });
 
     socket.on('connect', () => {
-      console.log('🔗 Mobile Socket Connected:', socket?.id);
+      console.log('Mobile Socket Connected:', socket?.id);
       socket?.emit('join_user_room', userId);
     });
 
     socket.on('disconnect', () => {
-      console.log('❌ Mobile Socket Disconnected');
+      console.log('Mobile Socket Disconnected');
     });
   }
 };
@@ -52,6 +49,18 @@ export const subscribeToStaffLocation = (callback: (data: any) => void) => {
 export const unsubscribeFromStaffLocation = () => {
   if (socket) {
     socket.off('staff_location_update');
+  }
+};
+
+export const subscribeToNotifications = (callback: (data: any) => void) => {
+  if (socket) {
+    socket.on('notification', callback);
+  }
+};
+
+export const unsubscribeFromNotifications = () => {
+  if (socket) {
+    socket.off('notification');
   }
 };
 
