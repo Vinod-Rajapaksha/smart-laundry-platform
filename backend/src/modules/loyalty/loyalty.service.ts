@@ -6,7 +6,7 @@ import ApiError from '../../core/apiError.js';
 import { LOYALTY_RULES, LOYALTY_TIER_NAME } from '../../core/constants.js';
 
 export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, orderId: string) => {
-  // 1. Get or create customer loyalty record
+  
   let loyalty = await CustomerLoyalty.findOne({ userId });
 
   if (!loyalty) {
@@ -21,10 +21,8 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
     });
   }
 
-  // 2. Update points
   loyalty.points += pointsAmount;
 
-  // 3. Check for tier upgrade
   const nextTier = await LoyaltyTier.findOne({
     minPoints: { $lte: loyalty.points },
     isActive: true
@@ -36,7 +34,6 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
 
   await loyalty.save();
 
-  // 4. Update User Model for consistency
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + (LOYALTY_RULES.MEMBERSHIP_DURATION_DAYS || 90));
 
@@ -48,7 +45,6 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
     }
   });
 
-  // 5. Record transaction
   await LoyaltyTransaction.create({
     loyaltyId: loyalty._id,
     points: pointsAmount,
@@ -66,7 +62,6 @@ export const getLoyaltyStatus = async (userId: string) => {
 
   const user = await User.findById(userId);
 
-  // Check for expiry
   if (user?.membership?.validUntil && new Date() > user.membership.validUntil) {
     // Reset to basic tier if expired
     const bronzeTier = await LoyaltyTier.findOne({ name: LOYALTY_TIER_NAME.BRONZE });

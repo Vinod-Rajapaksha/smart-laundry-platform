@@ -26,36 +26,30 @@ export const validateVoucher = async (code: string, userId: string, orderAmount:
     throw new ApiError(404, 'Voucher not found or inactive');
   }
 
-  // Loyalty member restriction: ONLY bronze members can apply vouchers
   const user = await mongoose.model('User').findById(userId);
   if (user && user.membership) {
      const level = user.membership.level;
-     // If not BRONZE (and not null/entry), block voucher usage
-     if (level !== 'BRONZE' && level !== 'null' && level !== null) {
+      if (level !== 'BRONZE' && level !== 'null' && level !== null) {
         throw new ApiError(403, 'Vouchers are only available for Bronze members. Premium tiers already receive automatic loyalty discounts.');
      }
   }
 
-  // Date validation
   const now = new Date();
   if (now < voucher.startDate || now > voucher.endDate) {
     throw new ApiError(400, 'Voucher is not valid at this time');
   }
 
-  // Min amount validation
   if (orderAmount < voucher.minOrderAmount) {
     throw new ApiError(400, `Minimum order amount for this voucher is LKR ${voucher.minOrderAmount}`);
   }
 
-  // Total usage limit
-  if (voucher.usageLimitTotal) {
+ if (voucher.usageLimitTotal) {
     const totalUses = await VoucherRedemption.countDocuments({ voucherId: voucher._id });
     if (totalUses >= voucher.usageLimitTotal) {
       throw new ApiError(400, 'Voucher maximum usage limit reached');
     }
   }
 
-  // Per user usage limit
   if (voucher.usageLimitPerUser) {
     const userUses = await VoucherRedemption.countDocuments({ voucherId: voucher._id, userId });
     if (userUses >= voucher.usageLimitPerUser) {
@@ -84,13 +78,10 @@ export const applyVoucherToOrder = async (orderId: string, userId: string, vouch
     throw new ApiError(400, 'A voucher has already been applied to this order');
   }
 
-  // Calculate order amount for validation (subtotal + extraFee)
   const currentAmount = order.subtotal + order.extraFee;
 
-  // Validate voucher
   const voucher = await validateVoucher(voucherCode, userId, currentAmount);
 
-  // Calculate discount
   let discountTotal = 0;
   if (voucher.discountType === 'PERCENTAGE') {
     discountTotal = (currentAmount * voucher.discountValue) / 100;
@@ -101,12 +92,10 @@ export const applyVoucherToOrder = async (orderId: string, userId: string, vouch
     discountTotal = voucher.discountValue;
   }
 
-  // Ensure discount doesn't exceed order amount
   if (discountTotal > currentAmount) {
     discountTotal = currentAmount;
   }
 
-  // Update order
   order.discountTotal = discountTotal;
   order.totalAmount = currentAmount + order.deliveryFee - discountTotal;
   order.voucherId = voucher._id;
