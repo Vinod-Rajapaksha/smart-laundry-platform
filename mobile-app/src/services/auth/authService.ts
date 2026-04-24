@@ -10,7 +10,6 @@ export const login = async (
   const { user, accessToken, refreshToken } = response.data.data;
 
   await AsyncStorage.setItem("accessToken", accessToken);
-  await AsyncStorage.setItem("token", accessToken); // Ensure compatibility with api.ts
 
   if (refreshToken) {
     await AsyncStorage.setItem("refreshToken", refreshToken);

@@ -40,10 +40,7 @@ export default function Topbar({
                 </span>
             </div>
 
-            <div 
-              className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center cursor-pointer"
-              onClick={() => window.location.href = '/admin-profile'}
-            >
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center">
             {user?.avatar ? (
                 <img
                 src={user.avatar}

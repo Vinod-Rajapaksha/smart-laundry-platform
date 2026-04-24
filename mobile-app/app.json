@@ -21,8 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.BWLaundry"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/logo.png"

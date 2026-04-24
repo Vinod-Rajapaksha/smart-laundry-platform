@@ -1,20 +1,7 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IRevenue extends Document {
-  name: string;
-  amount: number;
-  date: Date;
-  sourceType?: string;
-  type: 'revenue';
-}
-
-const revenueSchema: Schema = new mongoose.Schema(
+const revenueSchema = new mongoose.Schema(
   {
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-    },
     amount: { 
         type: Number, 
         required: true, 
@@ -25,15 +12,9 @@ const revenueSchema: Schema = new mongoose.Schema(
         required: true, 
     },
     sourceType: { 
-        type: String,
-      default: 'revenue',
-        trim: true,
-    },
-    type: {
-        type: String,
-        enum: ['revenue'],
-        default: 'revenue',
-        required: true,
+        type: String, 
+        required: true, 
+        trim: true, 
     },
   },
   { 
@@ -41,4 +22,4 @@ const revenueSchema: Schema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model<IRevenue>('Revenue', revenueSchema, 'finance');
+export default mongoose.model('Revenue', revenueSchema);
