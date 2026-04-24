@@ -27,10 +27,8 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.1",
     "morgan": "^1.10.1",
-    "multer": "^2.1.1",
-    "tesseract.js": "^7.0.0",
-    "winston": "^3.19.0",
-    "zod": "^4.3.6"
+    "pdfkit": "^0.13.0",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@swc/core": "^1.15.13",
@@ -42,7 +40,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.3.0",
-    "@types/supertest": "^7.2.0",
+    "@types/pdfkit": "^0.17.5",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",

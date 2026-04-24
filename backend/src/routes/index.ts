@@ -1,14 +1,20 @@
 import { Router } from "express";
 import statusRoute from "./status.route.js";
 import authRoutes from '../modules/auth/routes.js';
-import paymentRoutes from '../modules/payment/routes/index.js';
+import financeRoutes from '../modules/finance/index.js';
+import reportGenRoutes from '../modules/reportGen/index.js';
+import userRoutes from '../modules/user/routes.js';
 import feedbackRoutes from '../modules/feedback/routes.js';
+import dataRoutes from "../modules/dashboard/routes.js";
 
 const router = Router();
 
 router.use("/status", statusRoute);
 router.use('/auth', authRoutes);
-router.use('/payments', paymentRoutes);
+router.use('/finance', financeRoutes);
+router.use('/reportGen', reportGenRoutes);
+router.use('/users', userRoutes);
 router.use('/feedback', feedbackRoutes);
+router.use('/data', dataRoutes);
 
 export default router;
