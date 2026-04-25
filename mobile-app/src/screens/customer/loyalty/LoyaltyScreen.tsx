@@ -11,6 +11,10 @@ import { COLORS } from '../../../theme/colors';
 import { loyaltyService, LoyaltyStatus, LoyaltyTransaction } from '../../../services/customer/loyaltyService';
 import { notify } from '../../../utils/notify';
 
+/**
+ * Enhanced Loyalty & Rewards screen.
+ * Displays real-time points, membership benefits, and earning history.
+ */
 const LoyaltyScreen = () => {
   const router = useRouter();
   const [status, setStatus] = useState<LoyaltyStatus | null>(null);

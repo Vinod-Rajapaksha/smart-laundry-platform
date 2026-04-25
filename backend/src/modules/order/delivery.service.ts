@@ -1,5 +1,6 @@
 import StaffJob from '../../database/models/StaffJob.js';
 import ApiError from '../../core/apiError.js';
+import { LOGISTICS_JOB_STATUS } from '../../core/constants.js';
 
 export const getDeliveryJobs = async (query: any) => {
   const { status } = query;
@@ -17,9 +18,9 @@ export const updateJobStatus = async (id: string, status: string) => {
   if (!job) throw new ApiError(404, 'Job not found');
 
   job.jobStatus = status;
-  if (status === 'STARTED') {
+  if (status === LOGISTICS_JOB_STATUS.STARTED) {
     job.startedAt = new Date();
-  } else if (status === 'COMPLETED') {
+  } else if (status === LOGISTICS_JOB_STATUS.COMPLETED) {
     job.completedAt = new Date();
   }
 
@@ -32,7 +33,7 @@ export const createJobFromOrder = async (orderId: string, staffId: string, jobTy
     orderId,
     assignedStaffId: staffId,
     jobType,
-    jobStatus: 'PENDING'
+    jobStatus: LOGISTICS_JOB_STATUS.PENDING
   });
   return job;
 };

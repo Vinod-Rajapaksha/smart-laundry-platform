@@ -10,6 +10,7 @@ export const login = async (
   const { user, accessToken, refreshToken } = response.data.data;
 
   await AsyncStorage.setItem("accessToken", accessToken);
+  await AsyncStorage.setItem("user", JSON.stringify(user));
 
   if (refreshToken) {
     await AsyncStorage.setItem("refreshToken", refreshToken);
@@ -26,4 +27,5 @@ export const register = async (data: RegisterData): Promise<AuthUser> => {
 export const logout = async (): Promise<void> => {
   await AsyncStorage.removeItem("accessToken");
   await AsyncStorage.removeItem("refreshToken");
+  await AsyncStorage.removeItem("user");
 };

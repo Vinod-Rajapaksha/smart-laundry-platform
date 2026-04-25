@@ -8,9 +8,11 @@ interface DateRangeFilterProps {
 export default function DateRangeFilter({ activeRange, onRangeChange }: DateRangeFilterProps) {
   const ranges: { id: DateRange; label: string }[] = [
     { id: 'today', label: 'Today' },
+    { id: 'yesterday', label: 'Yesterday' },
     { id: 'week', label: 'Past Week' },
     { id: 'month', label: 'Past Month' },
-    { id: 'year', label: 'Overall' },
+    { id: 'year', label: 'Past Year' },
+    { id: 'overall', label: 'All Time' },
   ];
 
   return (

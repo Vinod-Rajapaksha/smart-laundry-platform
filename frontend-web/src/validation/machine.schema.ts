@@ -6,7 +6,7 @@ export const machineTypes = ["WASHER", "DRYER"] as const;
 export const machineSchema = z.object({
   name: z.string().min(1, "Machine name is required"),
   type: z.enum(machineTypes),
-  status: z.enum(machineStatus).default("AVAILABLE"),
+  status: z.enum(machineStatus),
   capacity: z.number().positive("Capacity must be positive").optional(),
 });
 

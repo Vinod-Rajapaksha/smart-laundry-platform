@@ -19,6 +19,7 @@ export const confirmCODPayment = async (orderId: string, userId: string) => {
   const codRecord = await CashOnDelivery.create({
     paymentId: payment._id,
     orderId: order._id,
+    userId: order.userId,
     status: PAYMENT_STATUS.PENDING,
   });
 
@@ -71,8 +72,8 @@ export const getFilteredCashOnDeliveries = async (status?: string, search?: stri
     },
     {
       $unwind: {
-          path: '$collector',
-          preserveNullAndEmptyArrays: true
+        path: '$collector',
+        preserveNullAndEmptyArrays: true
       }
     }
   ];
@@ -83,10 +84,8 @@ export const getFilteredCashOnDeliveries = async (status?: string, search?: stri
       $match: {
         $or: [
           { 'order.orderNo': searchRegex },
-          { 'user.firstName': searchRegex },
-          { 'user.lastName': searchRegex },
-          { 'collector.firstName': searchRegex },
-          { 'collector.lastName': searchRegex },
+          { 'user.name': searchRegex },
+          { 'collector.name': searchRegex },
           { notes: searchRegex }
         ]
       }

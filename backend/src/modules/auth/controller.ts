@@ -72,3 +72,27 @@ export const logout = asyncHandler(
     return ApiResponse(res, 200, "Logged out successfully");
   }
 );
+
+export const forgotPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    await authService.sendForgotPasswordOtp(email);
+    return ApiResponse(res, 200, "If an account exists, an OTP will be sent to the registered phone number.");
+  }
+);
+
+export const verifyOtp = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+    await authService.verifyOtp(email, otp);
+    return ApiResponse(res, 200, "OTP verified successfully");
+  }
+);
+
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, otp, newPassword } = req.body;
+    await authService.resetPassword(email, otp, newPassword);
+    return ApiResponse(res, 200, "Password reset successfully");
+  }
+);

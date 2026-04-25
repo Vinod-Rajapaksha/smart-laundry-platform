@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: laundry-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laundry-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - mongodb
+    networks:
+      - laundry-network
+
+  frontend:
+    build:
+      context: ./frontend-web
+      dockerfile: Dockerfile
+    container_name: laundry-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - laundry-network
+
+networks:
+  laundry-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

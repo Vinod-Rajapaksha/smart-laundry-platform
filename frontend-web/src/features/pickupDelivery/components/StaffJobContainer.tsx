@@ -45,7 +45,6 @@ export default function StaffJobContainer() {
       toast.success(`Job status updated to ${status}`);
       setJobs(prev => prev.map(j => j._id === id ? { ...j, jobStatus: status as JobStatus } : j));
 
-      // Update selected job if it's the one being updated
       if (selectedJob?._id === id) {
         setSelectedJob(prev => prev ? { ...prev, jobStatus: status as JobStatus } : null);
       }
@@ -58,12 +57,10 @@ export default function StaffJobContainer() {
 
   const filteredJobs = jobs.filter((j) => {
     const searchLower = searchQuery.toLowerCase();
-    
-    // Check orderId (might be string or populated object)
+
     const orderNo = typeof j.orderId === 'object' ? (j.orderId as any).orderNo : j.orderId;
     const orderMatch = String(orderNo || '').toLowerCase().includes(searchLower);
 
-    // Check staff name/id
     const staffName = typeof j.assignedStaffId === 'object' ? (j.assignedStaffId as any).name : '';
     const staffMatch = String(staffName || j.assignedStaffId || '').toLowerCase().includes(searchLower);
 

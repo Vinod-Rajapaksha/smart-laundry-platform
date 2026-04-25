@@ -8,7 +8,7 @@ interface FeedbackFiltersProps {
   onSearchChange: (query: string) => void;
 }
 
-const tabs: Tab[] = ["All Feedbacks", "High Rating", "Low Rating", "Inactive"];
+const tabs: Tab[] = ["All Feedbacks", "High Rating", "Low Rating"];
 
 export default function FeedbackFilters({
   activeTab,
@@ -24,8 +24,8 @@ export default function FeedbackFilters({
             key={tab}
             onClick={() => onTabChange(tab)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${activeTab === tab
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
               }`}
           >
             {tab}

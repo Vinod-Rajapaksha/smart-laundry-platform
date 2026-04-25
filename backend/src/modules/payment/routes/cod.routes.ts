@@ -7,5 +7,6 @@ const router = Router();
 router.get('/list', auth, getCashOnDeliveriesHandler);
 
 router.post('/confirm', auth, confirmCOD);
+router.patch('/:id/status', auth, confirmCOD);
 
 export default router;

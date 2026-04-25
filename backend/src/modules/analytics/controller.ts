@@ -4,7 +4,8 @@ import asyncHandler from '../../utils/asyncHandler.js';
 import { ApiResponse } from '../../core/apiResponse.js';
 
 export const getDashboardKPIs = asyncHandler(async (req: Request, res: Response) => {
-  const data = await service.getDashboardKPIs();
+  const { range } = req.query;
+  const data = await service.getDashboardKPIs(range as string);
   return ApiResponse(res, 200, 'Dashboard KPIs fetched successfully', data);
 });
 
@@ -44,6 +45,11 @@ export const getReports = asyncHandler(async (req: Request, res: Response) => {
 
 export const downloadReport = asyncHandler(async (req: Request, res: Response) => {
   await service.downloadReport(req.params.id as string, res);
+});
+
+export const deleteReport = asyncHandler(async (req: Request, res: Response) => {
+  await service.deleteReport(req.params.id as string);
+  return ApiResponse(res, 200, 'Report deleted successfully', null);
 });
 
 export const getStaffStats = asyncHandler(async (req: Request, res: Response) => {

@@ -10,6 +10,7 @@ import styles from './styles/Profile.styles';
 import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
 import { notify } from '../../../utils/notify';
+import { profileSchema } from '../../../validation/profile.schema';
 
 const StaffEditProfileScreen = () => {
   const router = useRouter();
@@ -21,6 +22,7 @@ const StaffEditProfileScreen = () => {
   const [email, setEmail] = useState(profile?.email || '');
   const [avatar, setAvatar] = useState(profile?.avatar || null);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -36,17 +38,21 @@ const StaffEditProfileScreen = () => {
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !telephone.trim() || !email.trim()) {
-      notify.error('Validation Error', 'All fields are required.');
+    const validation = profileSchema.safeParse({ name, telephone, email });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setSaving(true);
     try {
-      // 1. Update text fields
       await profileService.updateProfile({ name, telephone, email });
 
-      // 2. Update avatar if changed
       if (avatar && avatar !== profile?.avatar) {
         const formData = new FormData();
         const filename = avatar.split('/').pop() || 'avatar.jpg';
@@ -116,37 +122,49 @@ const StaffEditProfileScreen = () => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Full Name</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.name && { borderColor: COLORS.ERROR }]}
             value={name}
-            onChangeText={setName}
+            onChangeText={(val) => {
+              setName(val);
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+            }}
             placeholder="Enter your full name"
             placeholderTextColor={COLORS.TEXT_MUTED}
           />
+          {errors.name && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.name}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Contact Number</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.telephone && { borderColor: COLORS.ERROR }]}
             value={telephone}
-            onChangeText={setTelephone}
+            onChangeText={(val) => {
+              setTelephone(val);
+              if (errors.telephone) setErrors(prev => ({ ...prev, telephone: '' }));
+            }}
             placeholder="e.g. 0771234567"
             placeholderTextColor={COLORS.TEXT_MUTED}
             keyboardType="phone-pad"
           />
+          {errors.telephone && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.telephone}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email Address</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.email && { borderColor: COLORS.ERROR }]}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(val) => {
+              setEmail(val);
+              if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+            }}
             placeholder="Enter your email"
             placeholderTextColor={COLORS.TEXT_MUTED}
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          {errors.email && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.email}</Text>}
         </View>
 
         <TouchableOpacity

@@ -23,8 +23,8 @@ export default function FeedbackContainer() {
       const statusMap: Record<string, string> = {
         "Pending Moderation": "pending",
         "Rejected": "rejected",
-        "High Rating": "approved", // or handle filtering locally
-        "Low Rating": "approved"   // or handle filtering locally
+        "High Rating": "approved",
+        "Low Rating": "approved"
       };
 
       const status = statusMap[activeTab];

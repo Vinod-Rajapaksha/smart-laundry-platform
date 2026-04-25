@@ -15,6 +15,12 @@ const cashOnDeliverySchema = new mongoose.Schema(
       required: true,
     },
 
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+
     collectedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

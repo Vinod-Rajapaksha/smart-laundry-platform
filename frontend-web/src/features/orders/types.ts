@@ -1,9 +1,19 @@
 export type OrderStatus =
-  | "Pending"
-  | "Processing"
-  | "Completed"
-  | "Delivered"
-  | "Cancelled";
+  | "ORDER_PLACED"
+  | "PICKUP_ASSIGNED"
+  | "PICKUP_ON_THE_WAY"
+  | "PICKUP_ARRIVED"
+  | "PICKED_UP"
+  | "HANDED_OVER"
+  | "WASHING"
+  | "DRYING"
+  | "PROCESSING"
+  | "READY"
+  | "DELIVERY_ASSIGNED"
+  | "DELIVERY_ON_THE_WAY"
+  | "DELIVERY_ARRIVED"
+  | "DELIVERED"
+  | "CANCELLED"
 
 export interface OrderOption {
   inventoryId: string;
@@ -15,9 +25,9 @@ export interface OrderOption {
 export interface Order {
   _id: string;
   orderNo: string;
-  userId: any; // Populated object or string ID
+  userId: any;
   updateBy?: string;
-  serviceId: any; // Populated object or string ID
+  serviceId: any;
   weightKg?: number;
   status: OrderStatus;
   reservedDateTime?: string;
@@ -36,4 +46,4 @@ export interface Order {
   updatedAt: string;
 }
 
-export type Tab = "All" | "Pending" | "Processing" | "Completed" | "Cancelled";
+export type Tab = "All" | "Pending" | "Pickup" | "Processing" | "Delivery" | "Completed" | "Cancelled";

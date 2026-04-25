@@ -5,37 +5,108 @@ import Payment from '../../../database/models/Payment.js';
 import ApiError from '../../../core/apiError.js';
 import { uploadToCloudinary } from '../../../utils/cloudinary.js';
 import { processSlipOCR } from '../../../utils/ocrService.js';
-import { PAYMENT_METHODS } from '../../../core/constants.js';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_STATUS,
+  OCR_STATUS,
+  BANK_VERIFICATION_STATUS
+} from '../../../core/constants.js';
 
-export const getFilteredTransfers = async (status?: string, search?: string) => {
-  const query: any = {};
-  
+export const getFilteredTransfers = async (status?: string, search?: string, startDate?: string, endDate?: string) => {
+  const pipeline: any[] = [];
+
+  const matchQuery: any = {};
+
   if (status && status !== 'All Transactions') {
-    query.verifyStatus = status.toUpperCase();
+    matchQuery.verifyStatus = status.toUpperCase();
   }
 
+  if (startDate || endDate) {
+    matchQuery.createdAt = {};
+    if (startDate) matchQuery.createdAt.$gte = new Date(startDate);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      matchQuery.createdAt.$lte = end;
+    }
+  }
+
+  if (Object.keys(matchQuery).length > 0) {
+    pipeline.push({ $match: matchQuery });
+  }
+
+  // Lookup User
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'userId',
+      foreignField: '_id',
+      as: 'userId'
+    }
+  });
+  pipeline.push({ $unwind: '$userId' });
+
+  // Lookup Payment
+  pipeline.push({
+    $lookup: {
+      from: 'payments',
+      localField: 'paymentId',
+      foreignField: '_id',
+      as: 'paymentId'
+    }
+  });
+  pipeline.push({ $unwind: '$paymentId' });
+
+  // Lookup Order
+  pipeline.push({
+    $lookup: {
+      from: 'orders',
+      localField: 'paymentId.orderId',
+      foreignField: '_id',
+      as: 'paymentId.orderId'
+    }
+  });
+  pipeline.push({ $unwind: '$paymentId.orderId' });
+
+  // Lookup Service in Order
+  pipeline.push({
+    $lookup: {
+      from: 'services',
+      localField: 'paymentId.orderId.serviceId',
+      foreignField: '_id',
+      as: 'paymentId.orderId.serviceId'
+    }
+  });
+  pipeline.push({
+    $unwind: {
+      path: '$paymentId.orderId.serviceId',
+      preserveNullAndEmptyArrays: true
+    }
+  });
+
+  // Match Search if provided
   if (search) {
     const searchRegex = new RegExp(search, 'i');
-    query.$or = [
-      { systemRefId: searchRegex },
-      { referenceNo: searchRegex }
-    ];
+    pipeline.push({
+      $match: {
+        $or: [
+          { systemRefId: searchRegex },
+          { referenceNo: searchRegex },
+          { bankName: searchRegex },
+          { 'paymentId.orderId.orderNo': searchRegex },
+          { 'userId.name': searchRegex },
+          { 'userId.email': searchRegex },
+        ]
+      }
+    });
   }
 
-  const results = await BankTransfer.find(query)
-    .populate('userId', 'firstName lastName email avatar')
-    .populate({
-      path: 'paymentId',
-      populate: { 
-        path: 'orderId',
-        populate: { path: 'serviceId' }
-      },
-    })
-    .sort({ createdAt: -1 });
-    
-  const validResults = results.filter(tx => tx.paymentId && (tx.paymentId as any).orderId);
-    
-  console.log(`Bank Verification Results: ${validResults.length} valid records found`);
+  // Sort and execute
+  pipeline.push({ $sort: { createdAt: -1 } });
+
+  const validResults = await BankTransfer.aggregate(pipeline);
+
+  console.log(`Bank Verification Results: ${validResults.length} records found`);
   return validResults;
 };
 
@@ -44,6 +115,7 @@ export const submitBankTransfer = async (
   orderId: string,
   bankName: string,
   referenceNo: string,
+  accountNo: string,
   slipFile: Express.Multer.File
 ) => {
   let order;
@@ -70,28 +142,40 @@ export const submitBankTransfer = async (
 
   const bankTransfer = await BankTransfer.create({
     paymentId: payment._id,
+    orderId: order._id,
     userId,
     bankName,
     referenceNo,
+    accountNo,
     slipImageUrl,
     systemRefId: String(payment.transactionRef || ''),
-    ocrStatus: 'PENDING',
+    ocrStatus: OCR_STATUS.PENDING,
   });
 
   try {
     const ocrResult = await processSlipOCR(slipFile.buffer, bankTransfer.systemRefId);
     bankTransfer.ocrText = ocrResult.text;
     bankTransfer.ocrConfidence = ocrResult.confidence;
-    bankTransfer.ocrStatus = ocrResult.isMatch ? 'MATCHED' : 'MISMATCHED';
+    bankTransfer.ocrStatus = ocrResult.isMatch ? OCR_STATUS.MATCHED : OCR_STATUS.MISMATCHED;
+    bankTransfer.extractedAmount = ocrResult.extractedAmount;
+    bankTransfer.extractedDate = ocrResult.extractedDate;
+    bankTransfer.extractedRef = ocrResult.extractedRef;
+    bankTransfer.extractedBank = ocrResult.extractedBank;
+    bankTransfer.extractedAccount = ocrResult.extractedAccount;
     await bankTransfer.save();
   } catch (err) {
-    bankTransfer.ocrStatus = 'FAILED';
+    bankTransfer.ocrStatus = OCR_STATUS.FAILED;
     await bankTransfer.save();
   }
 
-  order.paymentMethod = 'BANK_TRANSFER';
-  order.paymentStatus = 'PENDING';
+  order.paymentMethod = PAYMENT_METHODS.BANK_TRANSFER;
+  order.paymentStatus = PAYMENT_STATUS.PENDING;
+  order.paidAt = new Date();
+  order.bankVerificationStatus = BANK_VERIFICATION_STATUS.PENDING;
   await order.save();
+
+  payment.paidAt = new Date();
+  await payment.save();
 
   return bankTransfer;
 };
@@ -99,7 +183,7 @@ export const submitBankTransfer = async (
 export const verifyTransfer = async (
   transferId: string,
   adminId: string,
-  status: 'APPROVED' | 'REJECTED',
+  status: typeof BANK_VERIFICATION_STATUS.APPROVED | typeof BANK_VERIFICATION_STATUS.REJECTED,
   isSuspicious: boolean,
   internalNotes?: string,
   rejectReason?: string
@@ -120,16 +204,13 @@ export const verifyTransfer = async (
 
   const payment = await Payment.findById(transfer.paymentId);
   if (payment) {
-    payment.status = status === 'APPROVED' ? 'PAID' : 'FAILED';
-    if (status === 'APPROVED') payment.paidAt = new Date();
+    payment.status = status === BANK_VERIFICATION_STATUS.APPROVED ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
     await payment.save();
 
     const order = await Order.findById(payment.orderId);
     if (order) {
-      order.paymentStatus = status === 'APPROVED' ? 'PAID' : 'FAILED';
-      if (status === 'APPROVED' && order.status === 'PENDING') {
-        order.status = 'CONFIRMED';
-      }
+      order.paymentStatus = status === BANK_VERIFICATION_STATUS.APPROVED ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
+      order.bankVerificationStatus = status;
       await order.save();
     }
   }

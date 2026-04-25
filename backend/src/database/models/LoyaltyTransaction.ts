@@ -16,7 +16,15 @@ const loyaltyTransactionSchema = new mongoose.Schema(
         type: Number, 
         required: true, 
     },
-
+    description: {
+        type: String,
+        default: '',
+    },
+    orderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        default: null,
+    },
     expiresAt: { 
         type: Date, 
         default: null, 

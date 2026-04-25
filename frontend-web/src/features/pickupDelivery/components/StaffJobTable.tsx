@@ -54,15 +54,15 @@ export default function StaffJobTable({ jobs, onViewDetails, loading }: StaffJob
         const staff = typeof job.assignedStaffId === 'object' ? (job.assignedStaffId as any) : null;
         const displayName = staff?.name || String(job.assignedStaffId).substring(0, 6);
         const displayInitials = (staff?.name ? staff.name.substring(0, 2) : String(job.assignedStaffId).substring(0, 2)).toUpperCase();
-        
+
         return (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-white flex items-center justify-center text-[10px] font-black shadow-lg">
               {displayInitials}
             </div>
             <div className="flex flex-col">
-               <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{displayName}</span>
-               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Field Agent</span>
+              <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{displayName}</span>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Field Agent</span>
             </div>
           </div>
         );
@@ -94,7 +94,6 @@ export default function StaffJobTable({ jobs, onViewDetails, loading }: StaffJob
     return (
       <div className="w-full bg-white rounded-xl border border-slate-200 shadow-sm p-12 flex flex-col items-center justify-center">
         <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
-          {/* Placeholder for an icon */}
           <Truck size={24} className="text-slate-300" />
         </div>
         <span className="text-slate-500 font-semibold text-lg">No active logistics jobs found</span>

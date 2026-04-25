@@ -15,7 +15,7 @@ router.get('/list', auth, getOnlineTransactionsHandler);
 router.get('/payhere/hash/:orderId', auth, getPayHereHashHandler);
 router.get('/payhere/pre-approval/hash/:orderId', auth, getPayHerePreApprovalHashHandler);
 
-router.post('/payhere/charge-saved-card', auth, chargeSavedCardHandler);
-router.post('/payhere/notify', auth, payhereNotifyHandler);
+router.post('/payhere/charge-saved-card', chargeSavedCardHandler);
+router.post('/payhere/notify', payhereNotifyHandler);
 
 export default router;

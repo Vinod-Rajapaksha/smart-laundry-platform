@@ -9,6 +9,6 @@ export const getJobs = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateStatus = asyncHandler(async (req: Request, res: Response) => {
-  const result = await service.updateJobStatus(req.params.id, req.body.status);
+  const result = await service.updateJobStatus(req.params.id as string, req.body.status);
   return ApiResponse(res, 200, 'Job status updated', result);
 });

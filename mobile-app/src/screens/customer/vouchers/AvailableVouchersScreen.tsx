@@ -7,6 +7,7 @@ import { COLORS } from '../../../theme/colors';
 import styles from './styles/Vouchers.styles';
 import api from '../../../services/api';
 import { voucherService } from '../../../services/customer/voucherService';
+import { notify } from '../../../utils/notify';
 
 interface Voucher {
   _id: string;
@@ -46,29 +47,27 @@ const AvailableVouchersScreen = () => {
 
   const handleApply = async (voucher: Voucher) => {
     if (orderTotal < voucher.minOrderAmount) {
-        Alert.alert(
-            'Ineligible', 
-            `This voucher requires a minimum order of Rs.${voucher.minOrderAmount.toFixed(2)}. Your current total is Rs.${orderTotal.toFixed(2)}.`
-        );
-        return;
+      notify.error(
+        'Ineligible',
+        `This voucher requires a minimum order of Rs.${voucher.minOrderAmount.toFixed(2)}. Your current total is Rs.${orderTotal.toFixed(2)}.`
+      );
+      return;
     }
 
-    // Call backend to apply voucher persistently via voucherService
     try {
-        setLoading(true); // Re-use loading state for the apply action
-        await voucherService.applyVoucherToOrder(orderId, voucher.code);
-        
-        Alert.alert('Success', 'Voucher applied successfully!');
-        
-        // Navigate back
-        router.push({
-            pathname: '/(protected)/(customer)/checkout/order-summary',
-            params: { orderId }
-        });
+      setLoading(true);
+      await voucherService.applyVoucherToOrder(orderId, voucher.code);
+
+      notify.success('Success', 'Voucher applied successfully!');
+
+      router.push({
+        pathname: '/(protected)/(customer)/checkout/order-summary',
+        params: { orderId }
+      });
     } catch (error: any) {
-        Alert.alert('Apply Failed', error.message || 'Could not apply voucher');
+      notify.error('Apply Failed', error.message || 'Could not apply voucher');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -96,12 +95,12 @@ const AvailableVouchersScreen = () => {
           </Text>
         </View>
 
-        <TouchableOpacity 
-            style={[
-                styles.applyButton, 
-                orderTotal < item.minOrderAmount && { backgroundColor: COLORS.TEXT_MUTED }
-            ]}
-            onPress={() => handleApply(item)}
+        <TouchableOpacity
+          style={[
+            styles.applyButton,
+            orderTotal < item.minOrderAmount && { backgroundColor: COLORS.TEXT_MUTED }
+          ]}
+          onPress={() => handleApply(item)}
         >
           <Text style={styles.applyButtonText}>Apply</Text>
         </TouchableOpacity>
@@ -113,7 +112,7 @@ const AvailableVouchersScreen = () => {
     <View style={styles.header}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <TouchableOpacity onPress={() => router.back()}>
-            <ChevronLeft size={24} color={COLORS.TEXT_PRIMARY} />
+          <ChevronLeft size={24} color={COLORS.TEXT_PRIMARY} />
         </TouchableOpacity>
         <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.TEXT_PRIMARY }}>Available Offers</Text>
       </View>

@@ -12,6 +12,8 @@ import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { updateUser } from '../../../store/slices/auth.slice';
+import { notify } from '../../../utils/notify';
+import { profileSchema } from '../../../validation/profile.schema';
 
 const EditProfileScreen = () => {
   const router = useRouter();
@@ -25,6 +27,7 @@ const EditProfileScreen = () => {
   const [email, setEmail] = useState(profile?.email || '');
   const [avatar, setAvatar] = useState(profile?.avatar || null);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -41,19 +44,23 @@ const EditProfileScreen = () => {
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !telephone.trim() || !email.trim()) {
-      Alert.alert('Validation Error', 'All fields are required.');
+    const validation = profileSchema.safeParse({ name, telephone, email });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setSaving(true);
     try {
       let updatedProfile = profile as UserProfile;
 
-      // 1. Update text fields
       updatedProfile = await profileService.updateProfile({ name, telephone, email });
 
-      // 2. Update avatar if changed
       if (avatar && avatar !== profile?.avatar) {
         const formData = new FormData();
         const filename = avatar.split('/').pop() || 'avatar.jpg';
@@ -69,19 +76,15 @@ const EditProfileScreen = () => {
         updatedProfile = await profileService.uploadAvatar(formData);
       }
 
-      // Update global state
       dispatch(updateUser(updatedProfile));
 
-      // Update persistence
       if (user) {
         await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
       }
 
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      notify.alert('Success', 'Profile updated successfully!', () => router.back());
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update profile');
+      notify.error('Update Failed', error.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -132,37 +135,49 @@ const EditProfileScreen = () => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Full Name</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.name && { borderColor: COLORS.ERROR }]}
             value={name}
-            onChangeText={setName}
+            onChangeText={(val) => {
+              setName(val);
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+            }}
             placeholder="Enter your full name"
             placeholderTextColor={COLORS.TEXT_MUTED}
           />
+          {errors.name && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.name}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.telephone && { borderColor: COLORS.ERROR }]}
             value={telephone}
-            onChangeText={setTelephone}
+            onChangeText={(val) => {
+              setTelephone(val);
+              if (errors.telephone) setErrors(prev => ({ ...prev, telephone: '' }));
+            }}
             placeholder="e.g. 0771234567"
             placeholderTextColor={COLORS.TEXT_MUTED}
             keyboardType="phone-pad"
           />
+          {errors.telephone && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.telephone}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email Address</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.email && { borderColor: COLORS.ERROR }]}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(val) => {
+              setEmail(val);
+              if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+            }}
             placeholder="Enter your email"
             placeholderTextColor={COLORS.TEXT_MUTED}
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          {errors.email && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.email}</Text>}
         </View>
 
         <TouchableOpacity

@@ -30,13 +30,11 @@ const StaffSettingsScreen = () => {
   ];
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    notify.confirm(
       'Request Data Deletion',
       'As a staff member, your account deletion must be processed by HR. Would you like to send a request?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Request', onPress: () => notify.success('Sent', 'Deletion request sent to admin.') }
-      ]
+      () => notify.success('Sent', 'Deletion request sent to admin.'),
+      'Send Request'
     );
   };
 

@@ -24,4 +24,4 @@ export interface DashboardKPIs {
   totalCustomers?: number;
 }
 
-export type DateRange = "today" | "week" | "month" | "year";
+export type DateRange = "today" | "yesterday" | "week" | "month" | "year" | "overall";

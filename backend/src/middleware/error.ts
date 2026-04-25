@@ -15,6 +15,10 @@ const errorHandler = (
     return ApiResponse<null>(res, err.statusCode, err.message, null);
   }
 
+  if (err && typeof err === 'object' && 'statusCode' in err) {
+    return ApiResponse<null>(res, (err as any).statusCode, (err as any).message || "An error occurred", null);
+  }
+
   return ApiResponse<null>(res, 500, "Internal Server Error", null);
 };
 

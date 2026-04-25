@@ -43,7 +43,6 @@ export const StatusUpdateContainer = () => {
       await statusUpdateApi.updateStatus(selectedOrder._id, targetStatus);
       toast.success(`Order #${selectedOrder.orderNo} moved to ${targetStatus.replace(/_/g, ' ')}`);
 
-      // Update local state
       setOrders(prev => prev.map(o => o._id === selectedOrder._id ? { ...o, status: targetStatus } : o));
       setSelectedOrder(null);
       setTargetStatus(null);
@@ -55,17 +54,15 @@ export const StatusUpdateContainer = () => {
   };
 
   const filteredOrders = orders.filter((order) => {
-    // Search filter
     const matchesSearch = order.orderNo.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Tab filter
     let matchesTab = true;
     if (activeTab === "In-Process") {
       matchesTab = ([ORDER_STATUS.PICKED_UP, ORDER_STATUS.WASHING, ORDER_STATUS.DRYING, ORDER_STATUS.PROCESSING] as OrderStatus[]).includes(order.status);
     } else if (activeTab === "Completed") {
       matchesTab = ([ORDER_STATUS.READY, ORDER_STATUS.DELIVERED, ORDER_STATUS.DELIVERY_ASSIGNED] as OrderStatus[]).includes(order.status);
     } else if (activeTab === "Cancelled") {
-      matchesTab = ([ORDER_STATUS.CANCELLED, ORDER_STATUS.RETURNED] as OrderStatus[]).includes(order.status);
+      matchesTab = ([ORDER_STATUS.CANCELLED] as OrderStatus[]).includes(order.status);
     }
 
     return matchesSearch && matchesTab;
@@ -73,7 +70,7 @@ export const StatusUpdateContainer = () => {
 
   return (
     <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
-      
+
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <StatusUpdateHeader />
         <div className="flex items-center gap-3 pt-2">
@@ -93,11 +90,10 @@ export const StatusUpdateContainer = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as Tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                activeTab === tab 
-                  ? "bg-white text-blue-600 shadow-sm" 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${activeTab === tab
+                  ? "bg-white text-blue-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-              }`}
+                }`}
             >
               {tab}
             </button>

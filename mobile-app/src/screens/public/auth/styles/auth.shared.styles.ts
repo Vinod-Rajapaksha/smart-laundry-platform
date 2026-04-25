@@ -31,19 +31,6 @@ export const authSharedStyles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  card: {
-    backgroundColor: COLORS.CARD,
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 22,
-    shadowColor: COLORS.SHADOW,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-
   header: {
     alignItems: "center",
     marginBottom: 28,

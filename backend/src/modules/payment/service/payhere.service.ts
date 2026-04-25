@@ -7,8 +7,8 @@ export const generatePayHereHash = (
   amount: number,
   currency: string = 'LKR'
 ) => {
-  const merchantId = env.PAYHERE_MERCHANT_ID;
-  const merchantSecret = env.PAYHERE_SECRET;
+  const merchantId = (env.PAYHERE_MERCHANT_ID || '').trim();
+  const merchantSecret = (env.PAYHERE_SECRET || '').trim();
 
   if (!merchantId || !merchantSecret) {
     throw new ApiError(500, 'PayHere credentials not configured');
@@ -20,11 +20,7 @@ export const generatePayHereHash = (
     .digest('hex')
     .toUpperCase();
 
-  const amountFormatted = parseFloat(amount.toString()).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: false,
-  });
+  const amountFormatted = Number(amount).toFixed(2);
 
   const hashString = `${merchantId}${orderId}${amountFormatted}${currency}${hashedSecret}`;
 

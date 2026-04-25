@@ -8,7 +8,7 @@ interface OrderFiltersProps {
   onSearchChange: (query: string) => void;
 }
 
-const tabs: Tab[] = ["All", "Pending", "Processing", "Completed", "Cancelled"];
+const tabs: Tab[] = ["All", "Pending", "Pickup", "Processing", "Delivery", "Completed", "Cancelled"];
 
 export default function OrderFilters({
   activeTab,

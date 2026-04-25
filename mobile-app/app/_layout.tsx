@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { Provider } from "react-redux";
 import { store } from "../src/store/store";
+import { NotificationWrapper } from "../src/components/notifications/NotificationWrapper";
 
 import { useFonts } from "expo-font";
 import {
@@ -11,6 +12,10 @@ import {
 } from "@expo-google-fonts/inter";
 
 import { ActivityIndicator, View } from "react-native";
+
+import Toast from 'react-native-toast-message';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { AlertProvider } from '../src/context/AlertContext';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -36,7 +41,14 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <PaperProvider>
+        <AlertProvider>
+          <NotificationWrapper>
+            <Stack screenOptions={{ headerShown: false }} />
+          </NotificationWrapper>
+        </AlertProvider>
+      </PaperProvider>
+      <Toast />
     </Provider>
   );
 }

@@ -33,7 +33,6 @@ export default function ProfileContainer() {
       setActionLoading(true);
       await updateProfile(data);
       toast.success("Profile updated");
-      // Update local state
       setProfile(prev => prev ? { ...prev, ...data } : null);
     } catch (error) {
       toast.error("Profile sync failed");
@@ -91,7 +90,6 @@ export default function ProfileContainer() {
   return (
     <div className="w-full max-w-[1256px] mx-auto space-y-8 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
 
-      {/* PROFILE HEADER MAIN */}
       <ProfileHeader />
 
       {/* TABS ENGINE */}

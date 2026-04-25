@@ -2,6 +2,7 @@ export const PAYMENT_METHODS = {
   CARD: 'CARD',
   COD: 'COD',
   BANK_TRANSFER: 'BANK_TRANSFER',
+  NONE: 'NONE',
 } as const;
 
 export type PaymentMethod =

@@ -76,21 +76,25 @@ async function doRefresh(): Promise<RefreshResponse> {
   };
 }
 
-export async function apiFetch<T>( path: string, options: RequestInit = {} ): Promise<T> {
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${env.API_URL}${path}`;
   const accessToken = tokenStorage.getAccess();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(options.headers || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
+
+  if (options.body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
 
   const res = await fetch(url, { ...options, headers });
   const raw = await safeJson(res);
 
   if (res.ok) return unwrapApi(raw) as T;
 
-  if (res.status === 401) {
+  if (res.status === 401 && path !== "/auth/login") {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -128,4 +132,22 @@ export async function apiFetch<T>( path: string, options: RequestInit = {} ): Pr
   }
 
   throw new ApiError(getMessage(raw) ?? "API request failed", res.status, raw);
+}
+
+export async function apiDownload(path: string, options: RequestInit = {}): Promise<Blob> {
+  const url = `${env.API_URL}${path}`;
+  const accessToken = tokenStorage.getAccess();
+  const headers: Record<string, string> = {
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.ok) {
+    return await res.blob();
+  }
+
+  const raw = await safeJson(res);
+  throw new ApiError(getMessage(raw) ?? "Download request failed", res.status, raw);
 }

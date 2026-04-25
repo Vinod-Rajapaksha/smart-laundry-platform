@@ -33,13 +33,10 @@ export default function StaffJobDrawer({ isOpen, onClose, job, onUpdateStatus, l
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 transition-opacity"
         onClick={onClose}
       />
-
-      {/* Drawer */}
       <div className={`fixed inset-y-0 right-0 w-full max-w-[500px] bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] z-50 transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
 
         {/* Header */}

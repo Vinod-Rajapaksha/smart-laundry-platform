@@ -1,13 +1,9 @@
 import { z } from "zod";
 
-export const notificationTypes = ["ORDER_STATUS", "PROMOTION", "SYSTEM", "ALERT"] as const;
+const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
 
-export const createNotificationSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
-  type: z.enum(notificationTypes),
-  title: z.string().min(1, "Title is required"),
-  message: z.string().min(1, "Message is required"),
-  isRead: z.boolean().default(false),
+export const notificationIdParamSchema = z.object({
+  id: objectIdSchema,
 });
 
-export type CreateNotificationInput = z.infer<typeof createNotificationSchema>;
+export type NotificationIdParamInput = z.infer<typeof notificationIdParamSchema>;

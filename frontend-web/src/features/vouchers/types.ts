@@ -1,15 +1,19 @@
 export type DiscountType = "PERCENTAGE" | "FIXED";
+export type VoucherType = "PUBLIC" | "SEASONAL";
 
 export interface Voucher {
   _id: string;
   code: string;
+  voucherType: VoucherType;
   discountType: DiscountType;
   discountValue: number;
-  minOrderValue: number;
+  minOrderAmount?: number;
   maxDiscount?: number;
-  expiryDate: string;
+  usageLimitPerUser?: number;
+  usageLimitTotal?: number;
+  startDate: string;
+  endDate: string;
   isActive: boolean;
-  usageLimit: number;
   usedCount: number;
   createdAt: string;
   updatedAt: string;
