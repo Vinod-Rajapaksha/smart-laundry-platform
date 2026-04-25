@@ -14,6 +14,8 @@ import {
 import { ActivityIndicator, View } from "react-native";
 
 import Toast from 'react-native-toast-message';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { AlertProvider } from '../src/context/AlertContext';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -39,9 +41,13 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <NotificationWrapper>
-        <Stack screenOptions={{ headerShown: false }} />
-      </NotificationWrapper>
+      <PaperProvider>
+        <AlertProvider>
+          <NotificationWrapper>
+            <Stack screenOptions={{ headerShown: false }} />
+          </NotificationWrapper>
+        </AlertProvider>
+      </PaperProvider>
       <Toast />
     </Provider>
   );

@@ -147,10 +147,13 @@ export const markAsOrdered = async (id: string, qty: number) => {
     await sendEmail(supplier.email, subject, body);
   }
 
-  item.isOrderPending = true;
-  await item.save();
+  const updatedItem = await Inventory.findByIdAndUpdate(
+    id,
+    { $set: { isOrderPending: true } },
+    { new: true }
+  );
 
-  return item;
+  return updatedItem;
 };
 
 export const confirmRestock = async (id: string, actualQty?: number) => {

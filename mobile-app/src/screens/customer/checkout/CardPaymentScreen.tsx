@@ -9,6 +9,7 @@ import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import { paymentService } from '../../../services/customer/paymentService';
 import { Switch } from 'react-native';
+import { notify } from '../../../utils/notify';
 
 type PaymentMode = 'SELECT_CARD' | 'NEW_CARD_WEBVIEW' | 'CHARGING_SAVED';
 
@@ -67,7 +68,7 @@ const CardPaymentScreen = () => {
                 params: { success: 'true', orderId, method: 'CARD', total }
             });
         } catch (error: any) {
-            Alert.alert('Payment Failed', error.message || 'Error charging saved card');
+            notify.error('Payment Failed', error.message || 'Error charging saved card');
             setMode('SELECT_CARD');
             setCharging(false);
         }
@@ -80,7 +81,7 @@ const CardPaymentScreen = () => {
             setPayhereParams(data.payhereParams);
             setMode('NEW_CARD_WEBVIEW');
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to initialize payment');
+            notify.error('Error', error.message || 'Failed to initialize payment');
         } finally {
             setLoading(false);
         }
@@ -115,7 +116,7 @@ const CardPaymentScreen = () => {
                 params: { success: 'true', orderId, method: 'CARD', total }
             });
         } else if (url.includes('payment/cancel') || url.includes('/cancel')) {
-            Alert.alert('Payment Cancelled', 'Your payment was not completed.');
+            notify.alert('Payment Cancelled', 'Your payment was not completed.');
             setMode('SELECT_CARD');
         }
     };

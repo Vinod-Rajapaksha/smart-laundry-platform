@@ -24,6 +24,7 @@ router.get('/code/:code', validateParams(voucherCodeParamSchema), controller.get
 
 router.post('/', allowRoles(ROLES.ADMIN), validateBody(createVoucherSchema), controller.createVoucher);
 router.put('/:id', allowRoles(ROLES.ADMIN), validateBody(updateVoucherSchema), controller.updateVoucher);
+router.delete('/:id', allowRoles(ROLES.ADMIN), controller.deleteVoucher);
 router.get('/', controller.getAllVouchers);
 
 export default router;

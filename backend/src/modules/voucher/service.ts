@@ -15,6 +15,12 @@ export const updateVoucher = async (id: string, data: any) => {
   return voucher;
 };
 
+export const deleteVoucher = async (id: string) => {
+  const result = await Voucher.findByIdAndDelete(id);
+  if (!result) throw new ApiError(404, 'Voucher not found');
+  return { success: true };
+};
+
 export const getAllVouchers = async (filter: any = {}) => {
   return Voucher.find(filter).sort({ createdAt: -1 });
 };

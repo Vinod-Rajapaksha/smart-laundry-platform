@@ -16,6 +16,7 @@ import { COLORS } from '../../../theme/colors';
 import { TYPOGRAPHY } from '../../../theme/typography';
 import styles from './styles/Checkout.styles';
 import { paymentService } from '../../../services/customer/paymentService';
+import { notify } from '../../../utils/notify';
 import { bankTransferSchema } from '../../../validation/checkout.schema';
 
 const BankTransferScreen = () => {
@@ -68,7 +69,7 @@ const BankTransferScreen = () => {
     });
 
     if (!validation.success) {
-      Alert.alert('Validation Error', validation.error.issues[0].message);
+      notify.error('Validation Error', validation.error.issues[0].message);
       return;
     }
 
@@ -87,7 +88,7 @@ const BankTransferScreen = () => {
         params: { success: 'true', orderId, method: 'BANK_TRANSFER', total }
       });
     } catch (error: any) {
-      Alert.alert('Submission Failed', error.message || 'Something went wrong while submitting your transfer.');
+      notify.error('Submission Failed', error.message || 'Something went wrong while submitting your transfer.');
     } finally {
       setLoading(false);
     }

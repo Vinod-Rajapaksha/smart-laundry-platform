@@ -5,6 +5,10 @@ import { SUPPLIER_STATUS } from '../../core/constants.js';
 import Supplier from '../../database/models/Supplier.js';
 
 export const createSupplier = async (data: any) => {
+  const existing = await Supplier.findOne({ email: data.email });
+  if (existing) {
+    throw new ApiError(400, 'Supplier with this email already exists');
+  }
   return await Supplier.create(data);
 };
 
@@ -50,6 +54,14 @@ export const getSupplierById = async (id: string) => {
 
 export const updateSupplier = async (id: string, data: any) => {
   if (!mongoose.isValidObjectId(id)) throw new ApiError(400, 'Invalid Supplier ID');
+  
+  if (data.email) {
+    const existing = await Supplier.findOne({ email: data.email, _id: { $ne: id } });
+    if (existing) {
+      throw new ApiError(400, 'Supplier with this email already exists');
+    }
+  }
+
   const supplier = await Supplier.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   if (!supplier) throw new ApiError(404, 'Supplier not found');
   return supplier;

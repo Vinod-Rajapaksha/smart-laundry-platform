@@ -6,6 +6,7 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import { paymentService } from '../../../services/customer/paymentService';
+import { notify } from '../../../utils/notify';
 import api from '../../../services/api';
 
 const SavedCardsScreen = () => {
@@ -31,27 +32,22 @@ const SavedCardsScreen = () => {
     };
 
     const handleDeleteCard = async (id: string) => {
-        Alert.alert(
+        notify.confirm(
             'Delete Card',
             'Are you sure you want to remove this card?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            setDeletingId(id);
-                            await api.delete(`/payments/cards/${id}`);
-                            setCards(prev => prev.filter(c => c._id !== id));
-                        } catch (error: any) {
-                            Alert.alert('Error', error.response?.data?.message || 'Failed to delete card');
-                        } finally {
-                            setDeletingId(null);
-                        }
-                    }
+            async () => {
+                try {
+                    setDeletingId(id);
+                    await api.delete(`/payments/cards/${id}`);
+                    setCards(prev => prev.filter(c => c._id !== id));
+                    notify.success('Success', 'Card removed successfully');
+                } catch (error: any) {
+                    notify.error('Error', error.response?.data?.message || 'Failed to delete card');
+                } finally {
+                    setDeletingId(null);
                 }
-            ]
+            },
+            'Delete'
         );
     };
 

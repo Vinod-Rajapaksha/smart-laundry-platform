@@ -12,6 +12,7 @@ import profileService from '../../../services/customer/profileService';
 import { UserProfile } from '../../../types/user.types';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { updateUser } from '../../../store/slices/auth.slice';
+import { notify } from '../../../utils/notify';
 import { profileSchema } from '../../../validation/profile.schema';
 
 const EditProfileScreen = () => {
@@ -81,11 +82,9 @@ const EditProfileScreen = () => {
         await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
       }
 
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      notify.alert('Success', 'Profile updated successfully!', () => router.back());
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update profile');
+      notify.error('Update Failed', error.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }

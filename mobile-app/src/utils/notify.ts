@@ -1,9 +1,6 @@
 import Toast from 'react-native-toast-message';
-import { Alert } from 'react-native';
+import { globalAlert } from '../context/AlertContext';
 
-/**
- * Global utility for showing premium notifications, toasts and alerts.
- */
 export const notify = {
   success: (title: string, message?: string) => {
     Toast.show({
@@ -41,44 +38,21 @@ export const notify = {
     });
   },
 
-  /**
-   * Premium Alert Dialog
-   */
   alert: (title: string, message: string, onConfirm?: () => void) => {
-    Alert.alert(
+    globalAlert.show({
       title,
       message,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'OK',
-          onPress: onConfirm,
-        },
-      ],
-      { cancelable: true }
-    );
+      onConfirm
+    });
   },
 
   confirm: (title: string, message: string, onConfirm: () => void, confirmText = 'Confirm') => {
-    Alert.alert(
+    globalAlert.show({
       title,
       message,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: confirmText,
-          style: 'destructive',
-          onPress: onConfirm,
-        },
-      ],
-      { cancelable: false }
-    );
+      confirmText,
+      onConfirm
+    });
   }
 };
 

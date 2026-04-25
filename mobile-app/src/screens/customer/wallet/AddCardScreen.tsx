@@ -7,6 +7,7 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Loading from '../../../components/common/Loading';
 import { COLORS } from '../../../theme/colors';
 import api from '../../../services/api';
+import { notify } from '../../../utils/notify';
 
 const AddCardScreen = () => {
     const router = useRouter();
@@ -27,7 +28,7 @@ const AddCardScreen = () => {
                 setParams(response.data.data);
             }
         } catch (error: any) {
-            Alert.alert('Error', 'Failed to initialize secure gateway');
+            notify.error('Error', 'Failed to initialize secure gateway');
             router.back();
         } finally {
             setLoading(false);
@@ -76,9 +77,7 @@ const AddCardScreen = () => {
     const handleNavigationChange = (navState: WebViewNavigation) => {
         const { url } = navState;
         if (url.includes('payment/success') || url.includes('/success')) {
-            Alert.alert('Success', 'Card added and verified successfully!', [
-                { text: 'OK', onPress: () => router.back() }
-            ]);
+            notify.alert('Success', 'Card added and verified successfully!', () => router.back());
         } else if (url.includes('payment/cancel') || url.includes('/cancel')) {
             router.back();
         }
