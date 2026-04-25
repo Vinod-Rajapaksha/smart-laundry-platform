@@ -35,6 +35,13 @@ export const profileService = {
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to change password');
     }
+  },
+  
+  deleteProfile: async (): Promise<void> => {
+    const response = await api.delete('/users/profile');
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to delete account');
+    }
   }
 };
 

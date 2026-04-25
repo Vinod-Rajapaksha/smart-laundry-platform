@@ -35,7 +35,7 @@ const BankTransferScreen = () => {
       const data = await paymentService.initBankTransfer(orderId as string);
       setBankInfo(data);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      notify.error('Error', error.message);
       router.back();
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ const BankTransferScreen = () => {
 
   const handleCopy = async (text: string, label: string) => {
     await Clipboard.setStringAsync(text);
-    Alert.alert('Copied', `${label} copied to clipboard`);
+    notify.success('Copied', `${label} copied to clipboard`);
   };
 
   const handlePickImage = async () => {
@@ -193,7 +193,7 @@ const BankTransferScreen = () => {
                   <UploadCloud size={32} color={COLORS.TEXT_MUTED} />
                 </View>
                 <Text style={styles.uploadTitle}>Click to upload or drag and drop</Text>
-                <Text style={styles.uploadDesc}>PDF, JPG, or PNG (Max. 5MB)</Text>
+                <Text style={styles.uploadDesc}>JPG or PNG (Max. 5MB)</Text>
               </>
             )}
           </TouchableOpacity>

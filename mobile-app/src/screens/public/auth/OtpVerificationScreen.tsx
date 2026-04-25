@@ -6,6 +6,7 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/auth.styles';
 import api from '../../../services/api';
+import { notify } from '../../../utils/notify';
 
 const OtpVerificationScreen = () => {
   const router = useRouter();
@@ -31,7 +32,6 @@ const OtpVerificationScreen = () => {
     newOtp[index] = text;
     setOtp(newOtp);
 
-    // Auto-focus next input
     if (text.length !== 0 && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -46,7 +46,7 @@ const OtpVerificationScreen = () => {
   const handleVerify = async () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) {
-      Alert.alert('Error', 'Please enter the full 6-digit OTP');
+      notify.error('Error', 'Please enter the full 6-digit OTP');
       return;
     }
 
@@ -61,7 +61,7 @@ const OtpVerificationScreen = () => {
         });
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Invalid OTP');
+      notify.error('Error', error.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
@@ -73,9 +73,9 @@ const OtpVerificationScreen = () => {
     try {
       await api.post('/auth/forgot-password', { email });
       setTimer(60);
-      Alert.alert('Success', 'A new OTP has been sent to your phone.');
+      notify.success('Success', 'A new OTP has been sent to your phone.');
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to resend OTP');
+      notify.error('Error', 'Failed to resend OTP');
     }
   };
 

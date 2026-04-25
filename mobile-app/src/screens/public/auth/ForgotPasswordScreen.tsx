@@ -7,6 +7,7 @@ import Input from '../../../components/common/Input';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/auth.styles';
 import api from '../../../services/api';
+import { notify } from '../../../utils/notify';
 
 const ForgotPasswordScreen = () => {
   const router = useRouter();
@@ -15,7 +16,7 @@ const ForgotPasswordScreen = () => {
 
   const handleSendOtp = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      notify.error('Error', 'Please enter your email address');
       return;
     }
 
@@ -30,7 +31,7 @@ const ForgotPasswordScreen = () => {
         });
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to send OTP');
+      notify.error('Error', error.response?.data?.message || 'Failed to send OTP');
     } finally {
       setLoading(false);
     }

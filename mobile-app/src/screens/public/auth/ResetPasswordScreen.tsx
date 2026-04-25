@@ -7,6 +7,7 @@ import Input from '../../../components/common/Input';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/auth.styles';
 import api from '../../../services/api';
+import { notify } from '../../../utils/notify';
 
 const ResetPasswordScreen = () => {
   const router = useRouter();
@@ -18,11 +19,11 @@ const ResetPasswordScreen = () => {
 
   const handleReset = async () => {
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      notify.error('Error', 'Password must be at least 6 characters long');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      notify.error('Error', 'Passwords do not match');
       return;
     }
 
@@ -35,12 +36,12 @@ const ResetPasswordScreen = () => {
       });
 
       if (response.data.success) {
-        Alert.alert('Success', 'Your password has been reset successfully.', [
-          { text: 'Login Now', onPress: () => router.push('/(public)/auth/login') }
-        ]);
+        notify.alert('Success', 'Your password has been reset successfully.', () => {
+          router.push('/(public)/auth/login');
+        });
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to reset password');
+      notify.error('Error', error.response?.data?.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }

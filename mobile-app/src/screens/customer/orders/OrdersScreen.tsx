@@ -11,6 +11,7 @@ import OrderCard from '../../../components/customer/OrderCard';
 import FeedbackModal from '../../../components/customer/FeedbackModal';
 import { Feedback } from '../../../types/feedback.types';
 import feedbackService from '../../../services/customer/feedbackService';
+import { notify } from '../../../utils/notify';
 
 const FILTERS = ['Active', 'All', 'Completed', 'Cancelled'];
 
@@ -110,27 +111,21 @@ const OrdersScreen = () => {
   };
 
   const handleCancelPress = (order: Order) => {
-    Alert.alert(
+    notify.confirm(
       'Cancel Order',
       `Are you sure you want to cancel order #${order.orderNo}? If you have already made any payment, it will not be refunded.`,
-      [
-        { text: 'No, Keep it', style: 'cancel' },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await orderService.cancelOrder(order._id);
-              Alert.alert('Success', 'Order cancelled successfully');
-              fetchOrders();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to cancel order');
-              setLoading(false);
-            }
-          }
+      async () => {
+        try {
+          setLoading(true);
+          await orderService.cancelOrder(order._id);
+          notify.success('Success', 'Order cancelled successfully');
+          fetchOrders();
+        } catch (error: any) {
+          notify.error('Error', error.message || 'Failed to cancel order');
+          setLoading(false);
         }
-      ]
+      },
+      'Yes, Cancel'
     );
   };
 

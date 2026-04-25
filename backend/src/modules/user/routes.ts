@@ -20,6 +20,7 @@ router.get('/profile', controller.getProfile);
 router.put('/profile', validateBody(updateUserSchema), controller.updateProfile);
 router.post('/profile/avatar', upload.single('avatar'), controller.uploadAvatar);
 router.post('/profile/change-password', controller.changePassword);
+router.delete('/profile', controller.deleteProfile);
 
 router.get(
   '/',

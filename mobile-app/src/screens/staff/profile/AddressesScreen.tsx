@@ -10,6 +10,7 @@ import { COLORS } from '../../../theme/colors';
 import styles from './styles/Profile.styles';
 import profileService from '../../../services/customer/profileService';
 import { osmService } from '../../../services/maps/osmService';
+import { notify } from '../../../utils/notify';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { updateUser } from '../../../store/slices/auth.slice';
 import { addressSchema } from '../../../validation/address.schema';
@@ -109,11 +110,11 @@ const StaffAddressesScreen = () => {
         await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
       }
 
-      Alert.alert('Success', 'Work location updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      notify.alert('Success', 'Work location updated successfully!', () => {
+        router.back();
+      });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update address');
+      notify.error('Error', error.message || 'Failed to update address');
     } finally {
       setSaving(false);
     }

@@ -7,6 +7,7 @@ import Input from '../../../components/common/Input';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Vouchers.styles';
 import api from '../../../services/api';
+import { notify } from '../../../utils/notify';
 
 const RedeemVoucherScreen = () => {
   const router = useRouter();
@@ -16,13 +17,12 @@ const RedeemVoucherScreen = () => {
 
   const handleRedeem = async () => {
     if (!code) {
-      Alert.alert('Error', 'Please enter a voucher code');
+      notify.error('Error', 'Please enter a voucher code');
       return;
     }
 
     try {
       setLoading(true);
-      // Validate voucher with a mock amount of 1000 for checking viability
       const response = await api.post('/promotions/validate', { code, orderAmount: 1000 });
 
       if (response.data.success) {
@@ -32,7 +32,7 @@ const RedeemVoucherScreen = () => {
         }, 2000);
       }
     } catch (error: any) {
-      Alert.alert('Invalid Code', error.response?.data?.message || 'This voucher cannot be redeemed.');
+      notify.error('Invalid Code', error.response?.data?.message || 'This voucher cannot be redeemed.');
     } finally {
       setLoading(false);
     }

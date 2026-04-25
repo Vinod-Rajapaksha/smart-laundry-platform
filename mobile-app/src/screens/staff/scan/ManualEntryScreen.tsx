@@ -6,6 +6,7 @@ import Input from '../../../components/common/Input';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import { scanService } from '../../../services/staff/scanService';
+import { notify } from '../../../utils/notify';
 
 const ManualEntryScreen = () => {
   const router = useRouter();
@@ -16,7 +17,7 @@ const ManualEntryScreen = () => {
 
   const handleManualSearch = async () => {
     if (!orderId) {
-      Alert.alert('Error', 'Please enter a valid Order Number');
+      notify.error('Error', 'Please enter a valid Order Number');
       return;
     }
 
@@ -33,7 +34,7 @@ const ManualEntryScreen = () => {
       });
 
     } catch (error: any) {
-      Alert.alert('Search Failed', error.message || 'Order not found');
+      notify.error('Search Failed', error.message || 'Order not found');
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,7 @@ import { commonStyles } from './styles/common.styles';
 import styles from './styles/ServiceDetails.styles';
 import { reservationService } from '../../../services/customer/reservationService';
 import { Service, InventoryItem } from '../../../types/reservation.types';
+import { notify } from '../../../utils/notify';
 
 const ServiceDetailsScreen = () => {
     const router = useRouter();
@@ -42,24 +43,21 @@ const ServiceDetailsScreen = () => {
             setServices(servicesData);
             setOptions([...detergentData, ...softenerData, ...finishingData]);
 
-            // Handle pre-selected service
             if (preSelectedId && !serviceId) {
                 dispatch(setServiceId(preSelectedId));
             }
 
-            // Use auth user address for default if reservation address is empty
             if (!pickupAddress && user?.address) {
                 dispatch(setAddress({ pickup: user.address, delivery: user.address }));
             }
         } catch (error) {
             console.error('Error fetching initial data:', error);
-            Alert.alert('Error', 'Failed to load services. Please try again.');
+            notify.error('Error', 'Failed to load services. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Keep address in sync if user updates it in profile while reservation is active
     useEffect(() => {
         if (!pickupAddress && user?.address) {
             dispatch(setAddress({ pickup: user.address, delivery: user.address }));
@@ -81,10 +79,10 @@ const ServiceDetailsScreen = () => {
     const totals = calculateTotals();
 
     const handleConfirm = async () => {
-        if (!serviceId) return Alert.alert('Error', 'Please select a service');
-        if (!weightKg || weightKg <= 0) return Alert.alert('Error', 'Please enter a valid weight');
+        if (!serviceId) return notify.error('Error', 'Please select a service');
+        if (!weightKg || weightKg <= 0) return notify.error('Error', 'Please enter a valid weight');
         if (serviceMode === 'PICKUP_DELIVERY' && (!pickupAddress || !deliveryAddress)) {
-            return Alert.alert('Error', 'Please provide pickup and delivery addresses');
+            return notify.error('Error', 'Please provide pickup and delivery addresses');
         }
 
         try {
@@ -115,7 +113,7 @@ const ServiceDetailsScreen = () => {
                 params: { orderId: newOrder._id }
             });
         } catch (error: any) {
-            Alert.alert('Order Failed', error.message || 'Something went wrong');
+            notify.error('Order Failed', error.message || 'Something went wrong');
         } finally {
             setSubmitting(false);
         }

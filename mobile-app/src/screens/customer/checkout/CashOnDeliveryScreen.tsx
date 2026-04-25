@@ -9,6 +9,7 @@ import { COLORS } from '../../../theme/colors';
 import { TYPOGRAPHY } from '../../../theme/typography';
 import styles from './styles/Checkout.styles';
 import { paymentService } from '../../../services/customer/paymentService';
+import { notify } from '../../../utils/notify';
 
 const CashOnDeliveryScreen = () => {
   const router = useRouter();
@@ -25,7 +26,7 @@ const CashOnDeliveryScreen = () => {
         params: { success: 'true', orderId, method: 'COD', total }
       });
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      notify.error('Error', error.message);
     } finally {
       setLoading(false);
     }

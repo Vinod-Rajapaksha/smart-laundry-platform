@@ -11,6 +11,7 @@ import styles from './styles/Checkout.styles';
 import { orderService } from '../../../services/customer/orderService';
 import { voucherService } from '../../../services/customer/voucherService';
 import { Order } from '../../../types/order.types';
+import { notify } from '../../../utils/notify';
 
 const OrderSummaryScreen = () => {
     const router = useRouter();
@@ -36,7 +37,7 @@ const OrderSummaryScreen = () => {
             }
         } catch (error) {
             console.error('Failed to fetch order details:', error);
-            Alert.alert('Error', 'Failed to load order summary');
+            notify.error('Error', 'Failed to load order summary');
         } finally {
             setLoading(false);
         }
@@ -53,9 +54,9 @@ const OrderSummaryScreen = () => {
 
             setVoucherCode('');
             setShowVoucherInput(false);
-            Alert.alert('Success', 'Voucher applied successfully!');
+            notify.success('Success', 'Voucher applied successfully!');
         } catch (error: any) {
-            Alert.alert('Voucher Error', error.message || 'Invalid voucher code');
+            notify.error('Voucher Error', error.message || 'Invalid voucher code');
         } finally {
             setIsApplyingVoucher(false);
         }
