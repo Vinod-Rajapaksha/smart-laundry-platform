@@ -38,6 +38,28 @@ export const paymentService = {
     });
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to charge saved card');
+  },
+
+  submitBankTransfer: async (orderId: string, bankName: string, referenceNo: string, slipUri: string) => {
+    const formData = new FormData();
+    formData.append('orderId', orderId);
+    formData.append('bankName', bankName);
+    formData.append('referenceNo', referenceNo);
+
+    formData.append('slipFile', {
+      uri: slipUri,
+      type: 'image/jpeg',
+      name: 'slip.jpg',
+    } as any);
+
+    const response = await api.post('/payments/bank/submit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.data.success) return response.data.data;
+    throw new Error(response.data.message || 'Failed to submit bank transfer');
   }
 };
 

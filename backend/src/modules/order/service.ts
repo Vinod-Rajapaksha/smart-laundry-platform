@@ -3,10 +3,11 @@ import PDFDocument from 'pdfkit';
 import Order from '../../database/models/Order.js';
 import Service from '../../database/models/Service.js';
 import Inventory from '../../database/models/Inventory.js';
+import CashOnDelivery from '../../database/models/CashOnDelivery.js';
+import Payment from '../../database/models/Payment.js';
 import ApiError from '../../core/apiError.js';
 import { PAYMENT_STATUS, ORDER_STATUS, DEFAULT_PAGINATION, LOYALTY_RULES, NOTIFICATION_TYPES } from '../../core/constants.js';
 import { generateOrderNo } from '../../utils/reference.js';
-import { getIO } from '../../core/socket.js';
 import * as voucherService from '../voucher/service.js';
 import * as loyaltyService from '../loyalty/loyalty.service.js';
 import { createNotification } from '../notification/service.js';
@@ -97,19 +98,21 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
   });
 
   // Notify Admins
-  try {
-    const User = await import('../../database/models/User.js').then(m => m.default);
-    const admins = await User.find({ role: 'ADMIN' });
-    for (const admin of admins) {
-      await createNotification(admin._id.toString(), {
-        title: 'New Order Received',
-        message: `A new order ${order.orderNo} has been placed by a customer.`,
-        type: NOTIFICATION_TYPES.ORDER_UPDATE,
-        data: { orderId: order._id }
-      });
+  if (order.paymentMethod !== 'NONE') {
+    try {
+      const User = await import('../../database/models/User.js').then(m => m.default);
+      const admins = await User.find({ role: 'ADMIN' });
+      for (const admin of admins) {
+        await createNotification(admin._id.toString(), {
+          title: 'New Order Received',
+          message: `A new order ${order.orderNo} has been placed by a customer.`,
+          type: NOTIFICATION_TYPES.ORDER_UPDATE,
+          data: { orderId: order._id }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to notify admins:', e);
     }
-  } catch (e) {
-    console.error('Failed to notify admins:', e);
   }
 
   return order;
@@ -152,10 +155,15 @@ export const getAvailableOrders = async (query: any) => {
   const l = parseInt(limit as string) || DEFAULT_PAGINATION.LIMIT;
   const skip = (p - 1) * l;
 
-  const filter = {
+  const filter: any = {
     staffId: null,
     status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.READY] },
-    isActive: true
+    isActive: true,
+    $or: [
+      { paymentMethod: 'COD' },
+      { paymentStatus: PAYMENT_STATUS.PAID }
+    ],
+    paymentMethod: { $ne: 'NONE' }
   };
 
   const [orders, total] = await Promise.all([
@@ -249,6 +257,44 @@ export const notifyArrival = async (orderId: string, staffId: string) => {
 export const updateOrderStatus = async (id: string, status: string, updateBy: string) => {
   const updateData: any = { status, updateBy };
 
+  const orderToUpdate = await Order.findById(id);
+  if (!orderToUpdate) throw new ApiError(404, 'Order not found');
+
+  if (status === ORDER_STATUS.PICKED_UP && orderToUpdate.paymentMethod === 'COD') {
+    updateData.paymentStatus = PAYMENT_STATUS.PAID;
+    updateData.paidAt = new Date();
+
+    try {
+      await CashOnDelivery.findOneAndUpdate(
+        { orderId: id },
+        {
+          $set: {
+            status: PAYMENT_STATUS.PAID,
+            collectedBy: updateBy,
+            collectedAt: new Date()
+          }
+        }
+      );
+
+      // 2. Update Central Payment Record
+      await Payment.findOneAndUpdate(
+        { orderId: id, method: 'COD' },
+        {
+          $set: {
+            status: PAYMENT_STATUS.PAID,
+            paidAt: new Date()
+          }
+        }
+      );
+
+      // 3. Award Loyalty Points
+      await loyaltyService.awardLoyaltyPoints(orderToUpdate.userId.toString(), 10, orderToUpdate._id.toString());
+
+    } catch (e) {
+      console.error('Failed to update COD financial records:', e);
+    }
+  }
+
   if (status === ORDER_STATUS.HANDED_OVER) {
     updateData.staffId = null;
   }
@@ -275,6 +321,18 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
 
   if (status === ORDER_STATUS.DELIVERED) {
     try {
+      const { deductStockForOrder } = await import('../inventory/service.js');
+      await deductStockForOrder(
+        order._id.toString(),
+        order.serviceId.toString(),
+        order.options,
+        order.weightKg || 1
+      );
+    } catch (e) {
+      console.error('Failed to deduct stock on delivery:', e);
+    }
+
+    try {
       await loyaltyService.awardLoyaltyPoints(
         order.userId.toString(),
         LOYALTY_RULES.POINTS_PER_ORDER || 10,
@@ -285,6 +343,33 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
     }
   }
 
+  return order;
+};
+
+export const cancelOrder = async (id: string, userId: string) => {
+  const order = await Order.findOne({ _id: id, userId });
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (
+    order.status === ORDER_STATUS.CANCELLED ||
+    order.status === ORDER_STATUS.DELIVERED ||
+    order.status === ORDER_STATUS.HANDED_OVER
+  ) {
+    throw new ApiError(400, 'Order cannot be cancelled at this stage');
+  }
+
+  if (order.paymentMethod === 'COD' && order.status !== ORDER_STATUS.ORDER_PLACED) {
+    throw new ApiError(400, 'Order already being processed and cannot be cancelled');
+  }
+
+  if (order.paymentStatus === PAYMENT_STATUS.PAID && order.status !== ORDER_STATUS.ORDER_PLACED) {
+    throw new ApiError(400, 'Paid orders in progress cannot be cancelled');
+  }
+
+  order.status = ORDER_STATUS.CANCELLED;
+  await order.save();
   return order;
 };
 
@@ -306,6 +391,14 @@ export const getMyOrders = async (userId: string, query: any) => {
 
   const filter: any = { userId };
   if (status) filter.status = status;
+
+  if (query.excludeStatus) {
+    if (Array.isArray(query.excludeStatus)) {
+      filter.status = { ...filter.status, $nin: query.excludeStatus };
+    } else {
+      filter.status = { ...filter.status, $ne: query.excludeStatus };
+    }
+  }
 
   const [orders, total] = await Promise.all([
     Order.find(filter)

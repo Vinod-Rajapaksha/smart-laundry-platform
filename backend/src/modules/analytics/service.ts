@@ -39,8 +39,7 @@ export const getDashboardKPIs = async () => {
         status: { $in: [
             ORDER_STATUS.READY, 
             ORDER_STATUS.DELIVERY_ASSIGNED, 
-            ORDER_STATUS.DELIVERY_ON_THE_WAY, 
-            ORDER_STATUS.ON_THE_WAY
+            ORDER_STATUS.DELIVERY_ON_THE_WAY
         ]} 
     }),
     Order.aggregate([
@@ -297,13 +296,23 @@ export const getStaffDashboardStats = async () => {
 
   const [pickups, processing, deliveries, completedToday] = await Promise.all([
     Order.countDocuments({ 
-      status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PICKUP_ASSIGNED, ORDER_STATUS.PICKUP_ON_THE_WAY] } 
+      status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PICKUP_ASSIGNED, ORDER_STATUS.PICKUP_ON_THE_WAY] },
+      $or: [
+        { paymentMethod: 'COD' },
+        { paymentStatus: 'PAID' }
+      ],
+      paymentMethod: { $ne: 'NONE' }
     }),
     Order.countDocuments({ 
       status: { $in: [ORDER_STATUS.PICKED_UP, ORDER_STATUS.WASHING, ORDER_STATUS.DRYING, ORDER_STATUS.PROCESSING] } 
     }),
     Order.countDocuments({ 
-      status: { $in: [ORDER_STATUS.READY, ORDER_STATUS.DELIVERY_ASSIGNED, ORDER_STATUS.DELIVERY_ON_THE_WAY, ORDER_STATUS.ON_THE_WAY] } 
+      status: { $in: [ORDER_STATUS.READY, ORDER_STATUS.DELIVERY_ASSIGNED, ORDER_STATUS.DELIVERY_ON_THE_WAY] },
+      $or: [
+        { paymentMethod: 'COD' },
+        { paymentStatus: 'PAID' }
+      ],
+      paymentMethod: { $ne: 'NONE' }
     }),
     Order.countDocuments({ 
       status: ORDER_STATUS.DELIVERED,

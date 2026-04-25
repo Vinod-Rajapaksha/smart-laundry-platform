@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Check, PlusCircle } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import AppHeader from '../../../components/common/AppHeader';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { toggleOption, prevStep } from '../../../store/slices/customer/reservation.slice';
 import { COLORS } from '../../../theme/colors';
@@ -15,7 +16,7 @@ const AddOnsScreen = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { selectedOptions } = useAppSelector((state) => state.reservation);
-    
+
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -44,18 +45,16 @@ const AddOnsScreen = () => {
     };
 
     const header = (
-        <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                <ChevronLeft size={24} color={COLORS.TEXT_PRIMARY} />
-            </TouchableOpacity>
-            <Text style={[commonStyles.title, { marginBottom: 0, fontSize: 20 }]}>Extra Add-ons</Text>
-        </View>
+        <AppHeader
+            title="Extra Add-ons"
+            onBackPress={() => router.back()}
+        />
     );
 
     const footer = (
         <View style={commonStyles.footer}>
-            <TouchableOpacity 
-                style={commonStyles.primaryButton} 
+            <TouchableOpacity
+                style={commonStyles.primaryButton}
                 onPress={() => router.back()}
             >
                 <Text style={commonStyles.primaryButtonText}>Apply Selections</Text>
@@ -66,7 +65,7 @@ const AddOnsScreen = () => {
     const renderItem = ({ item }: { item: InventoryItem }) => {
         const isSelected = selectedOptions.some(o => o.inventoryId === item._id);
         return (
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={[
                     styles.card,
                     isSelected && styles.cardActive

@@ -17,6 +17,7 @@ import {
   Star,
   Warehouse,
   User,
+  Layers,
 } from "lucide-react";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
@@ -67,6 +68,12 @@ const navItems: NavItem[] = [
     label: "Services",
     path: "/admin/services",
     icon: <WashingMachine size={18} />,
+  },
+  {
+    id: "categories",
+    label: "Categories",
+    path: "/admin/categories",
+    icon: <Layers size={18} />,
   },
   {
     id: "inventory",

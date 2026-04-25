@@ -5,6 +5,7 @@ interface ServiceInput {
   categoryId: string;
   name: string;
   price: number;
+  inventoryItems?: { itemId: string; quantity: number }[];
 }
 
 export const createService = async (input: ServiceInput) => {

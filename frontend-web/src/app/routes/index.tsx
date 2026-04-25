@@ -21,6 +21,7 @@ import CODPage from "../../features/payments/pages/CODPage";
 import BankTransferPage from "../../features/payments/pages/BankTransferPage";
 import BankVerificationPage from "../../features/bank-verification/pages/BankVerificationPage";
 import ServicesPage from "../../features/services/pages/ServicesPage";
+import CategoryPage from "../../features/category/pages/CategoryPage";
 import InventoryPage from "../../features/inventory/pages/InventoryPage";
 import SupplierPage from "../../features/suppliers/pages/SupplierPage";
 import StatusUpdatePage from "../../features/status-update/pages/StatusUpdatePage";
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
               },
               { path: "bank-verification", element: <BankVerificationPage /> },
               { path: "services", element: <ServicesPage /> },
+              { path: "categories", element: <CategoryPage /> },
               { path: "inventory", element: <InventoryPage /> },
               { path: "suppliers", element: <SupplierPage /> },
               { path: "status-update", element: <StatusUpdatePage /> },

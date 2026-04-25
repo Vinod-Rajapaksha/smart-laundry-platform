@@ -2,12 +2,16 @@ export interface LaundryService {
   _id: string;
   name: string;
   category: "Wash & Fold" | "Dry Cleaning" | "Ironing" | "Premium Care" | "Other";
-  unit: 'KG' | 'PCS' | 'SET';
+  unit: 'KG' | 'PCS' | 'SET' | 'L' | 'ML';
   basePrice: number;
   estimatedHours: number;
   isActive: boolean;
   isPopular: boolean;
   description: string | null;
+  inventoryItems?: {
+    itemId: string;
+    quantity: number;
+  }[];
   createdAt: string;
   updatedAt: string;
 }

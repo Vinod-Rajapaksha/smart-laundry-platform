@@ -1,23 +1,17 @@
 import { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { MapPin, Navigation, Clock, Package, Tag, ExternalLink, ChevronRight, LayoutList } from 'lucide-react-native';
+import { MapPin, Navigation, Clock, Package, Tag, ExternalLink, ChevronRight, LayoutList, History, ArrowLeft } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from '../styles/Staff.styles';
 import { staffOrderService, StaffOrder } from '../../../services/staff/staffOrderService';
 import { notify } from '../../../utils/notify';
 
-/**
- * Orchestrator Screen for Staff Orders.
- * Dynamically switches between:
- * 1. Assigned Orders (My Tasks) - If active assignments exist or filtered.
- * 2. Available Orders - If no active tasks, allowing them to claim new ones.
- */
 const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const type = forcedType || params.type; // 'pickup', 'delivery', 'history', 'available'
+  const type = forcedType || params.type;
   const [activeTab, setActiveTab] = useState<'assigned' | 'available'>('assigned');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,13 +20,18 @@ const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
 
   const loadAllData = async () => {
     try {
-      setLoading(true);
+      if (!refreshing) setLoading(true);
+
+      const activeStatuses = [
+        'PICKUP_ASSIGNED', 'PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED', 'PICKED_UP', 'HANDED_OVER',
+        'READY', 'DELIVERY_ASSIGNED', 'DELIVERY_ON_THE_WAY', 'DELIVERY_ARRIVED'
+      ];
 
       const [assigned, available] = await Promise.all([
         staffOrderService.getAssignedTasks(
-          type === 'pickup' ? ['PICKUP_ASSIGNED', 'PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED', 'PICKED_UP', 'HANDED_OVER'] : 
-          type === 'delivery' ? ['READY', 'DELIVERY_ASSIGNED', 'DELIVERY_ON_THE_WAY', 'DELIVERY_ARRIVED'] : 
-          type === 'history' ? ['DELIVERED'] : undefined
+          type === 'pickup' ? ['PICKUP_ASSIGNED', 'PICKUP_ON_THE_WAY', 'PICKUP_ARRIVED', 'PICKED_UP', 'HANDED_OVER'] :
+            type === 'delivery' ? ['READY', 'DELIVERY_ASSIGNED', 'DELIVERY_ON_THE_WAY', 'DELIVERY_ARRIVED'] :
+              type === 'history' ? ['DELIVERED'] : activeStatuses
         ),
         staffOrderService.getAvailableOrders()
       ]);
@@ -40,7 +39,6 @@ const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
       setAssignedTasks(assigned);
       setAvailableOrders(available);
 
-      // Auto-switch tab if one list is empty and the other isn't (on default view)
       if (!type) {
         if (assigned.length === 0 && available.length > 0) {
           setActiveTab('available');
@@ -88,19 +86,21 @@ const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
       <View style={styles.orderHeader}>
         <Text style={styles.orderNo}>#{item.orderNo}</Text>
         <View style={[
-          styles.statusBadge, 
-          { backgroundColor: 
-            item.status.includes('ARRIVED') ? '#DCFCE7' : 
-            item.status.includes('THE_WAY') ? '#FEF3C7' : 
-            item.status === 'PICKED_UP' ? '#F0F9FF' : '#F1F5F9' 
+          styles.statusBadge,
+          {
+            backgroundColor:
+              item.status.includes('ARRIVED') ? '#DCFCE7' :
+                item.status.includes('THE_WAY') ? '#FEF3C7' :
+                  item.status === 'PICKED_UP' ? '#F0F9FF' : '#F1F5F9'
           }
         ]}>
           <Text style={[
-            styles.statusText, 
-            { color: 
-              item.status.includes('ARRIVED') ? '#16A34A' : 
-              item.status.includes('THE_WAY') ? '#92400E' : 
-              item.status === 'PICKED_UP' ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY 
+            styles.statusText,
+            {
+              color:
+                item.status.includes('ARRIVED') ? '#16A34A' :
+                  item.status.includes('THE_WAY') ? '#92400E' :
+                    item.status === 'PICKED_UP' ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY
             }
           ]}>{item.status.replace(/_/g, ' ')}</Text>
         </View>
@@ -203,15 +203,62 @@ const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
 
   const header = (
     <View style={styles.header}>
-      <Text style={styles.sectionTitle}>{getTitle()}</Text>
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: !type ? 15 : 0
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {type ? (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{
+                marginRight: 12,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#F8FAFC',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: '#F1F5F9'
+              }}
+            >
+              <ArrowLeft size={20} color={COLORS.TEXT_PRIMARY} />
+            </TouchableOpacity>
+          ) : null}
+          <Text style={[styles.sectionTitle, { marginHorizontal: 0, marginBottom: 0 }]}>
+            {getTitle()}
+          </Text>
+        </View>
+
+        {type !== 'history' && (
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/(protected)/(staff)/orders', params: { type: 'history' } })}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              backgroundColor: COLORS.PRIMARY_SOFT,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <History size={22} color={COLORS.PRIMARY} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {!type && (
-        <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginTop: 10, gap: 10 }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10 }}>
           <TouchableOpacity
             style={{
               flex: 1,
-              paddingVertical: 10,
+              paddingVertical: 12,
               alignItems: 'center',
-              borderRadius: 10,
+              borderRadius: 14,
               backgroundColor: activeTab === 'assigned' ? COLORS.PRIMARY : '#F1F5F9'
             }}
             onPress={() => setActiveTab('assigned')}
@@ -221,9 +268,9 @@ const StaffOrdersScreen = ({ forcedType }: { forcedType?: string }) => {
           <TouchableOpacity
             style={{
               flex: 1,
-              paddingVertical: 10,
+              paddingVertical: 12,
               alignItems: 'center',
-              borderRadius: 10,
+              borderRadius: 14,
               backgroundColor: activeTab === 'available' ? COLORS.PRIMARY : '#F1F5F9'
             }}
             onPress={() => setActiveTab('available')}

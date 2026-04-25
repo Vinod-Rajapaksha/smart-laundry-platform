@@ -4,8 +4,9 @@ import InventoryFilters from "./InventoryFilters";
 import InventoryTable from "./InventoryTable";
 import InventoryModal from "./InventoryModal";
 import type { InventoryItem, Tab } from "../types";
-import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem } from "../api/inventory.api";
+import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem, markOrdered, restockItem } from "../api/inventory.api";
 import { toast } from "react-hot-toast";
+import RestockModal from "./RestockModal";
 
 export default function InventoryContainer() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -15,6 +16,7 @@ export default function InventoryContainer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
 
   const fetchItems = async () => {
     try {
@@ -67,6 +69,38 @@ export default function InventoryContainer() {
       fetchItems();
     } catch (error) {
       toast.error("Delete failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReorder = async (qty: number) => {
+    if (!selectedItem) return;
+    
+    try {
+      setActionLoading(true);
+      // Calls backend which sends real email using SMTP
+      await markOrdered(selectedItem._id, qty);
+      
+      toast.success("Official reorder email sent successfully");
+      setIsRestockModalOpen(false);
+      fetchItems();
+    } catch (error) {
+      toast.error("Failed to send reorder email. Check server configuration.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleConfirmRestock = async (id: string) => {
+    if (!window.confirm("Confirm that this stock order has arrived and items have been counted?")) return;
+    try {
+      setActionLoading(true);
+      await restockItem(id);
+      toast.success("Inventory levels updated");
+      fetchItems();
+    } catch (error) {
+      toast.error("Update failed");
     } finally {
       setActionLoading(false);
     }
@@ -126,6 +160,11 @@ export default function InventoryContainer() {
             setIsModalOpen(true);
           }}
           onDelete={handleDelete}
+          onReorder={(item) => {
+            setSelectedItem(item);
+            setIsRestockModalOpen(true);
+          }}
+          onConfirmRestock={handleConfirmRestock}
           loading={loading}
         />
       )}
@@ -136,6 +175,13 @@ export default function InventoryContainer() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         loading={actionLoading}
+      />
+
+      <RestockModal 
+        isOpen={isRestockModalOpen}
+        item={selectedItem}
+        onClose={() => setIsRestockModalOpen(false)}
+        onConfirm={handleReorder}
       />
     </div>
   );

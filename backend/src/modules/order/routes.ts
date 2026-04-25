@@ -110,6 +110,15 @@ router.get(
   controller.downloadReceipt
 );
 
+// Cancel order
+router.patch(
+  '/:id/cancel',
+  auth,
+  allowRoles(ROLES.CUSTOMER),
+  validate(validation.validateOrderId),
+  controller.cancelOrder
+);
+
 // Update order details
 router.patch(
   '/:id',

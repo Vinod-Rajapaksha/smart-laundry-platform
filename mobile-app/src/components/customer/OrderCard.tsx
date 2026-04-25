@@ -10,13 +10,17 @@ interface OrderCardProps {
   onPress: (order: Order) => void;
   onReviewPress?: (order: Order) => void;
   onViewReviewPress?: (order: Order) => void;
+  onPayPress?: (order: Order) => void;
+  onCancelPress?: (order: Order) => void;
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({
   order,
   onPress,
   onReviewPress,
-  onViewReviewPress
+  onViewReviewPress,
+  onPayPress,
+  onCancelPress
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -30,6 +34,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
   const statusColors = getStatusColor(order.status);
   const canReview = order.status === 'DELIVERED' && !order.isReviewed;
   const hasReviewed = order.isReviewed;
+  const canPay = (order.paymentMethod === 'NONE' || (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD')) && 
+                 order.status !== 'CANCELLED' && order.status !== 'DELIVERED';
+  const canCancel = (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD' && order.status !== 'CANCELLED' && order.status !== 'DELIVERED') || 
+                    (order.paymentMethod === 'COD' && order.status === 'ORDER_PLACED');
 
   return (
     <View style={styles.orderCard}>
@@ -56,6 +64,22 @@ const OrderCard: React.FC<OrderCardProps> = ({
       <View style={styles.cardFooter}>
         <Text style={styles.priceText}>Rs.{order.totalAmount.toFixed(2)}</Text>
         <View style={styles.actions}>
+          {canPay && onPayPress && (
+            <TouchableOpacity
+              style={styles.payButton}
+              onPress={() => onPayPress(order)}
+            >
+              <Text style={styles.payButtonText}>Pay</Text>
+            </TouchableOpacity>
+          )}
+          {canCancel && onCancelPress && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => onCancelPress(order)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
           {canReview && onReviewPress && (
             <TouchableOpacity
               style={styles.reviewButton}

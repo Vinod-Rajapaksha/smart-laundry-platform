@@ -5,6 +5,8 @@ import { generatePayHereHash, chargeSavedCard } from '../service/payhere.service
 import { ApiResponse } from '../../../core/apiResponse.js';
 import env from '../../../config/env.js';
 import Order from '../../../database/models/Order.js';
+import Payment from '../../../database/models/Payment.js';
+import OnlineTransaction from '../../../database/models/OnlineTransaction.js';
 import SavedCard from '../../../database/models/SavedCard.js';
 import User from '../../../database/models/User.js';
 import ApiError from '../../../core/apiError.js';
@@ -86,7 +88,31 @@ export const chargeSavedCardHandler = asyncHandler(async (req: AuthRequest, res:
   if (result.status === 1) {
     order.paymentStatus = 'PAID';
     order.status = 'PROCESSING';
+    order.paidAt = new Date();
     await order.save();
+
+    // 1. Create Payment record for Saved Card
+    const payment = await Payment.create({
+      orderId: order._id,
+      userId: order.userId,
+      amount: order.totalAmount,
+      method: 'CARD',
+      status: 'PAID',
+      provider: 'PAYHERE_SAVED_CARD',
+      transactionRef: result.payment_id || 'SAVED_CARD_' + Date.now(),
+      paidAt: new Date(),
+    });
+
+    // 2. Create OnlineTransaction Detail
+    await OnlineTransaction.create({
+      paymentId: payment._id,
+      orderId: order._id,
+      userId: order.userId,
+      gatewayOrderId: order.orderNo,
+      gatewayPaymentId: result.payment_id || 'N/A',
+      status: 'PAID',
+      rawResponse: result
+    });
 
     try {
       await createNotification(order.userId.toString(), {
@@ -132,8 +158,18 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
     return res.status(400).send('Invalid signature');
   }
 
-  const order = await Order.findOne({ orderNo: order_id });
-  if (!order) return res.status(200).send('OK');
+  // Find Payment by transactionRef (which PayHere sends as order_id)
+  const payment = await Payment.findOne({ transactionRef: order_id });
+  if (!payment) {
+    console.error(`Payment not found for reference: ${order_id}`);
+    return res.status(200).send('OK'); // Still send OK to stop retries
+  }
+
+  const order = await Order.findById(payment.orderId);
+  if (!order) {
+    console.error(`Order not found for payment: ${order_id}`);
+    return res.status(200).send('OK');
+  }
 
   // SAVE CARD
   if (customer_token) {
@@ -161,7 +197,36 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
       if (chargeResult.status === 1) {
         order.paymentStatus = 'PAID';
         order.status = 'PROCESSING';
+        order.paidAt = new Date();
         await order.save();
+
+        // Update Payment record
+        const updatedPayment = await Payment.findOneAndUpdate(
+          { orderId: order._id, transactionRef: order_id },
+          { $set: { status: 'PAID', paidAt: new Date() } },
+          { new: true }
+        );
+
+        // Create OnlineTransaction detail record for auto-charge
+        if (updatedPayment) {
+          await OnlineTransaction.create({
+            paymentId: updatedPayment._id,
+            orderId: order._id,
+            userId: order.userId,
+            gatewayOrderId: order_id,
+            gatewayPaymentId: chargeResult.payment_id || 'AUTO_CHARGE_' + Date.now(),
+            status: 'PAID',
+            rawResponse: chargeResult
+          });
+        }
+
+        // Award points
+        try {
+          const { awardLoyaltyPoints } = await import('../../loyalty/loyalty.service.js');
+          await awardLoyaltyPoints(order.userId.toString(), 10, order._id.toString());
+        } catch (e) {
+          console.error('Failed to award points on auto-charge:', e);
+        }
       }
     }
   }
@@ -170,7 +235,33 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
   if (status_code == 2 && order.paymentStatus !== 'PAID') {
     order.paymentStatus = 'PAID';
     order.status = 'PROCESSING';
+    order.paidAt = new Date();
     await order.save();
+
+    // Update Payment record
+    await Payment.findOneAndUpdate(
+      { orderId: order._id, transactionRef: order_id },
+      { $set: { status: 'PAID', paidAt: new Date() } }
+    );
+
+    // Create OnlineTransaction detail record
+    await OnlineTransaction.create({
+      paymentId: payment._id,
+      orderId: order._id,
+      userId: order.userId,
+      gatewayOrderId: order_id,
+      gatewayPaymentId: req.body.payment_id || 'N/A',
+      status: 'PAID',
+      rawResponse: req.body
+    });
+
+    // Award loyalty points
+    try {
+      const { awardLoyaltyPoints } = await import('../../loyalty/loyalty.service.js');
+      await awardLoyaltyPoints(order.userId.toString(), 10, order._id.toString());
+    } catch (e) {
+      console.error('Failed to award loyalty points:', e);
+    }
 
     await createNotification(order.userId.toString(), {
       title: 'Payment Successful',

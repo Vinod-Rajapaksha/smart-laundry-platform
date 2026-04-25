@@ -85,10 +85,9 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
       });
       setSubmitted(true);
       onSubmitSuccess?.();
-      // Auto close after 2 seconds or let user close
       setTimeout(() => {
         onClose();
-      }, 2000);
+      }, 4000);
     } catch (error) {
       console.error('Failed to submit feedback:', error);
     } finally {

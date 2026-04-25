@@ -29,6 +29,9 @@ export interface Service {
   name: string;
   price: number;
   categoryId: string;
+  unit: string;
+  category?: string;
+  description?: string;
 }
 
 export interface InventoryItem {

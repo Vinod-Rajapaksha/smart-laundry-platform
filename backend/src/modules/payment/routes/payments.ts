@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { initBankTransfer, initCOD, initCard, getPayments, verifyPayment } from '../controller/payment.controller.js';
+import { submitTransferHandler } from '../controller/bankTransfer.controller.js';
 import { auth } from '../../../middleware/auth.js';
+import { upload } from '../../../middleware/upload.js';
 import bankTransferRoutes from './bankTransfer.routes.js';
 import codPaymentRoutes from './cod.routes.js';
 import onlinePaymentRoutes from './onlineTransaction.routes.js';
@@ -12,6 +14,7 @@ router.get('/', auth, getPayments);
 router.post('/:id/verify', auth, verifyPayment);
 
 router.post('/bank/init/:orderId', auth, initBankTransfer);
+router.post('/bank/submit', auth, upload.single('slipFile'), submitTransferHandler);
 router.post('/cod/init/:orderId', auth, initCOD);
 router.post('/card/init/:orderId', auth, initCard);
 

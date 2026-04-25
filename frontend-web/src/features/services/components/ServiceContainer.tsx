@@ -31,7 +31,7 @@ export default function ServiceContainer() {
       const responseData = res as any;
       const items = responseData?.items || (Array.isArray(responseData) ? responseData : []);
       const pagination = responseData?.pagination || { total: items.length, totalPages: 1 };
-      
+
       setServices(items);
       setTotalPages(pagination.totalPages || 1);
       setTotal(pagination.total || items.length);
@@ -81,7 +81,7 @@ export default function ServiceContainer() {
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-[1256px] mx-auto pb-20 animate-in fade-in zoom-in duration-700 font-poppins px-1 md:px-0">
-      
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <ServiceHeader />
       </div>
@@ -122,11 +122,10 @@ export default function ServiceContainer() {
                     setActiveCategory(cat);
                     setPage(1);
                   }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                    isActive
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${isActive
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                    }`}
                 >
                   {cat}
                 </button>
@@ -156,25 +155,23 @@ export default function ServiceContainer() {
       </div>
 
       {/* Registry Table */}
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
-        <ServiceTable
-          data={services}
-          loading={loading}
-          pagination={{
-            currentPage: page,
-            totalPages: totalPages,
-            startItem: total === 0 ? 0 : (page - 1) * 10 + 1,
-            endItem: Math.min(page * 10, total),
-            totalItems: total,
-            onPageChange: setPage,
-          }}
-          onEdit={(svc) => {
-            setEditingService(svc);
-            setIsModalOpen(true);
-          }}
-          onDelete={handleDelete}
-        />
-      </div>
+      <ServiceTable
+        data={services}
+        loading={loading}
+        pagination={{
+          currentPage: page,
+          totalPages: totalPages,
+          startItem: total === 0 ? 0 : (page - 1) * 10 + 1,
+          endItem: Math.min(page * 10, total),
+          totalItems: total,
+          onPageChange: setPage,
+        }}
+        onEdit={(svc) => {
+          setEditingService(svc);
+          setIsModalOpen(true);
+        }}
+        onDelete={handleDelete}
+      />
 
       <ServiceModal
         isOpen={isModalOpen}

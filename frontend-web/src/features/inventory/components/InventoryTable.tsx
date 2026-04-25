@@ -1,15 +1,17 @@
 import { Table, type TableColumn } from "../../../components/ui/Table";
 import type { InventoryItem } from "../types";
-import { AlertCircle, CheckCircle2, MoreVertical, Package, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, MoreVertical, Package, Trash2, Send } from "lucide-react";
 
 interface InventoryTableProps {
   items: InventoryItem[];
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
+  onReorder: (item: InventoryItem) => void;
+  onConfirmRestock: (id: string) => void;
   loading?: boolean;
 }
 
-export default function InventoryTable({ items, onEdit, onDelete, loading }: InventoryTableProps) {
+export default function InventoryTable({ items, onEdit, onDelete, onReorder, onConfirmRestock, loading }: InventoryTableProps) {
   const columns: TableColumn<InventoryItem>[] = [
     {
       header: "Item Details",
@@ -84,6 +86,24 @@ export default function InventoryTable({ items, onEdit, onDelete, loading }: Inv
       className: "text-right",
       cell: (item) => (
         <div className="flex justify-end gap-2">
+          {item.isOrderPending ? (
+             <button
+                onClick={() => onConfirmRestock(item._id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition shadow-sm border border-emerald-200/50"
+             >
+                <CheckCircle2 size={14} strokeWidth={3} />
+                Arrived
+             </button>
+          ) : item.qtyInStock <= item.reorderLevel ? (
+            <button
+                onClick={() => onReorder(item)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-blue-100 transition shadow-sm border border-blue-200/50"
+            >
+                <Send size={14} strokeWidth={3} />
+                Reorder
+            </button>
+          ) : null}
+          
           <button
             onClick={() => onEdit(item)}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-blue-600"

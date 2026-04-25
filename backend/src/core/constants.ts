@@ -12,6 +12,7 @@ export const PAYMENT_METHODS = {
   CARD: 'CARD',
   COD: 'COD',
   BANK_TRANSFER: 'BANK_TRANSFER',
+  NONE: 'NONE',
 } as const;
 
 export type PaymentMethod = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS];
@@ -149,3 +150,14 @@ export const NOTIFICATION_TYPES = {
 } as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[keyof typeof NOTIFICATION_TYPES];
+
+// UNITS OF MEASURE
+export const UNITS = {
+  KG: 'KG',
+  PCS: 'PCS',
+  SET: 'SET',
+  L: 'L',
+  ML: 'ML',
+} as const;
+
+export type Unit = typeof UNITS[keyof typeof UNITS];

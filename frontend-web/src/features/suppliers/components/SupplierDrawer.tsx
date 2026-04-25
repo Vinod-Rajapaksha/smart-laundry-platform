@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { X, Save, MapPin, User, Mail, Phone, Briefcase, Power, ShieldCheck } from "lucide-react";
+import { X, Save, MapPin, User, Mail, Phone, Briefcase, Power, ShieldCheck, Loader2 } from "lucide-react";
 import type { Supplier } from "../types";
+import { categoryApi } from "../../category/api/category.api";
+import type { InventoryCategory } from "../../category/types";
+import { toast } from "react-hot-toast";
 
 interface SupplierDrawerProps {
   isOpen: boolean;
@@ -21,6 +24,26 @@ export const SupplierDrawer = ({ isOpen, onClose, supplier, onSave, loading }: S
     status: "ACTIVE",
   });
 
+  const [categories, setCategories] = useState<InventoryCategory[]>([]);
+  const [fetchingCategories, setFetchingCategories] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchCategories = async () => {
+        try {
+          setFetchingCategories(true);
+          const data = await categoryApi.getAllCategories<InventoryCategory>("INVENTORY");
+          setCategories(data);
+        } catch (error) {
+          toast.error("Failed to load inventory categories");
+        } finally {
+          setFetchingCategories(false);
+        }
+      };
+      fetchCategories();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (supplier) {
       setFormData(supplier);
@@ -31,11 +54,11 @@ export const SupplierDrawer = ({ isOpen, onClose, supplier, onSave, loading }: S
         email: "",
         phone: "",
         address: "",
-        category: "",
+        category: categories[0]?.name || "",
         status: "ACTIVE",
       });
     }
-  }, [supplier, isOpen]);
+  }, [supplier, isOpen, categories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +89,13 @@ export const SupplierDrawer = ({ isOpen, onClose, supplier, onSave, loading }: S
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar font-poppins">
+        <div className="flex-1 overflow-y-auto no-scrollbar font-poppins relative">
+          {fetchingCategories && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          )}
+          
           <form id="supplier-form" onSubmit={handleSubmit} className="p-8 space-y-8">
             {/* Primary Details */}
             <section className="space-y-6">
@@ -134,18 +163,22 @@ export const SupplierDrawer = ({ isOpen, onClose, supplier, onSave, loading }: S
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Operational Category</label>
                 <div className="relative">
-                  <input
+                  <select
                     required
                     className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/10 transition-all font-bold text-sm"
-                    placeholder="e.g. Detergents, Chemicals, Logistics"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  />
+                  >
+                    <option value="" disabled>Select Category</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Geographic HQ / Address</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Address</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-4 text-slate-300" size={20} />
                   <textarea
@@ -198,7 +231,7 @@ export const SupplierDrawer = ({ isOpen, onClose, supplier, onSave, loading }: S
           <button
             form="supplier-form"
             type="submit"
-            disabled={loading}
+            disabled={loading || fetchingCategories}
             className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition active:scale-95 shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? "Processing..." : (

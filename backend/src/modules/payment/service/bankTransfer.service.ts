@@ -108,6 +108,7 @@ export const submitBankTransfer = async (
 
   const bankTransfer = await BankTransfer.create({
     paymentId: payment._id,
+    orderId: order._id,
     userId,
     bankName,
     referenceNo,

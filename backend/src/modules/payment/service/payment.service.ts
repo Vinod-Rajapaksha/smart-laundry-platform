@@ -37,17 +37,32 @@ export async function initBankTransferPayment(orderId: string, userId: string) {
     throw new ApiError(400, 'Order is already paid');
   }
 
-  const reference = await generateUniqueReference();
-
-  const payment = await Payment.create({
+  let payment = await Payment.findOne({
     orderId: order._id,
-    amount: order.totalAmount,
-    method: PAYMENT_METHODS.BANK_TRANSFER,
-    status: PAYMENT_STATUS.PENDING,
-    provider: 'BANK',
-    transactionRef: reference,
-    paidAt: null,
+    status: PAYMENT_STATUS.PENDING
   });
+
+  let reference;
+  if (payment) {
+    reference = payment.transactionRef;
+    if (payment.method !== PAYMENT_METHODS.BANK_TRANSFER) {
+      payment.method = PAYMENT_METHODS.BANK_TRANSFER;
+      payment.provider = 'BANK';
+      await payment.save();
+    }
+  } else {
+    reference = await generateUniqueReference();
+    payment = await Payment.create({
+      orderId: order._id,
+      userId: userId,
+      amount: order.totalAmount,
+      method: PAYMENT_METHODS.BANK_TRANSFER,
+      status: PAYMENT_STATUS.PENDING,
+      provider: 'BANK',
+      transactionRef: reference,
+      paidAt: null,
+    });
+  }
 
   order.paymentMethod = PAYMENT_METHODS.BANK_TRANSFER;
   order.paymentStatus = PAYMENT_STATUS.PENDING;
@@ -83,21 +98,45 @@ export async function initCODPayment(orderId: string, userId: string) {
     throw new ApiError(400, 'Order is already paid');
   }
 
-  const reference = await generateUniqueReference();
-
-  const payment = await Payment.create({
+  let payment = await Payment.findOne({
     orderId: order._id,
-    amount: order.totalAmount,
-    method: PAYMENT_METHODS.COD,
-    status: PAYMENT_STATUS.PENDING,
-    provider: 'COD',
-    transactionRef: reference,
-    paidAt: null,
+    status: PAYMENT_STATUS.PENDING
   });
+
+  if (payment) {
+    if (payment.method !== PAYMENT_METHODS.COD) {
+      payment.method = PAYMENT_METHODS.COD;
+      payment.provider = 'COD';
+      await payment.save();
+    }
+  } else {
+    const reference = await generateUniqueReference();
+    payment = await Payment.create({
+      orderId: order._id,
+      userId: userId,
+      amount: order.totalAmount,
+      method: PAYMENT_METHODS.COD,
+      status: PAYMENT_STATUS.PENDING,
+      provider: 'COD',
+      transactionRef: reference,
+      paidAt: null,
+    });
+  }
 
   order.paymentMethod = PAYMENT_METHODS.COD;
   order.paymentStatus = PAYMENT_STATUS.PENDING;
   await order.save();
+
+  await CashOnDelivery.findOneAndUpdate(
+    { paymentId: payment._id },
+    {
+      paymentId: payment._id,
+      orderId: order._id,
+      userId: userId,
+      status: PAYMENT_STATUS.PENDING
+    },
+    { upsert: true, new: true }
+  );
 
   return {
     payment,
@@ -126,17 +165,32 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
     throw new ApiError(400, 'Order is already paid');
   }
 
-  const reference = await generateUniqueReference();
-
-  const payment = await Payment.create({
+  let payment = await Payment.findOne({
     orderId: order._id,
-    amount: order.totalAmount,
-    method: PAYMENT_METHODS.CARD,
-    status: PAYMENT_STATUS.PENDING,
-    provider: 'PAYHERE',
-    transactionRef: reference,
-    paidAt: null,
+    status: PAYMENT_STATUS.PENDING
   });
+
+  let reference;
+  if (payment) {
+    reference = payment.transactionRef;
+    if (payment.method !== PAYMENT_METHODS.CARD) {
+      payment.method = PAYMENT_METHODS.CARD;
+      payment.provider = 'PAYHERE';
+      await payment.save();
+    }
+  } else {
+    reference = await generateUniqueReference();
+    payment = await Payment.create({
+      orderId: order._id,
+      userId: userId,
+      amount: order.totalAmount,
+      method: PAYMENT_METHODS.CARD,
+      status: PAYMENT_STATUS.PENDING,
+      provider: 'PAYHERE',
+      transactionRef: reference,
+      paidAt: null,
+    });
+  }
 
   order.paymentMethod = PAYMENT_METHODS.CARD;
   order.paymentStatus = PAYMENT_STATUS.PENDING;

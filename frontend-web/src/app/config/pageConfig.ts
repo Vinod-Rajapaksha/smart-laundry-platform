@@ -15,6 +15,8 @@ import {
   Banknote,
   Warehouse,
   User,
+  Layers,
+  WashingMachine,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -67,6 +69,16 @@ export const pageConfig: Record<string, PageConfig> = {
   "bank-verification": {
     title: "Bank Transfer Verification",
     Icon: Landmark,
+  },
+
+  services: {
+    title: "Services",
+    Icon: WashingMachine,
+  },
+
+  categories: {
+    title: "Categories",
+    Icon: Layers,
   },
 
   inventory: {

@@ -21,6 +21,14 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
     });
   }
 
+  // Duplicate check
+  const alreadyAwarded = await LoyaltyTransaction.exists({ 
+    loyaltyId: loyalty._id, 
+    orderId,
+    type: 'EARNED' 
+  });
+  if (alreadyAwarded) return loyalty;
+
   // 2. Update points
   loyalty.points += pointsAmount;
 
@@ -51,6 +59,7 @@ export const awardLoyaltyPoints = async (userId: string, pointsAmount: number, o
   // 5. Record transaction
   await LoyaltyTransaction.create({
     loyaltyId: loyalty._id,
+    orderId,
     points: pointsAmount,
     type: 'EARNED',
     description: `Points earned from order #${orderId.substring(0, 8)}`

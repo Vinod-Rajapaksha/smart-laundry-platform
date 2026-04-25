@@ -25,3 +25,17 @@ export const deleteInventoryItem = async (id: string) => {
     method: "DELETE",
   });
 };
+
+export const markOrdered = async (id: string, qty: number) => {
+    return apiFetch<InventoryItem>(`/inventory/${id}/mark-ordered`, {
+        method: "PATCH",
+        body: JSON.stringify({ qty }),
+    });
+};
+
+export const restockItem = async (id: string, qty?: number) => {
+    return apiFetch<InventoryItem>(`/inventory/${id}/restock`, {
+        method: "PATCH",
+        body: JSON.stringify({ qty }),
+    });
+};

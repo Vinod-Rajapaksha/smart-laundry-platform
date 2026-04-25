@@ -48,4 +48,16 @@ router.delete(
   controller.deleteInventory
 );
 
+router.patch(
+    '/:id/mark-ordered',
+    validate(validation.validateInventoryId),
+    controller.markOrdered
+);
+
+router.patch(
+    '/:id/restock',
+    validate(validation.validateInventoryId),
+    controller.confirmRestock
+);
+
 export default router;

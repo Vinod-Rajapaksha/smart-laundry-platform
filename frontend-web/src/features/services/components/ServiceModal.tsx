@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, Save, Clock, Percent } from "lucide-react";
+import { X, Save, Clock, Percent, Package, Plus, Trash2, Beaker } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import type { LaundryService } from "../types";
+import { getInventory } from "../../inventory/api/inventory.api";
+import type { InventoryItem } from "../../inventory/types";
+import { toast } from "react-hot-toast";
 
 interface ServiceModalProps {
   isOpen: boolean;
@@ -20,12 +23,37 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
     estimatedHours: 24,
     isActive: true,
     isPopular: false,
-    description: ""
+    description: "",
+    inventoryItems: []
   });
+
+  const [inventoryRegistry, setInventoryRegistry] = useState<InventoryItem[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchInventory = async () => {
+        try {
+          setLoadingInventory(true);
+          const response = await getInventory();
+          const data = (response as any).items || response;
+          setInventoryRegistry(Array.isArray(data) ? data : []);
+        } catch (error) {
+          toast.error("Failed to load inventory for mapping");
+        } finally {
+          setLoadingInventory(false);
+        }
+      };
+      fetchInventory();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        inventoryItems: initialData.inventoryItems || []
+      });
     } else {
       setFormData({
         name: "",
@@ -35,7 +63,8 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
         estimatedHours: 24,
         isActive: true,
         isPopular: false,
-        description: ""
+        description: "",
+        inventoryItems: []
       });
     }
   }, [initialData, isOpen]);
@@ -48,16 +77,36 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
     onClose();
   };
 
+  const addInventoryMapping = () => {
+    const newItem = { itemId: "", quantity: 0.1 };
+    setFormData({
+      ...formData,
+      inventoryItems: [...(formData.inventoryItems || []), newItem]
+    });
+  };
+
+  const removeInventoryMapping = (index: number) => {
+    const newList = [...(formData.inventoryItems || [])];
+    newList.splice(index, 1);
+    setFormData({ ...formData, inventoryItems: newList });
+  };
+
+  const updateInventoryMapping = (index: number, field: string, value: any) => {
+    const newList = [...(formData.inventoryItems || [])];
+    newList[index] = { ...newList[index], [field]: value };
+    setFormData({ ...formData, inventoryItems: newList });
+  };
+
   return (
     <>
       <div
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity"
         onClick={onClose}
       />
-      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300 no-scrollbar">
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-8 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                 {initialData ? "Refine Service" : "New Offering"}
@@ -73,7 +122,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
             </button>
           </div>
 
-          <div className="p-8 overflow-y-auto space-y-8 custom-scrollbar">
+          <div className="p-8 space-y-8 flex-1">
             {/* Essential Identity */}
             <div className="space-y-4">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Service Identity</label>
@@ -94,6 +143,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
                   <option>Dry Cleaning</option>
                   <option>Ironing</option>
                   <option>Premium Care</option>
+                  <option>Other</option>
                 </select>
                 <select
                   className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/10"
@@ -103,8 +153,74 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
                   <option value="KG">Per Kilogram</option>
                   <option value="PCS">Per Piece</option>
                   <option value="SET">Per Set</option>
+                  <option value="L">Per Liter</option>
+                  <option value="ML">Per Milliliter</option>
                 </select>
               </div>
+            </div>
+
+            {/* Inventory Consumption Section */}
+            <div className="space-y-4 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Beaker className="text-blue-600" size={18} />
+                  <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Resources Required</label>
+                </div>
+                <button
+                  type="button"
+                  onClick={addInventoryMapping}
+                  className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition active:scale-95 shadow-sm"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+
+              {formData.inventoryItems?.length === 0 ? (
+                <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">No items linked</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {formData.inventoryItems?.map((mapping, idx) => {
+                    const selectedItem = inventoryRegistry.find(i => i._id === mapping.itemId);
+                    return (
+                      <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
+                        <select
+                          className="flex-1 h-10 bg-slate-50 border-none rounded-lg text-xs font-bold text-slate-700 outline-none"
+                          value={mapping.itemId}
+                          onChange={(e) => updateInventoryMapping(idx, "itemId", e.target.value)}
+                          required
+                        >
+                          <option value="" disabled>Select Item</option>
+                          {inventoryRegistry.map(item => (
+                            <option key={item._id} value={item._id}>{item.name}</option>
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-1 w-24">
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="w-full h-10 bg-slate-50 border-none rounded-lg text-xs font-bold text-center text-blue-600"
+                            placeholder="Qty"
+                            value={mapping.quantity}
+                            onChange={(e) => updateInventoryMapping(idx, "quantity", Number(e.target.value))}
+                            required
+                          />
+                          <span className="text-[9px] font-black text-slate-400 uppercase">{selectedItem?.unit || ""}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeInventoryMapping(idx)}
+                          className="p-2 text-rose-400 hover:text-rose-600 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-[9px] text-slate-400 font-medium italic mt-2">Inventory will be deducted automatically per reservation.</p>
             </div>
 
             {/* Financials & Logistics */}
@@ -177,7 +293,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
             </div>
           </div>
 
-          <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex items-center gap-4">
+          <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center gap-4 sticky bottom-0 z-10">
             <Button
               type="button"
               variant="outline"

@@ -5,8 +5,6 @@ import {
   Copy,
   Info,
   UploadCloud,
-  CheckCircle2,
-  Building2
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
@@ -66,13 +64,23 @@ const BankTransferScreen = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await paymentService.submitBankTransfer(
+        orderId as string,
+        bankInfo?.bank?.bankName,
+        bankInfo?.bank?.reference,
+        slipImage
+      );
+
       router.push({
         pathname: '/(protected)/(customer)/checkout/payment-status',
         params: { success: 'true', orderId, method: 'BANK_TRANSFER', total }
       });
-    }, 1500);
+    } catch (error: any) {
+      Alert.alert('Submission Failed', error.message || 'Something went wrong while submitting your transfer.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading && !bankInfo) return <Loading fullScreen />;

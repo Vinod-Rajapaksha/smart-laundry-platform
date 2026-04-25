@@ -32,3 +32,13 @@ export const getInventoryByCategory = asyncHandler(async (req: Request, res: Res
   const result = await service.getInventoryByCategory(req.params.category as string);
   return ApiResponse(res, 200, `Inventory items for category ${req.params.category} fetched successfully`, result);
 });
+
+export const markOrdered = asyncHandler(async (req: Request, res: Response) => {
+    const result = await service.markAsOrdered(req.params.id as string, req.body.qty);
+    return ApiResponse(res, 200, 'Reorder email sent and item marked as ordered', result);
+});
+
+export const confirmRestock = asyncHandler(async (req: Request, res: Response) => {
+    const result = await service.confirmRestock(req.params.id as string, req.body.qty);
+    return ApiResponse(res, 200, 'Stock replenished successfully', result);
+});

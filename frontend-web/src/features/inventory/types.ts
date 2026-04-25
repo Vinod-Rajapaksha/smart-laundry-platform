@@ -1,4 +1,4 @@
-export type InventoryUnit = "PCS" | "KG" | "L";
+export type InventoryUnit = "PCS" | "KG" | "L" | "ML" | "SET";
 
 export interface InventoryItem {
   _id: string;
@@ -9,9 +9,12 @@ export interface InventoryItem {
   unitPrice: number;
   qtyInStock: number;
   reorderLevel: number;
+  batchQty: number;
+  isOrderPending: boolean;
   isActive: boolean;
   isDefault: boolean;
   description?: string;
+  supplierId?: string;
   createdAt: string;
   updatedAt: string;
 }

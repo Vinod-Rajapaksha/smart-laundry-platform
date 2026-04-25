@@ -199,14 +199,6 @@ export default function OrderDrawer({
               </>
             )}
           </div>
-
-          {/* FOOTER ACTIONS */}
-          {!isEditing && (
-            <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50/50 sticky bottom-0 z-10">
-              <button className="flex-1 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-100 transition active:scale-95 shadow-sm">Print Label</button>
-              <button className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition active:scale-95 shadow-lg shadow-blue-500/20">Assign Staff</button>
-            </div>
-          )}
         </div>
       </div>
     </>

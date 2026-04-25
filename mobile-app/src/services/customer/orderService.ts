@@ -20,7 +20,7 @@ export const orderService = {
 
   getActiveOrder: async (): Promise<Order | null> => {
     const response = await api.get('/orders/my', { 
-        params: { limit: 1, sort: '-createdAt', status_ne: 'DELIVERED' } 
+        params: { limit: 1, sort: '-createdAt', excludeStatus: ['DELIVERED', 'CANCELLED'] } 
     });
     if (response.data.success && response.data.data.orders && response.data.data.orders.length > 0) {
       return response.data.data.orders[0];
@@ -30,6 +30,14 @@ export const orderService = {
 
   getReceiptUrl: (id: string): string => {
     return `${process.env.EXPO_PUBLIC_API_BASE_URL}/orders/${id}/receipt`;
+  },
+
+  cancelOrder: async (id: string): Promise<any> => {
+    const response = await api.patch(`/orders/${id}/cancel`);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to cancel order');
   }
 };
 

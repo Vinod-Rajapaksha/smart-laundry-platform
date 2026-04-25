@@ -100,6 +100,30 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#2563EB',
   },
+  payButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  payButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.WHITE,
+  },
+  cancelButton: {
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  cancelButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
 });
 
 export default styles;

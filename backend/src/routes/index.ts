@@ -14,6 +14,8 @@ import loyaltyRoutes from '../modules/loyalty/loyalty.routes.js';
 import scanRoutes from '../modules/scan/routes.js';
 import supplierRoutes from '../modules/supplier/routes.js';
 import settingsRoutes from '../modules/settings/routes.js';
+import categoryRoutes from '../modules/service-category/routes.js';
+import inventoryCategoryRoutes from '../modules/inventory-category/routes.js';
 
 const router = Router();
 
@@ -27,6 +29,8 @@ router.use('/feedback', feedbackRoutes);
 router.use('/inventory', inventoryRoutes);
 router.use('/orders', orderRoutes);
 router.use('/services', serviceRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/inventory-categories', inventoryCategoryRoutes);
 router.use('/users', userRoutes);
 router.use('/loyalty', loyaltyRoutes);
 router.use('/scan', scanRoutes);

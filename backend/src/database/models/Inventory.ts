@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { UNITS } from '../../core/constants.js';
 
 const inventorySchema = new mongoose.Schema(
   {
@@ -25,7 +26,7 @@ const inventorySchema = new mongoose.Schema(
     },
     unit: { 
         type: String, 
-        enum: ['PCS', 'KG', 'L'], 
+        enum: Object.values(UNITS),
         required: true, 
     },
     unitPrice: { 
@@ -43,6 +44,15 @@ const inventorySchema = new mongoose.Schema(
         default: 0, 
         min: 0, 
     },
+    batchQty: {
+        type: Number,
+        default: 1,
+        min: 1,
+    },
+    isOrderPending: {
+        type: Boolean,
+        default: false,
+    },
     isActive: { 
         type: Boolean, 
         default: true, 
@@ -59,7 +69,7 @@ const inventorySchema = new mongoose.Schema(
     supplierId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Supplier',
-        default: null,
+        required: true,
     },
   },
   { 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { PackageSearch } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
@@ -12,14 +12,14 @@ import FeedbackModal from '../../../components/customer/FeedbackModal';
 import { Feedback } from '../../../types/feedback.types';
 import feedbackService from '../../../services/customer/feedbackService';
 
-const FILTERS = ['All', 'Active', 'Completed', 'Cancelled'];
+const FILTERS = ['Active', 'All', 'Completed', 'Cancelled'];
 
 const OrdersScreen = () => {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('Active');
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -102,6 +102,38 @@ const OrdersScreen = () => {
     </View>
   );
 
+  const handlePayPress = (order: Order) => {
+    router.push({
+      pathname: '/(protected)/(customer)/checkout/payment-method',
+      params: { orderId: order._id, total: order.totalAmount }
+    });
+  };
+
+  const handleCancelPress = (order: Order) => {
+    Alert.alert(
+      'Cancel Order',
+      `Are you sure you want to cancel order #${order.orderNo}?`,
+      [
+        { text: 'No, Keep it', style: 'cancel' },
+        { 
+          text: 'Yes, Cancel', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await orderService.cancelOrder(order._id);
+              Alert.alert('Success', 'Order cancelled successfully');
+              fetchOrders();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to cancel order');
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScreenWrapper
       header={header}
@@ -123,6 +155,8 @@ const OrdersScreen = () => {
                 onPress={() => router.push(`/(protected)/(customer)/orders/${item._id}`)}
                 onReviewPress={handleReviewPress}
                 onViewReviewPress={handleViewReviewPress}
+                onPayPress={handlePayPress}
+                onCancelPress={handleCancelPress}
               />
             )}
             keyExtractor={(item) => item._id}

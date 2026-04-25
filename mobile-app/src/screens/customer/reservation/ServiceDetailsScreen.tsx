@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, ScrollView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Info, PlusCircle, Scale, MapPin } from 'lucide-react-native';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import AppHeader from '../../../components/common/AppHeader';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setServiceId, setWeightKg, setAddress, toggleOption, nextStep, prevStep } from '../../../store/slices/customer/reservation.slice';
 import { COLORS } from '../../../theme/colors';
 import { commonStyles } from './styles/common.styles';
 import styles from './styles/ServiceDetails.styles';
 import { reservationService } from '../../../services/customer/reservationService';
-import { profileService } from '../../../services/customer/profileService';
 import { Service, InventoryItem } from '../../../types/reservation.types';
 
 const ServiceDetailsScreen = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
+    const { preSelectedId } = useLocalSearchParams<{ preSelectedId?: string }>();
     const reservation = useAppSelector((state) => state.reservation);
     const user = useAppSelector((state) => state.auth.user);
     const { serviceId, weightKg, pickupAddress, deliveryAddress, pickupLat, pickupLng, deliveryLat, deliveryLng, serviceMode, selectedOptions } = reservation;
@@ -41,6 +42,11 @@ const ServiceDetailsScreen = () => {
             setServices(servicesData);
             setOptions([...detergentData, ...softenerData, ...finishingData]);
 
+            // Handle pre-selected service
+            if (preSelectedId && !serviceId) {
+                dispatch(setServiceId(preSelectedId));
+            }
+
             // Use auth user address for default if reservation address is empty
             if (!pickupAddress && user?.address) {
                 dispatch(setAddress({ pickup: user.address, delivery: user.address }));
@@ -60,7 +66,7 @@ const ServiceDetailsScreen = () => {
         }
     }, [user?.address, pickupAddress]);
 
-    const selectedService = services.find(s => s._id === serviceId);
+    const selectedService: Service | undefined = services.find(s => s._id === serviceId);
 
     const calculateTotals = () => {
         const basePrice = selectedService ? selectedService.price : 0;
@@ -94,13 +100,13 @@ const ServiceDetailsScreen = () => {
                 deliveryLat,
                 deliveryLng,
                 options: selectedOptions.map(o => o.inventoryId),
-                paymentMethod: 'COD', // Default
+                paymentMethod: 'NONE',
                 subtotal: totals.subtotal + totals.optionsTotal,
                 deliveryFee: totals.deliveryFee,
                 totalAmount: totals.total,
                 status: 'ORDER_PLACED',
                 paymentStatus: 'PENDING',
-                reservedDateTime: new Date().toISOString() // Placeholder for fixed schedule flow later if needed
+                reservedDateTime: new Date().toISOString()
             };
 
             const newOrder = await reservationService.createOrder(orderData);
@@ -116,14 +122,10 @@ const ServiceDetailsScreen = () => {
     };
 
     const header = (
-        <View style={styles.header}>
-            <TouchableOpacity
-                onPress={() => { dispatch(prevStep()); router.back(); }}
-                style={styles.backButton}
-            >
-                <ChevronLeft size={24} color={COLORS.TEXT_PRIMARY} />
-            </TouchableOpacity>
-        </View>
+        <AppHeader
+            title="Make Reservation"
+            onBackPress={() => { dispatch(prevStep()); router.back(); }}
+        />
     );
 
     const footer = (
@@ -169,7 +171,7 @@ const ServiceDetailsScreen = () => {
                                         onPress={() => dispatch(setServiceId(item._id))}
                                     >
                                         <Text style={[styles.serviceName, isSelected && styles.serviceNameActive]} numberOfLines={1}>{item.name}</Text>
-                                        <Text style={styles.servicePrice}>Rs.{item.price}/kg</Text>
+                                        <Text style={styles.servicePrice}>Rs.{item.price}/{item.unit?.toLowerCase() || 'kg'}</Text>
                                         {isSelected && (
                                             <View style={styles.selectedBadge}><View style={styles.selectedDot} /></View>
                                         )}
@@ -183,18 +185,18 @@ const ServiceDetailsScreen = () => {
                     <View style={styles.section}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                             <Scale size={20} color={COLORS.PRIMARY} />
-                            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Est. Weight</Text>
+                            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Est. {selectedService?.unit || 'Weight'}</Text>
                         </View>
                         <View style={styles.weightInputContainer}>
                             <TextInput
                                 style={[styles.input, { flex: 1 }]}
-                                placeholder="Enter weight"
+                                placeholder={`Enter ${selectedService?.unit || 'quantity'}`}
                                 keyboardType="numeric"
                                 value={weightKg?.toString()}
                                 onChangeText={(val) => dispatch(setWeightKg(Number(val)))}
                             />
                             <View style={styles.unitBadge}>
-                                <Text style={styles.unitText}>KG</Text>
+                                <Text style={styles.unitText}>{selectedService?.unit || 'UNIT'}</Text>
                             </View>
                         </View>
                     </View>
@@ -206,9 +208,9 @@ const ServiceDetailsScreen = () => {
                                 <MapPin size={20} color={COLORS.PRIMARY} />
                                 <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Collection & Return</Text>
                             </View>
-                            
-                            <TouchableOpacity 
-                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12, marginBottom: 12 }]} 
+
+                            <TouchableOpacity
+                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12, marginBottom: 12 }]}
                                 onPress={() => router.push('/(protected)/(customer)/reservation/address')}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -222,8 +224,8 @@ const ServiceDetailsScreen = () => {
                                 </View>
                             </TouchableOpacity>
 
-                            <TouchableOpacity 
-                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12 }]} 
+                            <TouchableOpacity
+                                style={[styles.input, { justifyContent: 'center', height: 'auto', minHeight: 60, paddingVertical: 12 }]}
                                 onPress={() => router.push('/(protected)/(customer)/reservation/address')}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -279,7 +281,7 @@ const ServiceDetailsScreen = () => {
                     <View style={styles.summaryCard}>
                         <Text style={[styles.sectionTitle, { fontSize: 16 }]}>Price Summary</Text>
                         <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Base Service ({weightKg || 1}kg)</Text>
+                            <Text style={styles.summaryLabel}>Base Service ({weightKg || 1}{selectedService?.unit?.toLowerCase() || 'kg'})</Text>
                             <Text style={styles.summaryValue}>Rs.{(totals.subtotal || 0).toFixed(2)}</Text>
                         </View>
                         {selectedOptions.length > 0 && (

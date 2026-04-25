@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, Package, Save, AlertCircle } from "lucide-react";
+import { X, Package, Save, AlertCircle, Loader2 } from "lucide-react";
 import type { InventoryItem, InventoryUnit } from "../types";
+import { categoryApi } from "../../category/api/category.api";
+import { suppliersApi } from "../../suppliers/api/suppliers.api";
+import type { InventoryCategory } from "../../category/types";
+import type { Supplier } from "../../suppliers/types";
+import { toast } from "react-hot-toast";
 
 interface InventoryModalProps {
   item: InventoryItem | null;
@@ -13,13 +18,40 @@ interface InventoryModalProps {
 export default function InventoryModal({ item, isOpen, onClose, onSave, loading }: InventoryModalProps) {
   const [formData, setFormData] = useState<Partial<InventoryItem>>({
     name: "",
-    categoryName: "General",
+    categoryName: "",
     unit: "PCS" as InventoryUnit,
     unitPrice: 0,
     qtyInStock: 0,
     reorderLevel: 5,
+    batchQty: 10,
     isActive: true,
+    supplierId: "",
   });
+
+  const [categories, setCategories] = useState<InventoryCategory[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [fetchingData, setFetchingData] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchData = async () => {
+        try {
+          setFetchingData(true);
+          const [catData, supData] = await Promise.all([
+            categoryApi.getAllCategories<InventoryCategory>("INVENTORY"),
+            suppliersApi.getSuppliers()
+          ]);
+          setCategories(catData);
+          setSuppliers(Array.isArray(supData) ? supData : (supData as any)?.suppliers || []);
+        } catch (error) {
+          toast.error("Failed to load form dependencies");
+        } finally {
+          setFetchingData(false);
+        }
+      };
+      fetchData();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (item) {
@@ -27,15 +59,17 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
     } else {
       setFormData({
         name: "",
-        categoryName: "General",
+        categoryName: categories[0]?.name || "",
         unit: "PCS" as InventoryUnit,
         unitPrice: 0,
         qtyInStock: 0,
         reorderLevel: 5,
+        batchQty: 10,
         isActive: true,
+        supplierId: "",
       });
     }
-  }, [item, isOpen]);
+  }, [item, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -61,7 +95,13 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
           </div>
 
           {/* FORM */}
-          <div className="p-8 grid gap-6">
+          <div className="p-8 grid gap-6 relative">
+            {fetchingData && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                <Loader2 className="animate-spin text-blue-600" size={32} />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Item Display Name</label>
@@ -72,6 +112,7 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
                   placeholder="e.g. Premium Liquid Detergent"
                 />
               </div>
+
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Category</label>
                 <select
@@ -79,12 +120,13 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
                   value={formData.categoryName}
                   onChange={e => setFormData({ ...formData, categoryName: e.target.value })}
                 >
-                  <option value="General">General</option>
-                  <option value="Chemicals">Chemicals</option>
-                  <option value="Packaging">Packaging</option>
-                  <option value="Service">Service Item</option>
+                  <option value="" disabled>Select Category</option>
+                  {categories.map(cat => (
+                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Unit of Measure</label>
                 <select
@@ -95,6 +137,23 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
                   <option value="PCS">PCS (Pieces)</option>
                   <option value="KG">KG (Kilograms)</option>
                   <option value="L">L (Liters)</option>
+                  <option value="ML">ML (Milliliters)</option>
+                  <option value="SET">SET (Sets)</option>
+                </select>
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Supplier</label>
+                <select
+                  required
+                  className="w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition font-bold text-slate-700"
+                  value={formData.supplierId || ""}
+                  onChange={e => setFormData({ ...formData, supplierId: e.target.value })}
+                >
+                  <option value="" disabled>Select Supplier</option>
+                  {suppliers.map(sup => (
+                    <option key={sup._id} value={sup._id}>{sup.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -127,6 +186,15 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
                   onChange={e => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
                 />
               </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Batch Qty (Order)</label>
+                <input
+                  type="number"
+                  className="w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition font-bold text-slate-700"
+                  value={formData.batchQty}
+                  onChange={e => setFormData({ ...formData, batchQty: Number(e.target.value) })}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 text-[11px] text-blue-600 font-bold uppercase tracking-tight">
@@ -136,7 +204,7 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
           </div>
 
           {/* ACTIONS */}
-          <div className="p-8 border-t border-slate-100 flex gap-4 bg-slate-50/30">
+          <div className="mt-auto p-8 border-t border-slate-100 flex gap-4 bg-slate-50/30">
             <button
               onClick={onClose}
               className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition"
@@ -144,11 +212,17 @@ export default function InventoryModal({ item, isOpen, onClose, onSave, loading 
               Cancel
             </button>
             <button
-              disabled={loading}
-              onClick={() => onSave(formData)}
+              disabled={loading || fetchingData}
+              onClick={() => {
+                if (!formData.supplierId) {
+                  toast.error("Please select a supplier");
+                  return;
+                }
+                onSave(formData);
+              }}
               className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
             >
-              <Save size={18} />
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
               {item ? 'Update Item' : 'Create Item'}
             </button>
           </div>
