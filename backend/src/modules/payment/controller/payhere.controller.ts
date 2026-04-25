@@ -41,7 +41,7 @@ export const getPayHerePreApprovalHashHandler = asyncHandler(async (req: AuthReq
   const user = await User.findById(authUser.id);
   if (!user) throw new ApiError(404, 'User not found');
 
-  const amount = 1.00;
+  const amount = 30.00;
   const currency = 'LKR';
   const hash = generatePayHereHash(orderNo, amount, currency);
 
@@ -51,7 +51,7 @@ export const getPayHerePreApprovalHashHandler = asyncHandler(async (req: AuthReq
   return ApiResponse(res, 200, 'Pre-approval hash generated successfully', {
     hash,
     merchantId: env.PAYHERE_MERCHANT_ID,
-    amount: "1.00",
+    amount: "30.00",
     currency: "LKR",
     orderId: orderNo,
     customer: {
