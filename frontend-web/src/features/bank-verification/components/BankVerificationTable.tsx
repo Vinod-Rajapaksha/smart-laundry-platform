@@ -35,13 +35,19 @@ export const BankVerificationTable = ({ data, loading, onViewDetails }: BankVeri
     {
       header: "Customer",
       cell: (tx) => {
-        const initial = tx.userId?.firstName?.charAt(0) || "?";
         return (
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] bg-indigo-100 text-indigo-600`}>
-              {initial.toUpperCase()}
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] bg-indigo-100 text-indigo-600 shadow-sm`}>
+              {tx.userId?.name.charAt(0).toUpperCase()}
             </div>
-            <span className="font-semibold text-slate-700">{tx.userId?.firstName} {tx.userId?.lastName}</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-700 leading-tight">
+                {tx.userId?.name}
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">
+                {tx.userId?.email || "No email"}
+              </span>
+            </div>
           </div>
         )
       },
@@ -74,16 +80,18 @@ export const BankVerificationTable = ({ data, loading, onViewDetails }: BankVeri
     },
     {
       header: "Status",
+      className: "text-center",
       cell: (tx) => <BankVerificationStatusPill status={tx.verifyStatus} />,
     },
     {
       header: "Action",
+      className: "text-center",
       cell: (tx) => (
         <button
           onClick={() => onViewDetails(tx)}
           className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 text-[13px] font-semibold hover:bg-slate-50 hover:text-slate-900 transition-colors"
         >
-          View Details
+          Audit Transfer
         </button>
       ),
     },

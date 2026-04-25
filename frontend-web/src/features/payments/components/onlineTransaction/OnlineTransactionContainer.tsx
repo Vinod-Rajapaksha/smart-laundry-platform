@@ -26,7 +26,7 @@ export const OnlineTransactionContainer = () => {
         status: activeTab,
         search: searchQuery
       });
-      setTransactions(res.data || []);
+      setTransactions(res || []);
     } catch (e) {
       console.error("Failed to fetch transactions:", e);
     } finally {

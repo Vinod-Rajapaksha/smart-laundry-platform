@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Filter, ArrowLeft, Download, Landmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { paymentsApi } from "../../api/payments.api";
-import { bankVerificationApi, type PendingTransferData } from "../../../bank-verification/api/bank-verification.api";
-import { toast } from "react-hot-toast";
-
+import type { PendingTransferData } from "../../../bank-verification/api/bank-verification.api";
 import { Input } from "../../../../components/ui/Input";
 import { Button } from "../../../../components/ui/Button";
 import { BankTransferTable } from "./BankTransferTable";
@@ -14,34 +12,11 @@ export const BankTransferContainer = () => {
   const navigate = useNavigate();
   const [transfers, setTransfers] = useState<PendingTransferData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("All Transactions");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTx, setSelectedTx] = useState<PendingTransferData | null>(null);
 
   const tabs = ["All Transactions", "Approved", "Pending", "Rejected"];
-
-  const handleVerify = async (
-    id: string,
-    status: 'APPROVED' | 'REJECTED',
-    auditData: { isSuspicious: boolean; internalNotes?: string; rejectReason?: string }
-  ) => {
-    try {
-      setActionLoading(true);
-      await bankVerificationApi.verifyTransfer(id, {
-        status,
-        ...auditData
-      });
-      toast.success(`Transfer ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully!`);
-      fetchTransfers(); // Refresh list
-      setSelectedTx(null); // Close drawer
-    } catch (e) {
-      toast.error(`Failed to ${status.toLowerCase()} transfer.`);
-      console.error(e);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const fetchTransfers = async () => {
     try {
@@ -139,8 +114,6 @@ export const BankTransferContainer = () => {
         isOpen={!!selectedTx}
         tx={selectedTx}
         onClose={() => setSelectedTx(null)}
-        onVerify={handleVerify}
-        loading={actionLoading}
       />
     </div>
   );

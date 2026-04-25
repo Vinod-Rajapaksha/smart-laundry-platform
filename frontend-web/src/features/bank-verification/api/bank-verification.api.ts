@@ -10,7 +10,6 @@ export interface PendingTransferData {
       _id: string;
       orderNo: string;
       totalAmount: number;
-      tokenNumber?: string;
       weightKg?: number;
       status: string;
       reservedDateTime?: string;
@@ -27,19 +26,24 @@ export interface PendingTransferData {
   };
   userId: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    name: string;
     email: string;
     avatar?: string;
   };
   bankName: string;
   referenceNo: string;
+  accountNo?: string;
   slipImageUrl: string;
   systemRefId: string;
   verifyStatus: BankTransferStatus;
   ocrText?: string;
   ocrConfidence?: number;
   ocrStatus?: 'MATCHED' | 'MISMATCHED' | 'FAILED' | 'PENDING';
+  extractedAmount?: number;
+  extractedDate?: string;
+  extractedRef?: string;
+  extractedBank?: string;
+  extractedAccount?: string;
   isSuspicious: boolean;
   internalNotes?: string;
   rejectReason?: string;
@@ -51,7 +55,7 @@ export const bankVerificationApi = {
     const query = new URLSearchParams();
     if (params?.status) query.append("status", params.status);
     if (params?.search) query.append("search", params.search);
-    
+
     return apiFetch<PendingTransferData[]>(`/payments/bank-transfer?${query.toString()}`);
   },
 
@@ -60,7 +64,7 @@ export const bankVerificationApi = {
     isSuspicious: boolean;
     internalNotes?: string;
     rejectReason?: string;
-  }) => 
+  }) =>
     apiFetch(`/payments/bank-transfer/${transferId}/verify`, {
       method: "POST",
       body: JSON.stringify(payload)

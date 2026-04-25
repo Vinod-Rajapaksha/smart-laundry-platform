@@ -44,7 +44,7 @@ export const CODContainer = () => {
         status: activeTab,
         search: searchQuery
       });
-      setCodTransfers(res.data || []);
+      setCodTransfers(res || []);
     } catch (e) {
       console.error("Failed to fetch COD data:", e);
     } finally {

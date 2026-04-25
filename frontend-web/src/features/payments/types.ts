@@ -26,8 +26,7 @@ export interface OnlineTransaction {
     orderNo: string;
   };
   user?: {
-    firstName: string;
-    lastName: string;
+    name: string;
     email: string;
   };
   payment?: {
@@ -46,8 +45,7 @@ export interface CODPayment {
     orderNo: string;
   };
   user?: {
-    firstName: string;
-    lastName: string;
+    name: string;
     email: string;
   };
   collector?: {

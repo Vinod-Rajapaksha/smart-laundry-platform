@@ -7,9 +7,9 @@ export const getOnlineTransactions = async (params: { status?: string; search?: 
   if (params.search) query.append("search", params.search);
   
   const queryString = query.toString() ? `?${query.toString()}` : "";
-  return apiFetch<{ success: boolean; data: OnlineTransaction[] }>(`/payments/online/list${queryString}`);
+  return apiFetch<OnlineTransaction[]>(`/payments/online/list${queryString}`);
 };
 
 export const getOnlineTransactionById = async (id: string) => {
-  return apiFetch<{ success: boolean; data: OnlineTransaction }>(`/payments/online/${id}`);
+  return apiFetch<OnlineTransaction>(`/payments/online/${id}`);
 };

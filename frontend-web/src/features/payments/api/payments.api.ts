@@ -21,7 +21,7 @@ export const verifyPayment = async (id: string, status: string) => {
 };
 
 export const getDashboardStats = async () => {
-  return apiFetch<{ success: boolean; data: any }>(`/payments/stats`);
+  return apiFetch<any>(`/payments/stats`);
 };
 
 export const paymentsApi = {

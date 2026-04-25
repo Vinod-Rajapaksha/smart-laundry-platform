@@ -69,6 +69,7 @@ const BankTransferScreen = () => {
         orderId as string,
         bankInfo?.bank?.bankName,
         bankInfo?.bank?.reference,
+        bankInfo?.bank?.accountNo,
         slipImage
       );
 
@@ -108,7 +109,7 @@ const BankTransferScreen = () => {
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, color: COLORS.TEXT_SECONDARY }}>Transaction ID</Text>
               <Text style={{ fontSize: 16, fontFamily: TYPOGRAPHY.FONT_FAMILY.BOLD, color: COLORS.TEXT_PRIMARY }}>
-                {bankInfo?.bank?.reference || 'BW-ORD-xxxx'}
+                {bankInfo?.bank?.reference}
               </Text>
             </View>
             <TouchableOpacity
@@ -150,7 +151,7 @@ const BankTransferScreen = () => {
           <View style={{ marginBottom: 8 }}>
             <Text style={styles.detailLabel}>Account Number</Text>
             <View style={[styles.bankDetailBox, { marginTop: 4 }]}>
-              <Text style={{ fontSize: 18, fontFamily: TYPOGRAPHY.FONT_FAMILY.BOLD }}>{bankInfo?.bank?.accountNo || '8820 4491 0023'}</Text>
+              <Text style={{ fontSize: 18, fontFamily: TYPOGRAPHY.FONT_FAMILY.BOLD }}>{bankInfo?.bank?.accountNo}</Text>
               <TouchableOpacity
                 style={styles.copyButton}
                 onPress={() => handleCopy(bankInfo?.bank?.accountNo, 'Account Number')}

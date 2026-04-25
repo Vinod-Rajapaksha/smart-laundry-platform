@@ -52,6 +52,8 @@ export interface Order {
   discountTotal?: number;
   trackingLogs: TrackingLog[];
   isReviewed?: boolean;
+  paidAt?: string;
+  bankVerificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
 }

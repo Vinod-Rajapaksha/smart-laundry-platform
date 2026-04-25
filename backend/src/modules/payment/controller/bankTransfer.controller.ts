@@ -10,19 +10,19 @@ export const getTransfersHandler = asyncHandler(async (req: AuthRequest, res: Re
 
   const { status, search } = req.query;
   const result = await getFilteredTransfers(status as string, search as string);
-  
+
   return ApiResponse(res, 200, 'Transfers fetched successfully', result);
 });
 
 export const submitTransferHandler = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
-  const { orderId, bankName, referenceNo } = req.body;
+  const { orderId, bankName, referenceNo, accountNo } = req.body;
   const file = req.file;
 
   if (!userId) throw new ApiError(401, 'Unauthorized');
   if (!file) throw new ApiError(400, 'Payment slip is required');
 
-  const result = await submitBankTransfer(userId, orderId, bankName, referenceNo, file);
+  const result = await submitBankTransfer(userId, orderId, bankName, referenceNo, accountNo, file);
 
   return ApiResponse(res, 201, 'Bank transfer submitted successfully', result);
 });

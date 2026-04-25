@@ -2,6 +2,7 @@ import { Table, type TableColumn } from "../../../../components/ui/Table";
 import { Badge, type BadgeVariant } from "../../../../components/ui/Badge";
 import { Button } from "../../../../components/ui/Button";
 import type { PendingTransferData } from "../../../bank-verification/api/bank-verification.api";
+import { Eye } from "lucide-react";
 
 interface BankTransferTableProps {
   data: PendingTransferData[];
@@ -36,8 +37,8 @@ export const BankTransferTable = ({ data, loading, onViewDetails }: BankTransfer
       header: "Customer",
       cell: (tx) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-slate-700">{tx.userId?.firstName} {tx.userId?.lastName}</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{tx.systemRefId.slice(-8)}</span>
+          <span className="font-semibold text-slate-700">{tx.userId?.name}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{tx.systemRefId}</span>
         </div>
       ),
     },
@@ -59,31 +60,41 @@ export const BankTransferTable = ({ data, loading, onViewDetails }: BankTransfer
       ),
     },
     {
-      header: "Status",
+      header: "Status & Actions",
+      className: "text-right",
       cell: (tx) => {
         const statusMap: Record<string, { variant: BadgeVariant; label: string }> = {
           APPROVED: { variant: "success", label: "Approved" },
           PENDING: { variant: "warning", label: "Awaiting Verification" },
           REJECTED: { variant: "danger", label: "Rejected" },
         };
-        const config = statusMap[tx.verifyStatus] || { variant: "default", label: tx.verifyStatus };
-        return <Badge variant={config.variant} className="text-[9px] font-black uppercase tracking-tighter">{config.label}</Badge>;
+
+        const config = statusMap[tx.verifyStatus] || {
+          variant: "default",
+          label: tx.verifyStatus,
+        };
+
+        return (
+          <div className="flex items-center justify-end gap-3">
+            <Badge
+              variant={config.variant}
+              className="text-[9px] font-black uppercase tracking-tighter"
+            >
+              {config.label}
+            </Badge>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewDetails(tx)}
+              className="rounded-xl border-slate-100 text-slate-400 hover:text-blue-600 transition-all shadow-sm bg-white"
+            >
+              <Eye size={16} />
+            </Button>
+          </div>
+        );
       },
-    },
-    {
-      header: "Action",
-      className: "text-right",
-      cell: (tx) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewDetails(tx)}
-          className="border-purple-100 text-purple-700 hover:bg-purple-50 rounded-xl text-[10px] font-black uppercase tracking-widest"
-        >
-          Audit Ledger
-        </Button>
-      ),
-    },
+    }
   ];
 
   if (loading && data.length === 0) {

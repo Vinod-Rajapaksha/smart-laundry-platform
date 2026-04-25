@@ -34,10 +34,15 @@ const OrderCard: React.FC<OrderCardProps> = ({
   const statusColors = getStatusColor(order.status);
   const canReview = order.status === 'DELIVERED' && !order.isReviewed;
   const hasReviewed = order.isReviewed;
-  const canPay = (order.paymentMethod === 'NONE' || (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD')) && 
-                 order.status !== 'CANCELLED' && order.status !== 'DELIVERED';
-  const canCancel = (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD' && order.status !== 'CANCELLED' && order.status !== 'DELIVERED') || 
-                    (order.paymentMethod === 'COD' && order.status === 'ORDER_PLACED');
+  const isBankPending = order.paidAt && order.bankVerificationStatus === 'PENDING';
+  const isBankRejected = order.paidAt && order.bankVerificationStatus === 'REJECTED';
+
+  const canPay = (order.paymentMethod === 'NONE' || (['PENDING', 'FAILED'].includes(order.paymentStatus) && order.paymentMethod !== 'COD')) &&
+    order.status !== 'CANCELLED' && order.status !== 'DELIVERED' &&
+    (!order.paidAt || order.bankVerificationStatus === 'REJECTED');
+
+  const canCancel = (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD' && order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && !order.paidAt) ||
+    (order.paymentMethod === 'COD' && order.status === 'ORDER_PLACED');
 
   return (
     <View style={styles.orderCard}>
@@ -69,7 +74,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
               style={styles.payButton}
               onPress={() => onPayPress(order)}
             >
-              <Text style={styles.payButtonText}>Pay</Text>
+              <Text style={styles.payButtonText}>{isBankRejected ? 'Pay Again' : 'Pay'}</Text>
             </TouchableOpacity>
           )}
           {canCancel && onCancelPress && (
@@ -104,6 +109,20 @@ const OrderCard: React.FC<OrderCardProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+      {isBankPending && (
+        <View style={{ backgroundColor: '#FFFBEB', padding: 8, marginTop: 12, borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F59E0B' }}>
+          <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500' }}>
+            Please wait, your payment is being verified by laundry staff.
+          </Text>
+        </View>
+      )}
+      {isBankRejected && (
+        <View style={{ backgroundColor: '#FEF2F2', padding: 8, marginTop: 12, borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#EF4444' }}>
+          <Text style={{ fontSize: 12, color: '#991B1B', fontWeight: '500' }}>
+            Payment verification rejected. Still wait, laundry staff will contact you for verify payment.
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

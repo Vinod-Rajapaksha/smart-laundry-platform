@@ -37,8 +37,8 @@ export const CODTable = ({ data, loading, onViewDetails }: CODTableProps) => {
       header: "Customer",
       cell: (item) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-slate-700">{item.user?.firstName || 'Unknown'} {item.user?.lastName || ''}</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.user?.email?.split('@')[0] || 'N/A'}</span>
+          <span className="font-semibold text-slate-700">{item.user?.name}</span>
+          <span className="text-[10px] text-slate-400 font-bold lowercase tracking-widest">{item.user?.email}</span>
         </div>
       ),
     },
@@ -70,7 +70,7 @@ export const CODTable = ({ data, loading, onViewDetails }: CODTableProps) => {
       cell: (item) => {
         const statusMap: Record<string, { variant: BadgeVariant; label: string }> = {
           COMPLETED: { variant: "success", label: "Collected" },
-          PENDING: { variant: "warning", label: "Out for Collection" },
+          PENDING: { variant: "warning", label: "Pending" },
           FAILED: { variant: "danger", label: "Failed" },
         };
         const config = statusMap[item.status] || { variant: "default", label: item.status };
@@ -79,7 +79,7 @@ export const CODTable = ({ data, loading, onViewDetails }: CODTableProps) => {
     },
     {
       header: "Action",
-      className: "text-right",
+      className: "text-center",
       cell: (item) => (
         <Button
           variant="outline"

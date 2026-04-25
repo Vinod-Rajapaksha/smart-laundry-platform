@@ -50,6 +50,22 @@ export const getFilteredTransfers = async (status?: string, search?: string) => 
   });
   pipeline.push({ $unwind: '$paymentId.orderId' });
 
+  // Lookup Service in Order
+  pipeline.push({
+    $lookup: {
+      from: 'services',
+      localField: 'paymentId.orderId.serviceId',
+      foreignField: '_id',
+      as: 'paymentId.orderId.serviceId'
+    }
+  });
+  pipeline.push({
+    $unwind: {
+      path: '$paymentId.orderId.serviceId',
+      preserveNullAndEmptyArrays: true
+    }
+  });
+
   // Match Search if provided
   if (search) {
     const searchRegex = new RegExp(search, 'i');
@@ -82,6 +98,7 @@ export const submitBankTransfer = async (
   orderId: string,
   bankName: string,
   referenceNo: string,
+  accountNo: string,
   slipFile: Express.Multer.File
 ) => {
   let order;
@@ -112,6 +129,7 @@ export const submitBankTransfer = async (
     userId,
     bankName,
     referenceNo,
+    accountNo,
     slipImageUrl,
     systemRefId: String(payment.transactionRef || ''),
     ocrStatus: 'PENDING',
@@ -122,6 +140,11 @@ export const submitBankTransfer = async (
     bankTransfer.ocrText = ocrResult.text;
     bankTransfer.ocrConfidence = ocrResult.confidence;
     bankTransfer.ocrStatus = ocrResult.isMatch ? 'MATCHED' : 'MISMATCHED';
+    bankTransfer.extractedAmount = ocrResult.extractedAmount;
+    bankTransfer.extractedDate = ocrResult.extractedDate;
+    bankTransfer.extractedRef = ocrResult.extractedRef;
+    bankTransfer.extractedBank = ocrResult.extractedBank;
+    bankTransfer.extractedAccount = ocrResult.extractedAccount;
     await bankTransfer.save();
   } catch (err) {
     bankTransfer.ocrStatus = 'FAILED';
@@ -130,7 +153,12 @@ export const submitBankTransfer = async (
 
   order.paymentMethod = PAYMENT_METHODS.BANK_TRANSFER;
   order.paymentStatus = PAYMENT_STATUS.PENDING;
+  order.paidAt = new Date();
+  order.bankVerificationStatus = 'PENDING';
   await order.save();
+
+  payment.paidAt = new Date();
+  await payment.save();
 
   return bankTransfer;
 };
@@ -160,12 +188,12 @@ export const verifyTransfer = async (
   const payment = await Payment.findById(transfer.paymentId);
   if (payment) {
     payment.status = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
-    if (status === 'APPROVED') payment.paidAt = new Date();
     await payment.save();
 
     const order = await Order.findById(payment.orderId);
     if (order) {
       order.paymentStatus = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
+      order.bankVerificationStatus = status;
       await order.save();
     }
   }

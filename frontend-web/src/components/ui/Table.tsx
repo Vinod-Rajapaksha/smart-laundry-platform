@@ -25,12 +25,12 @@ interface TableProps<T> {
   itemsPerPage?: number;
 }
 
-export const Table = <T,>({ 
-  columns, 
-  data, 
-  pagination, 
-  enablePagination = true, 
-  itemsPerPage = 10 
+export const Table = <T,>({
+  columns,
+  data,
+  pagination,
+  enablePagination = true,
+  itemsPerPage = 10
 }: TableProps<T>) => {
   const [internalPage, setInternalPage] = useState(1);
 
@@ -41,11 +41,11 @@ export const Table = <T,>({
 
   const internalPaginationData = useMemo(() => {
     if (!enablePagination || !data || pagination) return null;
-    
+
     const totalItems = data.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
     const safePage = Math.min(internalPage, totalPages);
-    
+
     const startItem = totalItems === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
     const endItem = Math.min(safePage * itemsPerPage, totalItems);
 
@@ -60,9 +60,9 @@ export const Table = <T,>({
   }, [data, internalPage, itemsPerPage, enablePagination, pagination]);
 
   const activePagination = pagination || internalPaginationData;
-  
+
   const displayData = useMemo(() => {
-    if (pagination) return data; // External pagination slices its own data usually, or backend does
+    if (pagination) return data;
     if (activePagination && enablePagination) {
       const startIndex = (activePagination.currentPage - 1) * itemsPerPage;
       return data?.slice(startIndex, startIndex + itemsPerPage) || [];
@@ -128,7 +128,7 @@ export const Table = <T,>({
             {Array.from({ length: activePagination.totalPages }).map((_, idx) => {
               const pageNum = idx + 1;
               const isActive = pageNum === activePagination.currentPage;
-              
+
               // Only show a few pages around the current page to prevent overflow
               if (
                 activePagination.totalPages > 5 &&
@@ -147,8 +147,8 @@ export const Table = <T,>({
                   key={pageNum}
                   onClick={() => activePagination.onPageChange(pageNum)}
                   className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-black transition-all ${isActive
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                      : "bg-transparent text-slate-500 hover:bg-slate-200"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-transparent text-slate-500 hover:bg-slate-200"
                     }`}
                 >
                   {pageNum}

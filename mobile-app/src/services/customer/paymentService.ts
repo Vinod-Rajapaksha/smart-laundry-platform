@@ -40,11 +40,12 @@ export const paymentService = {
     throw new Error(response.data.message || 'Failed to charge saved card');
   },
 
-  submitBankTransfer: async (orderId: string, bankName: string, referenceNo: string, slipUri: string) => {
+  submitBankTransfer: async (orderId: string, bankName: string, referenceNo: string, accountNo: string, slipUri: string) => {
     const formData = new FormData();
     formData.append('orderId', orderId);
     formData.append('bankName', bankName);
     formData.append('referenceNo', referenceNo);
+    formData.append('accountNo', accountNo);
 
     formData.append('slipFile', {
       uri: slipUri,

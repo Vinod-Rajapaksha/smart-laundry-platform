@@ -26,12 +26,16 @@ const bankTransferSchema = new mongoose.Schema(
         systemRefId: {
             type: String,
             required: true,
-            unique: true,
             trim: true,
         },
         referenceNo: {
             type: String,
             required: true,
+            trim: true,
+        },
+        accountNo: {
+            type: String,
+            required: false,
             trim: true,
         },
         slipImageUrl: {
@@ -84,6 +88,26 @@ const bankTransferSchema = new mongoose.Schema(
             type: String,
             enum: Object.values(OCR_STATUS),
             default: OCR_STATUS.PENDING,
+        },
+        extractedAmount: {
+            type: Number,
+            default: null,
+        },
+        extractedDate: {
+            type: String,
+            default: null,
+        },
+        extractedRef: {
+            type: String,
+            default: null,
+        },
+        extractedBank: {
+            type: String,
+            default: null,
+        },
+        extractedAccount: {
+            type: String,
+            default: null,
         },
     },
     {

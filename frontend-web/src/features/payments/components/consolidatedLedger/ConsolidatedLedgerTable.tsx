@@ -27,8 +27,8 @@ export const ConsolidatedLedgerTable = ({ payments, onView }: ConsolidatedLedger
         <div>
           <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">#{payment._id.substring(0, 8)}</p>
           <p className="text-[10px] text-slate-400 font-medium">
-            {payment.paidAt && !isNaN(new Date(payment.paidAt).getTime()) 
-              ? format(new Date(payment.paidAt), "MMM dd, HH:mm") 
+            {payment.paidAt && !isNaN(new Date(payment.paidAt).getTime())
+              ? format(new Date(payment.paidAt), "MMM dd, HH:mm")
               : "Awaiting..."}
           </p>
         </div>
@@ -37,8 +37,8 @@ export const ConsolidatedLedgerTable = ({ payments, onView }: ConsolidatedLedger
     {
       header: "Order",
       cell: (payment) => {
-        const displayId = typeof payment.orderId === 'object' 
-          ? (payment.orderId as any).orderNo 
+        const displayId = typeof payment.orderId === 'object'
+          ? (payment.orderId as any).orderNo
           : payment.orderId.substring(0, 4);
         return (
           <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
@@ -75,7 +75,7 @@ export const ConsolidatedLedgerTable = ({ payments, onView }: ConsolidatedLedger
             variant="outline"
             size="sm"
             onClick={() => onView(payment)}
-            className="p-2 h-9 w-9 rounded-xl border-slate-100 text-slate-400 hover:text-blue-600 transition-all shadow-sm bg-white"
+            className="rounded-xl border-slate-100 text-slate-400 hover:text-blue-600 transition-all shadow-sm bg-white"
           >
             <Eye size={16} />
           </Button>

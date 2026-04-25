@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { BANK_VERIFICATION_STATUS } from '../../core/constants.js';
 
 const orderSchema = new mongoose.Schema(
   {
@@ -118,6 +119,11 @@ const orderSchema = new mongoose.Schema(
     isReviewed: {
       type: Boolean,
       default: false,
+    },
+    bankVerificationStatus: {
+      type: String,
+      enum: Object.values(BANK_VERIFICATION_STATUS),
+      default: null,
     },
   },
   {

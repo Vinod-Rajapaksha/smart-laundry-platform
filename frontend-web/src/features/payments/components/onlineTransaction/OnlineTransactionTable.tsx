@@ -37,7 +37,7 @@ export const OnlineTransactionTable = ({ data, loading, onViewDetails }: OnlineT
       header: "Customer",
       cell: (tx) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-slate-700">{tx.user?.firstName || 'Unknown'} {tx.user?.lastName || ''}</span>
+          <span className="font-semibold text-slate-700">{tx.user?.name}</span>
           <span className="text-xs text-slate-500 lowercase">{tx.user?.email || 'N/A'}</span>
         </div>
       ),

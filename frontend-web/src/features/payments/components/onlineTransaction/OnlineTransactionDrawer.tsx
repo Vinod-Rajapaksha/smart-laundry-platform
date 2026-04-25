@@ -1,5 +1,4 @@
 import { Wallet, X } from "lucide-react";
-import { Button } from "../../../../components/ui/Button";
 import type { OnlineTransaction } from "../../types";
 
 interface OnlineTransactionDrawerProps {
@@ -66,7 +65,7 @@ export const OnlineTransactionDrawer = ({ transaction, isOpen, onClose }: Online
             <section>
               <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-50 pb-2">Customer Profile</h4>
               <div className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-                <p className="text-sm font-bold text-slate-800">{transaction.user?.firstName} {transaction.user?.lastName}</p>
+                <p className="text-sm font-bold text-slate-800">{transaction.user?.name}</p>
                 <p className="text-[11px] text-slate-500 mt-1 font-medium">{transaction.user?.email}</p>
               </div>
             </section>
@@ -80,12 +79,6 @@ export const OnlineTransactionDrawer = ({ transaction, isOpen, onClose }: Online
               </section>
             )}
           </div>
-        </div>
-
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-          <Button className="w-full h-12 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20" onClick={() => window.print()}>
-            Archive Ledger Entry
-          </Button>
         </div>
       </div>
     </div>

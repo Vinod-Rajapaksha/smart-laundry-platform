@@ -7,11 +7,11 @@ export const getCashOnDeliveries = async (params: { status?: string; search?: st
   if (params.search) query.append("search", params.search);
   
   const queryString = query.toString() ? `?${query.toString()}` : "";
-  return apiFetch<{ success: boolean; data: CODPayment[] }>(`/payments/cod/list${queryString}`);
+  return apiFetch<CODPayment[]>(`/payments/cod/list${queryString}`);
 };
 
 export const updateCODStatus = async (id: string, status: string) => {
-  return apiFetch<{ success: boolean; data: CODPayment }>(`/payments/cod/${id}/status`, {
+  return apiFetch<CODPayment>(`/payments/cod/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });

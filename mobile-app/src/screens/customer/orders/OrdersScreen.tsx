@@ -112,11 +112,11 @@ const OrdersScreen = () => {
   const handleCancelPress = (order: Order) => {
     Alert.alert(
       'Cancel Order',
-      `Are you sure you want to cancel order #${order.orderNo}?`,
+      `Are you sure you want to cancel order #${order.orderNo}? If you have already made any payment, it will not be refunded.`,
       [
         { text: 'No, Keep it', style: 'cancel' },
-        { 
-          text: 'Yes, Cancel', 
+        {
+          text: 'Yes, Cancel',
           style: 'destructive',
           onPress: async () => {
             try {
