@@ -19,6 +19,7 @@ export const confirmCODPayment = async (orderId: string, userId: string) => {
   const codRecord = await CashOnDelivery.create({
     paymentId: payment._id,
     orderId: order._id,
+    userId: order.userId,
     status: PAYMENT_STATUS.PENDING,
   });
 

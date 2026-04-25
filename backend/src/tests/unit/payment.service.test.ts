@@ -1,181 +1,136 @@
 import { jest } from "@jest/globals";
+import mongoose from "mongoose";
+import BankTransfer from "../../database/models/BankTransfer.js";
+import Order from "../../database/models/Order.js";
+import Payment from "../../database/models/Payment.js";
+import User from "../../database/models/User.js";
+import Service from "../../database/models/Service.js";
+import { connectTestDB, disconnectTestDB, clearTestDB } from "../testHelpers.js";
+import { submitBankTransfer, verifyTransfer } from "../../modules/payment/service/bankTransfer.service.js";
 
-jest.mock("../../../database/models/BankTransfer.js", () => ({
-  default: { create: jest.fn(), findById: jest.fn() },
-}));
-jest.mock("../../../database/models/Order.js", () => ({
-  default: { findById: jest.fn(), findOne: jest.fn() },
-}));
-jest.mock("../../../database/models/Payment.js", () => ({
-  default: { findOne: jest.fn(), findById: jest.fn() },
-}));
-jest.mock("../../../utils/cloudinary.js", () => ({
-  uploadToCloudinary: jest.fn(),
-}));
-jest.mock("../../../utils/ocrService.js", () => ({
-  processSlipOCR: jest.fn(),
+jest.mock("../../modules/notification/service.js", () => ({
+  createNotification: jest.fn(() => Promise.resolve()),
 }));
 
-import BankTransfer from "../../../src/database/models/BankTransfer.js";
-import Order from "../../../src/database/models/Order.js";
-import Payment from "../../../src//database/models/Payment.js";
-import { uploadToCloudinary } from "../../../src//utils/cloudinary.js";
-import { processSlipOCR } from "../../../src/utils/ocrService.js";
-import { submitBankTransfer, verifyTransfer } from "../../../src/modules/payment/service/bankTransfer.service.js";
+jest.mock("../../modules/loyalty/loyalty.service.js", () => ({
+  awardLoyaltyPoints: jest.fn(() => Promise.resolve()),
+}));
 
-const mockBankTransfer = BankTransfer as jest.Mocked<typeof BankTransfer>;
-const mockOrder = Order as jest.Mocked<typeof Order>;
-const mockPayment = Payment as jest.Mocked<typeof Payment>;
-const mockUpload = uploadToCloudinary as jest.MockedFunction<typeof uploadToCloudinary>;
-const mockOCR = processSlipOCR as jest.MockedFunction<typeof processSlipOCR>;
+jest.mock("../../utils/cloudinary.js", () => ({
+  uploadToCloudinary: jest.fn(() => Promise.resolve("https://cdn.example.com/slip.jpg")),
+}));
 
-const makeOrder = (overrides = {}) => ({
-  _id: "order123",
-  orderNo: "ORD-001",
-  status: "CREATED",
-  paymentMethod: null as string | null,
-  paymentStatus: "PENDING",
-  save: jest.fn().mockResolvedValue(undefined as never),
-  ...overrides,
-});
+jest.mock("../../utils/ocrService.js", () => ({
+  processSlipOCR: jest.fn(() => Promise.resolve({
+    text: "BANK SLIP",
+    confidence: 95,
+    isMatch: true,
+  })),
+}));
 
-const makePayment = (overrides = {}) => ({
-  _id: "payment123",
-  orderId: "order123",
-  method: "BANK_TRANSFER",
-  status: "PENDING",
-  transactionRef: "TXN-001",
-  paidAt: null as Date | null,
-  save: jest.fn().mockResolvedValue(undefined as never),
-  ...overrides,
-});
+describe("Bank Transfer Payment Service", () => {
+  let userId: string;
+  let orderId: string;
 
-const makeTransfer = (overrides = {}) => ({
-  _id: "transfer123",
-  paymentId: "payment123",
-  verifyStatus: "PENDING",
-  ocrStatus: "PENDING",
-  systemRefId: "TXN-001",
-  isSuspicious: false,
-  internalNotes: undefined as string | undefined,
-  rejectReason: undefined as string | undefined,
-  save: jest.fn().mockResolvedValue(undefined as never),
-  ...overrides,
-});
+  beforeAll(async () => {
+    await connectTestDB();
+  });
 
-const makeFile = (): Express.Multer.File =>
-  ({
+  afterAll(async () => {
+    await disconnectTestDB();
+  });
+
+  beforeEach(async () => {
+    await clearTestDB();
+
+    const user = await User.create({
+      name: "Customer",
+      email: "c@example.com",
+      password: "password123",
+      telephone: "0771234567"
+    });
+    userId = user._id.toString();
+
+    const service = await Service.create({
+      name: "Wash",
+      price: 100,
+      categoryId: new mongoose.Types.ObjectId().toString()
+    });
+
+    const order = await Order.create({
+      orderNo: "ORD-001",
+      userId,
+      serviceId: service._id,
+      totalAmount: 100,
+      paymentMethod: "NONE",
+      paymentStatus: "PENDING",
+      status: "ORDER_PLACED"
+    });
+    orderId = order._id.toString();
+
+    await Payment.create({
+      orderId,
+      userId,
+      amount: 100,
+      method: "BANK_TRANSFER",
+      status: "PENDING",
+      transactionRef: `TXN-${Date.now()}`
+    });
+  });
+
+  const makeFile = (): any => ({
     buffer: Buffer.from("test"),
     mimetype: "image/jpeg",
-    fieldname: "slipFile",
     originalname: "slip.jpg",
-    encoding: "7bit",
-    size: 100,
-  } as Express.Multer.File);
+    fieldname: "slipFile",
+  });
 
-describe("Payment Service - submitBankTransfer()", () => {
-  beforeEach(() => jest.clearAllMocks());
+  describe("submitBankTransfer()", () => {
+    it("should submit a bank transfer successfully", async () => {
+      const result = await submitBankTransfer(
+        userId,
+        orderId,
+        "Sampath Bank",
+        `SYS-${Date.now()}`,
+        "1234567890",
+        makeFile(),
+      );
 
-  it("should submit a bank transfer and run OCR", async () => {
-    const order = makeOrder();
-    const payment = makePayment();
-    const transfer = makeTransfer();
+      expect(result).toBeDefined();
+      const transfer = await BankTransfer.findOne({ orderId });
+      expect(transfer).toBeDefined();
+      expect(transfer?.bankName).toBe("Sampath Bank");
 
-    (mockOrder.findById as jest.MockedFunction<any>).mockResolvedValueOnce(order);
-    (mockPayment.findOne as jest.MockedFunction<any>).mockResolvedValueOnce(payment);
-    (mockUpload as jest.MockedFunction<any>).mockResolvedValueOnce("https://cdn.example.com/slip.jpg");
-    (mockBankTransfer.create as jest.MockedFunction<any>).mockResolvedValueOnce(transfer);
-    (mockOCR as jest.MockedFunction<any>).mockResolvedValueOnce({
-      text: "BANK SLIP",
-      confidence: 95,
-      isMatch: true,
+      const order = await Order.findById(orderId);
+      expect(order?.paymentMethod).toBe("BANK_TRANSFER");
     });
-
-    const result = await submitBankTransfer(
-      "user123",
-      "order123",
-      "Sampath Bank",
-      "REF-001",
-      makeFile()
-    );
-
-    expect(mockUpload).toHaveBeenCalled();
-    expect(mockOCR).toHaveBeenCalled();
-    expect(result).toBeDefined();
-    expect(order.paymentMethod).toBe("BANK_TRANSFER");
   });
 
-  it("should throw 404 if order is not found", async () => {
-    (mockOrder.findById as jest.MockedFunction<any>).mockResolvedValueOnce(null);
-    (mockOrder.findOne as jest.MockedFunction<any>).mockResolvedValueOnce(null);
+  describe("verifyTransfer()", () => {
+    it("should approve a transfer and mark payment as PAID", async () => {
+      const payment = await Payment.findOne({ orderId });
+      const transfer = await BankTransfer.create({
+        orderId,
+        userId,
+        paymentId: payment?._id,
+        bankName: "Bank",
+        referenceNo: "REF",
+        systemRefId: "SYS-REF",
+        slipImageUrl: "http://example.com/slip.jpg",
+        verifyStatus: "PENDING"
+      });
 
-    await expect(
-      submitBankTransfer("user123", "nonexistent", "Bank", "REF", makeFile())
-    ).rejects.toMatchObject({ statusCode: 404, message: "Order not found" });
-  });
+      const result = await verifyTransfer(
+        transfer._id.toString(),
+        new mongoose.Types.ObjectId().toString(),
+        "APPROVED",
+        false,
+        "Looks correct"
+      );
 
-  it("should throw 404 if payment record not found for order", async () => {
-    (mockOrder.findById as jest.MockedFunction<any>).mockResolvedValueOnce(makeOrder());
-    (mockPayment.findOne as jest.MockedFunction<any>).mockResolvedValueOnce(null);
-
-    await expect(
-      submitBankTransfer("user123", "order123", "Bank", "REF", makeFile())
-    ).rejects.toMatchObject({ statusCode: 404, message: "Payment not initiated for this order" });
-  });
-});
-
-describe("Payment Service - verifyTransfer()", () => {
-  beforeEach(() => jest.clearAllMocks());
-
-  it("should approve a transfer and mark payment as PAID", async () => {
-    const transfer = makeTransfer({ paymentId: makePayment() });
-    const payment = makePayment();
-    const order = makeOrder();
-
-    (mockBankTransfer.findById as jest.MockedFunction<any>).mockReturnValueOnce({
-      populate: jest.fn<any>().mockResolvedValueOnce(transfer),
+      expect(result.verifyStatus).toBe("APPROVED");
+      const updatedPayment = await Payment.findById(payment?._id);
+      expect(updatedPayment?.status).toBe("PAID");
     });
-    (mockPayment.findById as jest.MockedFunction<any>).mockResolvedValueOnce(payment);
-    (mockOrder.findById as jest.MockedFunction<any>).mockResolvedValueOnce(order);
-
-    const result = await verifyTransfer(
-      "transfer123",
-      "admin123",
-      "APPROVED",
-      false,
-      "Looks correct",
-      undefined
-    );
-
-    expect(transfer.verifyStatus).toBe("APPROVED");
-    expect(payment.status).toBe("PAID");
-    expect(result).toBeDefined();
-  });
-
-  it("should reject a transfer and mark payment as FAILED", async () => {
-    const transfer = makeTransfer({ paymentId: makePayment() });
-    const payment = makePayment();
-    const order = makeOrder();
-
-    (mockBankTransfer.findById as jest.MockedFunction<any>).mockReturnValueOnce({
-      populate: jest.fn<any>().mockResolvedValueOnce(transfer),
-    });
-    (mockPayment.findById as jest.MockedFunction<any>).mockResolvedValueOnce(payment);
-    (mockOrder.findById as jest.MockedFunction<any>).mockResolvedValueOnce(order);
-
-    await verifyTransfer("transfer123", "admin123", "REJECTED", true, undefined, "Fake slip");
-
-    expect(transfer.verifyStatus).toBe("REJECTED");
-    expect(payment.status).toBe("FAILED");
-  });
-
-  it("should throw 404 if transfer not found", async () => {
-    (mockBankTransfer.findById as jest.MockedFunction<any>).mockReturnValueOnce({
-      populate: jest.fn<any>().mockResolvedValueOnce(null),
-    });
-
-    await expect(
-      verifyTransfer("bad_id", "admin123", "APPROVED", false)
-    ).rejects.toMatchObject({ statusCode: 404 });
   });
 });

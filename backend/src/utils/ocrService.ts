@@ -58,7 +58,7 @@ export const processSlipOCR = async (
       /BOC/i, /BANK\s*OF\s*CEYLON/i, /PEOPLE[']?S\s*BANK/i, /NSB/i, /NATIONAL\s*SAVINGS/i,
       /NTB/i, /NATIONS\s*TRUST/i, /SEYLAN/i, /NDB/i
     ];
-    
+
     for (const pattern of bankPatterns) {
       const bankMatch = text.match(pattern);
       if (bankMatch) {

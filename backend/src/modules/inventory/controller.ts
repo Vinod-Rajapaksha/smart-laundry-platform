@@ -39,6 +39,6 @@ export const markOrdered = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const confirmRestock = asyncHandler(async (req: Request, res: Response) => {
-    const result = await service.confirmRestock(req.params.id as string, req.body.qty);
+    const result = await service.confirmRestock(req.params.id as string, req.body?.qty);
     return ApiResponse(res, 200, 'Stock replenished successfully', result);
 });

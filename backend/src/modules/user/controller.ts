@@ -25,8 +25,8 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 
 export const deleteProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
-  await service.softDeleteUser(userId);
-  return ApiResponse(res, 200, 'Account deleted successfully');
+  const result = await service.softDeleteUser(userId);
+  return ApiResponse(res, 200, 'Account deleted successfully', result);
 });
 
 export const uploadAvatar = asyncHandler(async (req: Request, res: Response) => {
@@ -70,6 +70,6 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  await service.softDeleteUser(req.params.id as string);
-  return ApiResponse(res, 200, 'User deleted successfully (Soft delete)');
+  const result = await service.softDeleteUser(req.params.id as string);
+  return ApiResponse(res, 200, 'User deleted successfully (Soft delete)', result);
 });
