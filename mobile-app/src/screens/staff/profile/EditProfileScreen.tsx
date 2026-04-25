@@ -1,0 +1,168 @@
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { ChevronLeft, Camera } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import Avatar from '../../../components/common/Avatar';
+import { COLORS } from '../../../theme/colors';
+import styles from './styles/Profile.styles';
+import profileService from '../../../services/customer/profileService';
+import { UserProfile } from '../../../types/user.types';
+import { notify } from '../../../utils/notify';
+
+const StaffEditProfileScreen = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const profile: UserProfile | null = params.profileStr ? JSON.parse(params.profileStr as string) : null;
+
+  const [name, setName] = useState(profile?.name || '');
+  const [telephone, setTelephone] = useState(profile?.telephone || '');
+  const [email, setEmail] = useState(profile?.email || '');
+  const [avatar, setAvatar] = useState(profile?.avatar || null);
+  const [saving, setSaving] = useState(false);
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!name.trim() || !telephone.trim() || !email.trim()) {
+      notify.error('Validation Error', 'All fields are required.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // 1. Update text fields
+      await profileService.updateProfile({ name, telephone, email });
+
+      // 2. Update avatar if changed
+      if (avatar && avatar !== profile?.avatar) {
+        const formData = new FormData();
+        const filename = avatar.split('/').pop() || 'avatar.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+
+        formData.append('avatar', {
+          uri: avatar,
+          name: filename,
+          type,
+        } as any);
+
+        await profileService.uploadAvatar(formData);
+      }
+
+      notify.success('Success', 'Staff profile updated successfully!');
+      router.back();
+    } catch (error: any) {
+      notify.error('Update Failed', error.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const header = (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <ChevronLeft size={28} color={COLORS.TEXT_PRIMARY} />
+      </TouchableOpacity>
+      <Text style={[styles.headerTitle, { flex: 1, textAlign: 'center', marginRight: 28 }]}>Edit Staff Info</Text>
+    </View>
+  );
+
+  return (
+    <ScreenWrapper
+      style={styles.safeArea}
+      header={header}
+      scroll
+      withKeyboardAvoidingView
+    >
+      <View style={styles.formContainer}>
+        {/* Avatar Editor */}
+        <View style={{ alignItems: 'center', marginBottom: 32 }}>
+          <View>
+            <Avatar name={name} source={avatar} size={100} />
+            <TouchableOpacity
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                backgroundColor: COLORS.PRIMARY,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                borderWidth: 2,
+                borderColor: COLORS.WHITE,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={handlePickImage}
+            >
+              <Camera size={16} color={COLORS.WHITE} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Enter your full name"
+            placeholderTextColor={COLORS.TEXT_MUTED}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Contact Number</Text>
+          <TextInput
+            style={styles.input}
+            value={telephone}
+            onChangeText={setTelephone}
+            placeholder="e.g. 0771234567"
+            placeholderTextColor={COLORS.TEXT_MUTED}
+            keyboardType="phone-pad"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email Address</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            placeholderTextColor={COLORS.TEXT_MUTED}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, saving && styles.submitButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Text style={styles.submitButtonText}>Update Staff Profile</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </ScreenWrapper>
+  );
+};
+
+export default StaffEditProfileScreen;
