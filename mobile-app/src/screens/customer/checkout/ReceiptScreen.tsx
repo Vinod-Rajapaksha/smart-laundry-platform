@@ -60,7 +60,6 @@ const ReceiptScreen = () => {
 
           <Divider marginVertical={24} />
 
-          {/* Items Preview (Mocking items since Order type has serviceId but might not have item list in basic schema) */}
           <View style={styles.row}>
             <Text style={styles.itemLabel}>Service Charge</Text>
             <Text style={styles.value}>Rs {order.subtotal.toFixed(2)}</Text>

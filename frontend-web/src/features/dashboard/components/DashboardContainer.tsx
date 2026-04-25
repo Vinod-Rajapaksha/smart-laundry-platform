@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { getDashboardKPIs } from "../api/dashboard.api";
-import { getOrders } from "../../orders/api/orders.api";
-import type { Order } from "../../orders/types";
 import type { DashboardKPIs, DateRange } from "../types";
 import {
   DollarSign,
@@ -20,25 +18,17 @@ import KPIStatCard from "./KPIStatCard";
 import RevenueChart from "./RevenueChart";
 import StatusDistributionChart from "./StatusDistributionChart";
 import DateRangeFilter from "./DateRangeFilter";
-import { format } from "date-fns";
 import { DashboardHeader } from "./DashboardHeader";
 
 export default function DashboardContainer() {
   const [data, setData] = useState<DashboardKPIs | null>(null);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [activeRange, setActiveRange] = useState<DateRange>("today");
 
   const fetchData = useCallback(async (showToast = false) => {
     try {
-      const [kpis, ordersResponse] = await Promise.all([
-        getDashboardKPIs(activeRange),
-        getOrders()
-      ]);
-      const ordersList = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse as any).orders || [];
-
+      const kpis = await getDashboardKPIs(activeRange);
       setData(kpis);
-      setRecentOrders(ordersList.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
 
       if (showToast) toast.success("Dashboard data synchronized");
     } catch (error) {
@@ -52,6 +42,18 @@ export default function DashboardContainer() {
     fetchData();
   }, [fetchData]);
 
+  const getRangeLabel = (base: string) => {
+    switch (activeRange) {
+      case 'today': return `Today's ${base}`;
+      case 'yesterday': return `Yesterday's ${base}`;
+      case 'week': return `Weekly ${base}`;
+      case 'month': return `Monthly ${base}`;
+      case 'year': return `Yearly ${base}`;
+      case 'overall': return `Total ${base}`;
+      default: return `Today's ${base}`;
+    }
+  };
+
   return (
     <div className="w-full max-w-[1256px] mx-auto space-y-8 animate-in fade-in zoom-in duration-700 font-poppins pb-20">
 
@@ -62,9 +64,12 @@ export default function DashboardContainer() {
           <button
             disabled={refreshing}
             onClick={() => fetchData(true)}
-            className={`p-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-all active:scale-90 shadow-sm flex items-center justify-center ${refreshing ? 'animate-spin' : ''}`}
+            className={`p-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-100 transition-all active:scale-90 shadow-sm flex items-center justify-center group ${refreshing ? 'bg-indigo-50/50' : ''}`}
           >
-            <RefreshCcw size={20} />
+            <RefreshCcw
+              size={20}
+              className={`${refreshing ? 'animate-spin text-indigo-600' : 'group-hover:rotate-180'} transition-transform duration-500`}
+            />
           </button>
         </div>
       </div>
@@ -72,7 +77,7 @@ export default function DashboardContainer() {
       {/* KPI GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPIStatCard
-          label="Today's Revenue"
+          label={getRangeLabel("Revenue")}
           value={`LKR ${(data?.todayRevenue || 0).toLocaleString()}`}
           trend="Real-time"
           isPositive={true}
@@ -80,9 +85,9 @@ export default function DashboardContainer() {
           color="blue"
         />
         <KPIStatCard
-          label="New Orders"
+          label={getRangeLabel("Orders")}
           value={(data?.newOrders || 0).toString()}
-          trend="Total Today"
+          trend="Aggregated"
           isPositive={true}
           Icon={ShoppingCart}
           color="indigo"
@@ -161,57 +166,6 @@ export default function DashboardContainer() {
             </div>
           </div>
           <StatusDistributionChart data={data?.orderStatusDistribution || []} />
-        </div>
-      </div>
-
-      {/* RECENT ACTIVITY & SYSTEM STATUS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Activity size={20} className="text-indigo-500" />
-              Operational Ledger
-            </h2>
-            <button className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest px-4 py-2 bg-indigo-50 rounded-xl transition-colors">
-              Full History
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {recentOrders.length > 0 ? (
-              recentOrders.map(order => (
-                <div key={order._id} className="flex items-center justify-between p-5 bg-slate-50 border border-transparent hover:border-slate-200 rounded-[1.5rem] group transition-all cursor-default">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-400 font-bold group-hover:text-amber-500 transition-colors border border-slate-100">
-                      ORD
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 flex items-center gap-2">
-                        {order.orderNo}
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${order.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                          {order.status}
-                        </span>
-                      </p>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {order.createdAt && !isNaN(new Date(order.createdAt).getTime())
-                          ? format(new Date(order.createdAt), "HH:mm, MMM dd")
-                          : "Time unknown"} • Customer: {typeof order.userId === 'object' ? (order.userId as any).name : String(order.userId || '').substring(0, 8).toUpperCase()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-black text-slate-900 block">LKR {order.totalAmount.toLocaleString()}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{order.paymentMethod}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                <p className="font-bold italic">No recent activities recorded</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

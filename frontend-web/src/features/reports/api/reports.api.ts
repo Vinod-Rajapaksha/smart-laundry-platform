@@ -17,3 +17,9 @@ export const downloadReport = async (id: string) => {
     method: "GET",
   });
 };
+
+export const deleteReport = async (id: string) => {
+  return apiFetch<void>(`/analytics/reports/${id}`, {
+    method: "DELETE",
+  });
+};

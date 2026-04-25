@@ -161,3 +161,94 @@ export const UNITS = {
 } as const;
 
 export type Unit = typeof UNITS[keyof typeof UNITS];
+
+// STAFF TYPES
+export const STAFF_TYPES = {
+  DELIVERY: 'DELIVERY',
+  STORE: 'STORE',
+  BOTH: 'BOTH',
+} as const;
+
+export type StaffType = typeof STAFF_TYPES[keyof typeof STAFF_TYPES];
+
+// ANALYTICS
+export const ANALYTICS_DATE_RANGES = {
+  TODAY: 'today',
+  YESTERDAY: 'yesterday',
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+  OVERALL: 'overall',
+} as const;
+
+export const ANALYTICS_GROUP_BY = {
+  DAY: 'day',
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+} as const;
+
+// LOGISTICS JOB TYPES
+export const LOGISTICS_JOB_TYPES = {
+  PICKUP: 'PICKUP',
+  DELIVERY: 'DELIVERY',
+} as const;
+
+// LOGISTICS JOB STATUS
+export const LOGISTICS_JOB_STATUS = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  STARTED: 'STARTED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+// LAUNDRY JOB TYPES (INTERNAL)
+export const LAUNDRY_JOB_TYPES = {
+  WASHING: 'WASHING',
+  DRYING: 'DRYING',
+  IRONING: 'IRONING',
+  FOLDING: 'FOLDING',
+  PACKAGING: 'PACKAGING',
+} as const;
+
+
+
+// MACHINE
+export const MACHINE_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  BUSY: 'BUSY',
+  MAINTENANCE: 'MAINTENANCE',
+  OUT_OF_ORDER: 'OUT_OF_ORDER',
+} as const;
+
+export const MACHINE_TYPES = {
+  WASHER: 'WASHER',
+  DRYER: 'DRYER',
+} as const;
+
+// STOCK MOVEMENT
+export const STOCK_MOVEMENT_TYPES = {
+  IN: 'IN',
+  OUT: 'OUT',
+} as const;
+
+// SUPPLIER
+export const SUPPLIER_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+// PAYMENT PROVIDERS
+export const PAYMENT_PROVIDERS = {
+  BANK: 'BANK',
+  COD: 'COD',
+  PAYHERE: 'PAYHERE',
+} as const;
+
+// LOYALTY TRANSACTION
+export const LOYALTY_TRANSACTION_TYPES = {
+  EARNED: 'EARNED',
+  REDEEMED: 'REDEEMED',
+  ADJUSTED: 'ADJUSTED',
+} as const;

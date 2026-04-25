@@ -1,13 +1,13 @@
 import { useState } from "react";
-import type { Order, OrderStatus } from "../types";
+import type { Order } from "../types";
 import { X, Clock, Package, MapPin, CreditCard, ChevronRight, Edit3, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import OrderForm from "./OrderForm";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
 
 interface OrderDrawerProps {
   order: Order | null;
   onClose: () => void;
-  onUpdateStatus: (id: string, status: OrderStatus) => void;
   onUpdateOrder: (id: string, data: any) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
   loading?: boolean;
@@ -16,16 +16,14 @@ interface OrderDrawerProps {
 export default function OrderDrawer({
   order,
   onClose,
-  onUpdateStatus,
   onUpdateOrder,
   onDeleteOrder,
   loading
 }: OrderDrawerProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   if (!order) return null;
-
-  const statuses: OrderStatus[] = ["Pending", "Processing", "Completed", "Delivered", "Cancelled"];
 
   const handleEditSubmit = async (data: any) => {
     await onUpdateOrder(order._id, data);
@@ -45,7 +43,7 @@ export default function OrderDrawer({
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Detailed View</p>
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                Order #{order.orderNo}
+                #{order.orderNo}
                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] rounded-full font-bold uppercase ring-1 ring-blue-100">
                   {order.status}
                 </span>
@@ -62,11 +60,7 @@ export default function OrderDrawer({
                 </button>
               )}
               <button
-                onClick={() => {
-                  if (window.confirm("Are you sure you want to deactivate (soft delete) this order?")) {
-                    onDeleteOrder(order._id);
-                  }
-                }}
+                onClick={() => setShowConfirm(true)}
                 className="p-2 hover:bg-rose-50 rounded-xl transition text-slate-400 hover:text-rose-600"
                 title="Delete Order"
               >
@@ -91,25 +85,7 @@ export default function OrderDrawer({
               </div>
             ) : (
               <>
-                {/* STATUS TRANSITIONS */}
-                <section>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Update Status</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {statuses.map((s) => (
-                      <button
-                        key={s}
-                        disabled={loading || order.status === s}
-                        onClick={() => onUpdateStatus(order._id, s)}
-                        className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${order.status === s
-                          ? "bg-slate-900 text-white border-slate-900"
-                          : "bg-white text-slate-600 border-slate-200 hover:border-blue-500 hover:text-blue-600 active:scale-95"
-                          }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+
 
                 {/* CUSTOMER INFO */}
                 <section className="bg-slate-50 p-6 rounded-2xl space-y-4">
@@ -201,6 +177,18 @@ export default function OrderDrawer({
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={showConfirm}
+        title="Deactivate Order"
+        description="Are you sure you want to deactivate (soft delete) this order? This can be undone by an administrator later."
+        confirmText="Deactivate"
+        onConfirm={() => {
+          onDeleteOrder(order._id);
+          setShowConfirm(false);
+        }}
+        onCancel={() => setShowConfirm(false)}
+        icon={<Trash2 size={32} />}
+      />
     </>
   );
 }

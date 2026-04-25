@@ -28,7 +28,7 @@ export const FeedbackHeader = () => {
       await feedbackApi.updateAISummaryToggle(newState);
       toast.success(`AI Summary ${newState ? "Enabled" : "Disabled"}`);
     } catch (error) {
-      setAiEnabled(!aiEnabled); // revert
+      setAiEnabled(!aiEnabled);
       toast.error("Failed to update AI settings");
     }
   };
@@ -58,14 +58,12 @@ export const FeedbackHeader = () => {
 
           <button
             onClick={handleToggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              aiEnabled ? "bg-blue-600" : "bg-slate-200"
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${aiEnabled ? "bg-blue-600" : "bg-slate-200"
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                aiEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${aiEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
             />
           </button>
         </div>

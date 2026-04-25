@@ -1,7 +1,5 @@
-import { Search, Filter as FilterIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import type { Tab } from "../../types";
-import { Input } from "../../../../components/ui/Input";
-import { Button } from "../../../../components/ui/Button";
 
 interface ConsolidatedLedgerFiltersProps {
   activeTab: Tab;
@@ -36,19 +34,15 @@ export const ConsolidatedLedgerFilters = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-3 max-w-md w-full">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-            <Input
-              placeholder="Order ID, Customer, Hash..."
-              className="pl-12 h-11 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/10 transition-all font-medium text-sm"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" className="shrink-0 p-3 h-11 w-11 rounded-2xl border-slate-100 hover:bg-slate-50">
-            <FilterIcon size={18} className="text-slate-400" />
-          </Button>
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search by order number or customer..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition shadow-sm font-medium"
+          />
         </div>
       </div>
     </div>

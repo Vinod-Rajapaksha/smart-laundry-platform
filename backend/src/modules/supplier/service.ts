@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import ApiError from '../../core/apiError.js';
 import { getPagination } from '../../core/pagination.js';
+import { SUPPLIER_STATUS } from '../../core/constants.js';
 import Supplier from '../../database/models/Supplier.js';
 
 export const createSupplier = async (data: any) => {
@@ -64,7 +65,7 @@ export const deleteSupplier = async (id: string) => {
 export const getSupplierStats = async () => {
   const [total, active, categories] = await Promise.all([
     Supplier.countDocuments(),
-    Supplier.countDocuments({ status: 'ACTIVE' }),
+    Supplier.countDocuments({ status: SUPPLIER_STATUS.ACTIVE }),
     Supplier.distinct('category'),
   ]);
 

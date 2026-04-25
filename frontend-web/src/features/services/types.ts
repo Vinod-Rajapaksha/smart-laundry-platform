@@ -1,10 +1,11 @@
 export interface LaundryService {
   _id: string;
   name: string;
-  category: "Wash & Fold" | "Dry Cleaning" | "Ironing" | "Premium Care" | "Other";
+  category: string;
   unit: 'KG' | 'PCS' | 'SET' | 'L' | 'ML';
-  basePrice: number;
-  estimatedHours: number;
+  price: number;
+  basePrice?: number;
+  estimatedHours?: number;
   isActive: boolean;
   isPopular: boolean;
   description: string | null;
@@ -35,4 +36,4 @@ export interface ServiceResponse {
   };
 }
 
-export type ServiceTab = "All" | "Wash & Fold" | "Dry Cleaning" | "Ironing" | "Premium Care";
+export type ServiceTab = string;

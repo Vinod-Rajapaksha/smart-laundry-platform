@@ -25,7 +25,6 @@ export const OnlineTransactionDrawer = ({ transaction, isOpen, onClose }: Online
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {/* Status Header */}
           <div className="flex flex-col items-center p-6 bg-slate-50 rounded-2xl border border-slate-100">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${transaction.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' :
               transaction.status === 'FAILED' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
@@ -38,7 +37,6 @@ export const OnlineTransactionDrawer = ({ transaction, isOpen, onClose }: Online
             <p className="text-slate-500 text-[10px] font-black mt-2 uppercase tracking-[0.2em]">{transaction.status}</p>
           </div>
 
-          {/* Data Grid */}
           <div className="space-y-6">
             <section>
               <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-50 pb-2">Payment Information</h4>

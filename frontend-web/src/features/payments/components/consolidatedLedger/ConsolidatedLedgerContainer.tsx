@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ConsolidatedLedgerFilters } from "./ConsolidatedLedgerFilters";
 import { ConsolidatedLedgerTable } from "./ConsolidatedLedgerTable";
@@ -7,7 +7,6 @@ import { ConsolidatedLedgerDrawer } from "./ConsolidatedLedgerDrawer";
 import type { Payment, Tab } from "../../types";
 import { paymentsApi } from "../../api/payments.api";
 import { toast } from "react-hot-toast";
-import { Button } from "../../../../components/ui/Button";
 
 export const ConsolidatedLedgerContainer = () => {
   const navigate = useNavigate();
@@ -47,7 +46,6 @@ export const ConsolidatedLedgerContainer = () => {
       await paymentsApi.verifyPayment(id, status);
       toast.success(status === 'PAID' ? "Payment confirmed" : "Payment rejected");
 
-      // Update local state
       setPayments(prev => prev.map(p => p._id === id ? { ...p, status } : p));
       if (selectedPayment?._id === id) {
         setSelectedPayment(prev => prev ? { ...prev, status } : null);
@@ -60,10 +58,10 @@ export const ConsolidatedLedgerContainer = () => {
   };
 
   const filteredPayments = payments.filter((payment) => {
-    const orderIdStr = typeof payment.orderId === 'object' 
-      ? (payment.orderId as any).orderNo 
+    const orderIdStr = typeof payment.orderId === 'object'
+      ? (payment.orderId as any).orderNo
       : payment.orderId;
-    
+
     return orderIdStr.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (payment.transactionRef?.toLowerCase().includes(searchQuery.toLowerCase()));
   });
@@ -83,11 +81,6 @@ export const ConsolidatedLedgerContainer = () => {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Consolidated Ledger</h1>
             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Universal Financial History & Reconciliation</p>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden md:flex gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest h-10">
-            <Download size={14} /> Export CSV
-          </Button>
         </div>
       </div>
 

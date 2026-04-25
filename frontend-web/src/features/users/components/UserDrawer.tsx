@@ -1,8 +1,11 @@
 import { useState } from "react";
 import type { User } from "../types";
-import { X, User as UserIcon, Shield, Mail, Phone, Calendar, Power, Edit3 } from "lucide-react";
+import { X, User as UserIcon, Shield, Mail, Phone, Calendar, Power, Edit3, Key, Lock, Check } from "lucide-react";
 import { format } from "date-fns";
 import UserForm from "./UserForm";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { AlertTriangle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface UserDrawerProps {
   user: User | null;
@@ -22,12 +25,34 @@ export default function UserDrawer({
   loading
 }: UserDrawerProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   if (!user) return null;
 
   const handleEditSubmit = async (data: any) => {
     await onUpdateUser(user._id, data);
     setIsEditing(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      return toast.error("Password must be at least 6 characters");
+    }
+
+    try {
+      setResetLoading(true);
+      await onUpdateUser(user._id, { password: newPassword });
+      toast.success("Password reset successfully");
+      setIsResettingPassword(false);
+      setNewPassword("");
+    } catch (error) {
+      toast.error("Failed to reset password");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -110,13 +135,51 @@ export default function UserDrawer({
                   </div>
                 </section>
 
+                {/* RESET PASSWORD SECTION */}
+                {isResettingPassword && (
+                  <section className="p-6 bg-amber-50 rounded-[2rem] border border-amber-100 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-white rounded-xl text-amber-600 shadow-sm">
+                        <Lock size={18} />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900">Set New Password</h4>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter secure password"
+                        className="w-full px-5 py-4 bg-white border border-amber-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none pr-12"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleResetPassword}
+                        disabled={resetLoading || !newPassword}
+                        className="absolute right-2 top-2 p-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition shadow-lg active:scale-90 disabled:opacity-50"
+                      >
+                        {resetLoading ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Check size={18} />
+                        )}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsResettingPassword(false);
+                        setNewPassword("");
+                      }}
+                      className="mt-3 text-[10px] font-black text-amber-700 uppercase tracking-widest hover:underline px-2"
+                    >
+                      Cancel Reset
+                    </button>
+                  </section>
+                )}
+
                 <div className="pt-4">
                   <button
-                    onClick={() => {
-                      if (window.confirm("Are you sure you want to deactivate this user?")) {
-                        onDeleteUser(user._id);
-                      }
-                    }}
+                    onClick={() => setShowConfirm(true)}
                     className="w-full py-4 text-rose-600 font-bold text-sm hover:bg-rose-50 rounded-2xl transition border border-transparent hover:border-rose-100"
                   >
                     Deactivate Account
@@ -129,7 +192,15 @@ export default function UserDrawer({
           {/* FOOTER - Only show in view mode */}
           {!isEditing && (
             <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex gap-4">
-              <button className="flex-1 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-100 transition shadow-sm">Reset Password</button>
+              {!isResettingPassword && (
+                <button
+                  onClick={() => setIsResettingPassword(true)}
+                  className="flex-1 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-100 transition shadow-sm flex items-center justify-center gap-2"
+                >
+                  <Key size={18} className="text-slate-400" />
+                  Reset Password
+                </button>
+              )}
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-lg flex items-center justify-center gap-2"
@@ -141,6 +212,18 @@ export default function UserDrawer({
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={showConfirm}
+        title="Deactivate Account"
+        description={`Are you sure you want to deactivate ${user.name}? This user will no longer be able to log in to the platform.`}
+        confirmText="Deactivate"
+        onConfirm={() => {
+          onDeleteUser(user._id);
+          setShowConfirm(false);
+        }}
+        onCancel={() => setShowConfirm(false)}
+        icon={<AlertTriangle size={32} />}
+      />
     </>
   );
 }

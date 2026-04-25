@@ -4,7 +4,7 @@ import VoucherTable from "./VoucherTable";
 import VoucherModal from "./VoucherModal";
 import { VoucherHeader } from "./VoucherHeader";
 import type { Voucher, Tab } from "../types";
-import { getVouchers, deleteVoucher, createVoucher } from "../api/vouchers.api";
+import { getVouchers, deleteVoucher, createVoucher, updateVoucher } from "../api/vouchers.api";
 import { toast } from "react-hot-toast";
 
 export default function VoucherContainer() {
@@ -13,7 +13,8 @@ export default function VoucherContainer() {
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("All Vouchers");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalVoucher, setModalVoucher] = useState<Voucher | null | undefined>(undefined);
+  const isModalOpen = modalVoucher !== undefined;
 
   const fetchVouchers = async () => {
     try {
@@ -21,9 +22,8 @@ export default function VoucherContainer() {
       const response = await getVouchers();
       const voucherData = (response as any).data || response;
       setVouchers(Array.isArray(voucherData) ? voucherData : []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch vouchers");
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -33,28 +33,36 @@ export default function VoucherContainer() {
     fetchVouchers();
   }, []);
 
-  const handleCreate = async (data: Partial<Voucher>) => {
+  const openCreateModal = () => setModalVoucher(null);
+  const openEditModal = (v: Voucher) => setModalVoucher(v);
+  const closeModal = () => setModalVoucher(undefined);
+
+  const handleSave = async (data: Partial<Voucher>) => {
     try {
       setActionLoading(true);
-      await createVoucher(data);
-      toast.success("Voucher created successfully");
-      setIsModalOpen(false);
+      if (modalVoucher) {
+        await updateVoucher(modalVoucher._id, data);
+        toast.success("Voucher updated successfully");
+      } else {
+        await createVoucher(data);
+        toast.success("Voucher created successfully");
+      }
+      closeModal();
       fetchVouchers();
-    } catch (error) {
-      toast.error("Failed to create voucher");
+    } catch {
+      toast.error(modalVoucher ? "Failed to update voucher" : "Failed to create voucher");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this voucher?")) return;
     try {
       setActionLoading(true);
       await deleteVoucher(id);
       toast.success("Voucher deleted");
       fetchVouchers();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete voucher");
     } finally {
       setActionLoading(false);
@@ -64,19 +72,20 @@ export default function VoucherContainer() {
   const filteredVouchers = vouchers.filter((v) => {
     const matchesSearch = v.code.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeTab === "Active") return matchesSearch && v.isActive;
-    if (activeTab === "Expired") return matchesSearch && new Date(v.expiryDate) < new Date();
+    if (activeTab === "Expired") return matchesSearch && new Date(v.endDate) < new Date();
     return matchesSearch;
   });
 
   return (
     <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
       <VoucherHeader />
+
       {/* VOUCHER SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-white/5 relative group cursor-default">
           <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Active Now</p>
           <p className="text-3xl font-black text-white">
-            {vouchers.filter(v => v.isActive).length}
+            {vouchers.filter((v) => v.isActive).length}
           </p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group cursor-default transition-all hover:shadow-md">
@@ -87,8 +96,11 @@ export default function VoucherContainer() {
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Avg Discount</p>
           <p className="text-3xl font-black text-slate-900">
             {vouchers.length > 0
-              ? Math.round(vouchers.reduce((acc, v) => acc + (v.discountValue || 0), 0) / vouchers.length)
-              : 0}%
+              ? Math.round(
+                vouchers.reduce((acc, v) => acc + (v.discountValue || 0), 0) / vouchers.length
+              )
+              : 0}
+            %
           </p>
         </div>
       </div>
@@ -98,24 +110,26 @@ export default function VoucherContainer() {
         onTabChange={setActiveTab}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onAddClick={() => setIsModalOpen(true)}
+        onAddClick={openCreateModal}
       />
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-indigo-500">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600" />
         </div>
       ) : (
         <VoucherTable
           vouchers={filteredVouchers}
           onDelete={handleDelete}
+          onEdit={openEditModal}
         />
       )}
 
       <VoucherModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleCreate}
+        onClose={closeModal}
+        voucher={modalVoucher}
+        onSave={handleSave}
         loading={actionLoading}
       />
     </div>

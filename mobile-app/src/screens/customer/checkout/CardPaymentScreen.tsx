@@ -48,12 +48,9 @@ const CardPaymentScreen = () => {
                 const defaultCard = cards.find((c: any) => c.isDefault) || cards[0];
                 setSelectedCard(defaultCard._id);
             } else {
-                // If no saved cards, you might want to auto-switch to New Card
-                // But for premium UX, we stay in SELECT_CARD and show "Add New"
             }
         } catch (error) {
             console.error('Failed to load saved cards', error);
-            // Non-blocker, just proceed with empty list
         } finally {
             setLoading(false);
         }

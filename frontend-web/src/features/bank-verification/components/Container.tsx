@@ -10,6 +10,8 @@ export const Container = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Pending");
   const [searchQuery, setSearchQuery] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [selectedTransfer, setSelectedTransfer] = useState<PendingTransferData | null>(null);
 
   const fetchTransfers = async () => {
@@ -17,7 +19,9 @@ export const Container = () => {
       setLoading(true);
       const res = await bankVerificationApi.getTransfers({
         status: activeTab,
-        search: searchQuery
+        search: searchQuery,
+        startDate,
+        endDate
       });
       console.log("Bank Transfers API Response:", res);
 
@@ -35,7 +39,7 @@ export const Container = () => {
 
   useEffect(() => {
     fetchTransfers();
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, startDate, endDate]);
 
   return (
     <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
@@ -44,6 +48,12 @@ export const Container = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onSearch={setSearchQuery}
+        startDate={startDate}
+        endDate={endDate}
+        onDateChange={(start, end) => {
+          setStartDate(start);
+          setEndDate(end);
+        }}
       />
       <BankVerificationTable
         data={transfers}

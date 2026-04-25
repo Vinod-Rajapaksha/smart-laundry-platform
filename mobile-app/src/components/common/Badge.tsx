@@ -18,7 +18,7 @@ const Badge: React.FC<BadgeProps> = ({ label, variant = 'primary', style, textSt
       case 'success':
         return { backgroundColor: COLORS.SUCCESS_BACKGROUND, borderColor: COLORS.SUCCESS_BORDER };
       case 'warning':
-        return { backgroundColor: '#FFFBEB', borderColor: '#FEF3C7' }; // Specific warning background
+        return { backgroundColor: '#FFFBEB', borderColor: '#FEF3C7' };
       case 'error':
         return { backgroundColor: COLORS.ERROR_BACKGROUND, borderColor: COLORS.ERROR_BORDER };
       case 'info':
@@ -34,7 +34,7 @@ const Badge: React.FC<BadgeProps> = ({ label, variant = 'primary', style, textSt
       case 'success':
         return COLORS.SUCCESS_TEXT;
       case 'warning':
-        return '#B45309'; // Warning Text
+        return '#B45309';
       case 'error':
         return COLORS.ERROR_TEXT;
       case 'info':

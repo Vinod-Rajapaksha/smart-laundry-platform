@@ -1,6 +1,8 @@
 import { X, Star, User, Calendar, ShieldCheck, MessageSquare, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { type Feedback, FEEDBACK_STATUS } from '../types';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 interface FeedbackDrawerProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface FeedbackDrawerProps {
 }
 
 export const FeedbackDrawer = ({ isOpen, onClose, feedback, onUpdateStatus, onDelete, loading }: FeedbackDrawerProps) => {
+  const [showConfirm, setShowConfirm] = useState(false);
   if (!isOpen || !feedback) return null;
 
   const formattedDate = format(new Date(feedback.createdAt), "MMMM dd, yyyy");
@@ -144,18 +147,14 @@ export const FeedbackDrawer = ({ isOpen, onClose, feedback, onUpdateStatus, onDe
                 </button>
               </div>
 
-              <button
-                disabled={loading}
-                onClick={() => {
-                  if (window.confirm("Are you absolutely sure? This will permanently erase the review from our systems.")) {
-                    onDelete(feedback._id);
-                  }
-                }}
-                className="w-full py-4 bg-white border-2 border-rose-100 text-rose-500 font-bold rounded-2xl hover:bg-rose-50 hover:border-rose-200 transition active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Trash2 size={18} />
-                Purge Permanently
-              </button>
+                <button
+                  disabled={loading}
+                  onClick={() => setShowConfirm(true)}
+                  className="w-full py-4 bg-white border-2 border-rose-100 text-rose-500 font-bold rounded-2xl hover:bg-rose-50 hover:border-rose-200 transition active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={18} />
+                  Purge Permanently
+                </button>
             </div>
           </div>
         </div>
@@ -170,6 +169,18 @@ export const FeedbackDrawer = ({ isOpen, onClose, feedback, onUpdateStatus, onDe
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={showConfirm}
+        title="Purge Review"
+        description="Are you absolutely sure? This will permanently erase the review from our systems. This action cannot be reversed."
+        confirmText="Purge"
+        onConfirm={() => {
+          onDelete(feedback._id);
+          setShowConfirm(false);
+        }}
+        onCancel={() => setShowConfirm(false)}
+        icon={<Trash2 size={32} />}
+      />
     </>
   );
 };

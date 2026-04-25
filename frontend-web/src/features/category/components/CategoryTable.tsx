@@ -26,25 +26,14 @@ export default function CategoryTable({ type, data, onEdit, onDelete, loading }:
         </div>
       ),
     },
-    ...(type === "SERVICE" ? [
-      {
-        header: "Base Price",
-        cell: (item: any) => (
-          <span className="font-semibold text-slate-900">
-            LKR {(item.price || 0).toLocaleString()}
-          </span>
-        ),
-      }
-    ] : [
-      {
-        header: "Description",
-        cell: (item: any) => (
-          <span className="text-sm text-slate-500 truncate max-w-[200px] block">
-            {item.description || "No description"}
-          </span>
-        ),
-      }
-    ]),
+    {
+      header: "Description",
+      cell: (item: any) => (
+        <span className="text-sm text-slate-500 truncate max-w-[240px] block">
+          {item.description || "—"}
+        </span>
+      ),
+    },
     {
       header: "Status",
       cell: (item) => (

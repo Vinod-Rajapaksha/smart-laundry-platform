@@ -4,28 +4,33 @@ import ServiceTable from "./ServiceTable";
 import ServiceModal from "./ServiceModal";
 import { ServiceHeader } from "./ServiceHeader";
 import { servicesApi } from "../api/services.api";
-import { type LaundryService, type ServiceTab } from "../types";
+import { categoryApi } from "../../category/api/category.api";
+import { type ServiceCategory } from "../../category/types";
+import { type LaundryService } from "../types";
 import { toast } from "react-hot-toast";
-
-const CATEGORIES: ServiceTab[] = ["All", "Wash & Fold", "Dry Cleaning", "Ironing", "Premium Care"];
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { Trash2 } from "lucide-react";
 
 export default function ServiceContainer() {
   const [services, setServices] = useState<LaundryService[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<ServiceTab>("All");
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<LaundryService | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [serviceToDecommission, setServiceToDecommission] = useState<LaundryService | null>(null);
 
-  const fetchServices = async () => {
+  const fetchServices = async (category: string, currentPage: number) => {
     try {
       setLoading(true);
       const res = await servicesApi.getAll({
-        category: activeCategory,
-        page,
+        category,
+        page: currentPage,
         limit: 10
       });
       const responseData = res as any;
@@ -43,14 +48,20 @@ export default function ServiceContainer() {
   };
 
   useEffect(() => {
-    fetchServices();
+    categoryApi.getAllCategories<ServiceCategory>("SERVICE").then((cats) => {
+      setCategories(["All", ...cats.map((c) => c.name)]);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchServices(activeCategory, page);
   }, [activeCategory, page]);
 
   const handleCreate = async (data: Partial<LaundryService>) => {
     try {
       await servicesApi.create(data);
       toast.success("Service offering launched");
-      fetchServices();
+      fetchServices(activeCategory, page);
     } catch (err) {
       toast.error("Launch sequence failed");
     }
@@ -61,21 +72,28 @@ export default function ServiceContainer() {
     try {
       await servicesApi.update(editingService._id, data);
       toast.success("Service refined successfully");
-      fetchServices();
+      fetchServices(activeCategory, page);
     } catch (err) {
       toast.error("Refinement failed");
     }
   };
 
   const handleDelete = async (svc: LaundryService) => {
-    if (window.confirm(`Decommission ${svc.name}? This cannot be undone.`)) {
-      try {
-        await servicesApi.delete(svc._id);
-        toast.success("Service decommissioned");
-        fetchServices();
-      } catch (err) {
-        toast.error("Decommissioning blocked");
-      }
+    setServiceToDecommission(svc);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!serviceToDecommission) return;
+    try {
+      await servicesApi.delete(serviceToDecommission._id);
+      toast.success("Service decommissioned");
+      fetchServices(activeCategory, page);
+    } catch (err) {
+      toast.error("Decommissioning blocked");
+    } finally {
+      setShowConfirm(false);
+      setServiceToDecommission(null);
     }
   };
 
@@ -113,7 +131,7 @@ export default function ServiceContainer() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center p-1 bg-slate-100 rounded-xl w-fit overflow-x-auto no-scrollbar max-w-full">
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const isActive = activeCategory === cat;
               return (
                 <button
@@ -178,6 +196,16 @@ export default function ServiceContainer() {
         onClose={() => setIsModalOpen(false)}
         initialData={editingService}
         onSubmit={editingService ? handleUpdate : handleCreate}
+      />
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Decommission Service"
+        description={`Are you sure you want to decommission ${serviceToDecommission?.name}? This action is irreversible and will remove the service from all active catalogs.`}
+        confirmText="Decommission"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowConfirm(false)}
+        icon={<Trash2 size={32} />}
       />
     </div>
   );

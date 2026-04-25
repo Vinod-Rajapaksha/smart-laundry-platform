@@ -1,4 +1,5 @@
 import Service from '../../database/models/Service.js';
+import ServiceCategory from '../../database/models/ServiceCategory.js';
 import ApiError from '../../core/apiError.js';
 
 interface ServiceInput {
@@ -42,20 +43,42 @@ export const getServiceById = async (id: string) => {
 };
 
 export const getAllServices = async (query: any) => {
-  const { limit, sort, status_ne, ...filters } = query;
+  const { category, page = 1, limit = 10 } = query;
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const filter: any = {};
 
-  const mongoQuery: any = {};
-
-  if (status_ne) {
-    mongoQuery.status = { $ne: status_ne };
+  if (category && category !== 'All') {
+    const cat = await ServiceCategory.findOne({ name: category });
+    if (cat) {
+      filter.categoryId = cat._id;
+    } else {
+      return { items: [], pagination: { total: 0, page: pageNum, limit: limitNum, totalPages: 0 } };
+    }
   }
 
-  let dbQuery = Service.find(mongoQuery);
+  const total = await Service.countDocuments(filter);
+  const items = await Service
+    .find(filter)
+    .populate('categoryId', 'name')
+    .sort({ createdAt: -1 })
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum);
 
-  if (sort) dbQuery = dbQuery.sort(sort);
-  if (limit) dbQuery = dbQuery.limit(Number(limit));
+  const mapped = items.map((s: any) => ({
+    ...s.toObject(),
+    category: s.categoryId?.name ?? '',
+  }));
 
-  return await dbQuery.exec();
+  return {
+    items: mapped,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    },
+  };
 };
 
 export const getServicesByCategory = async (categoryId: string) => {

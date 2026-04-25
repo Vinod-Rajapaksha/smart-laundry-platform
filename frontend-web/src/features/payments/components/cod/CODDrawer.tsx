@@ -1,5 +1,4 @@
 import { X } from "lucide-react";
-import { Button } from "../../../../components/ui/Button";
 import { Badge } from "../../../../components/ui/Badge";
 import type { CODPayment } from "../../types";
 
@@ -7,11 +6,9 @@ interface CODDrawerProps {
   cod: CODPayment | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (orderId: string) => Promise<void>;
-  loading?: boolean;
 }
 
-export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawerProps) => {
+export const CODDrawer = ({ cod, isOpen, onClose }: CODDrawerProps) => {
   if (!isOpen || !cod) return null;
 
   return (
@@ -29,7 +26,6 @@ export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawe
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {/* Stat */}
           <div className="p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex flex-col items-center gap-1 shadow-sm">
             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Collection Value</span>
             <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">Rs.{cod.payment?.amount?.toFixed(2)}</h3>
@@ -38,7 +34,6 @@ export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawe
             </Badge>
           </div>
 
-          {/* Data Blocks */}
           <div className="space-y-8">
             <section>
               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-50 pb-2">Logistical Context</h4>
@@ -61,7 +56,7 @@ export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawe
               <div className="space-y-5">
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                   <span className="block text-[10px] text-slate-400 uppercase font-black tracking-widest mb-3">Customer</span>
-                  <p className="text-sm font-black text-slate-800">{cod.user?.firstName} {cod.user?.lastName}</p>
+                  <p className="text-sm font-black text-slate-800">{cod.user?.name}</p>
                   <p className="text-[11px] text-slate-500 font-medium mt-1">{cod.user?.email}</p>
                 </div>
 
@@ -93,17 +88,6 @@ export const CODDrawer = ({ cod, isOpen, onClose, onConfirm, loading }: CODDrawe
               </section>
             )}
           </div>
-        </div>
-
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center gap-3">
-          <Button variant="outline" className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-slate-200" onClick={onClose}>Dismiss</Button>
-          <Button
-            disabled={loading || cod.status === 'COMPLETED'}
-            onClick={() => onConfirm(cod.order?._id || '')}
-            className="flex-1 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20"
-          >
-            {loading ? 'Processing...' : cod.status === 'COMPLETED' ? 'Already Settled' : 'Audit Complete'}
-          </Button>
         </div>
       </div>
     </div>

@@ -27,7 +27,6 @@ export const BankTransferDrawer = ({ tx, isOpen, onClose }: BankTransferDrawerPr
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-          {/* Financial Summary */}
           <div className="flex justify-between items-end">
             <div>
               <span className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Transferred Amount</span>
@@ -38,7 +37,6 @@ export const BankTransferDrawer = ({ tx, isOpen, onClose }: BankTransferDrawerPr
             </Badge>
           </div>
 
-          {/* Data Blocks */}
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-8">
               <section>
@@ -66,7 +64,6 @@ export const BankTransferDrawer = ({ tx, isOpen, onClose }: BankTransferDrawerPr
             </div>
           </div>
 
-          {/* Bank Details */}
           <div className="p-6 bg-slate-900 rounded-[2rem] text-white space-y-4 shadow-xl shadow-slate-900/10">
             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-60">
               <span className="flex items-center gap-2">
@@ -80,7 +77,6 @@ export const BankTransferDrawer = ({ tx, isOpen, onClose }: BankTransferDrawerPr
             </div>
           </div>
 
-          {/* OCR Check */}
           <section>
             <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
               <CheckCircle2 size={14} className={tx.ocrStatus === 'MATCHED' ? 'text-emerald-500' : 'text-slate-300'} />
@@ -101,7 +97,6 @@ export const BankTransferDrawer = ({ tx, isOpen, onClose }: BankTransferDrawerPr
             </div>
           </section>
 
-          {/* Payment Slip Backdrop */}
           <section>
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Cryptographic Proof (Slip)</h4>
             <div className="rounded-[2.5rem] border border-slate-100 overflow-hidden relative group aspect-[3/4] bg-slate-100 flex items-center justify-center shadow-inner mb-8">

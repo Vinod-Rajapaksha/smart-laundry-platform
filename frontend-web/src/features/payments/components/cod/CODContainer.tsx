@@ -1,41 +1,19 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { paymentsApi } from "../../api/payments.api";
 import type { CODPayment } from "../../types";
-import { toast } from "react-hot-toast";
-
-import { Input } from "../../../../components/ui/Input";
-import { Button } from "../../../../components/ui/Button";
 import { CODTable } from "./CODTable";
 import { CODDrawer } from "./CODDrawer";
+import { CodFilters } from "./CodFilters";
 
 export const CODContainer = () => {
   const navigate = useNavigate();
   const [codTransfers, setCodTransfers] = useState<CODPayment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCod, setSelectedCod] = useState<CODPayment | null>(null);
-
-  const tabs = ["All", "COMPLETED", "PENDING", "FAILED"];
-
-  const handleConfirmCollection = async (orderId: string) => {
-    if (!orderId) return;
-    try {
-      setActionLoading(true);
-      await paymentsApi.updateCODStatus(orderId, "COMPLETED");
-      toast.success("Cash collection confirmed successfully!");
-      fetchCods(); // Refresh list
-      setSelectedCod(null); // Close drawer
-    } catch (e) {
-      toast.error("Failed to confirm collection.");
-      console.error(e);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const fetchCods = async () => {
     try {
@@ -72,49 +50,15 @@ export const CODContainer = () => {
             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Rider Settlement & In-Person Payments</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden md:flex gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest h-10 border-slate-200">
-            <Download size={14} /> Settlement Log
-          </Button>
-        </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="bg-white p-4 mx-4 md:mx-0 rounded-[1.5rem] border border-slate-100 shadow-sm space-y-4">
-        <div className="flex flex-col lg:flex-row justify-between gap-4">
-          <div className="flex p-1 bg-slate-50 rounded-2xl w-fit border border-slate-100">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all tracking-widest ${activeTab === tab
-                  ? "bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-50"
-                  : "text-slate-400 hover:text-slate-600"
-                  }`}
-              >
-                {tab === "All" ? "Master Ledger" : tab === "COMPLETED" ? "Collected" : tab}
-              </button>
-            ))}
-          </div>
+      <CodFilters
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-          <div className="flex items-center gap-3 max-w-md w-full">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" size={16} />
-              <Input
-                placeholder="Rider, Order, Hash..."
-                className="pl-12 h-11 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500/10 transition-all font-medium text-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" className="shrink-0 p-3 h-11 w-11 rounded-2xl border-slate-100 hover:bg-slate-50">
-              <Filter size={18} className="text-slate-400" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Table Section */}
       <div className="bg-white mx-4 md:mx-0 rounded-[2rem] border border-slate-100 shadow-xl shadow-emerald-200/20 overflow-hidden">
         <CODTable
           data={codTransfers}
@@ -123,13 +67,10 @@ export const CODContainer = () => {
         />
       </div>
 
-      {/* Details Drawer */}
       <CODDrawer
         isOpen={!!selectedCod}
         cod={selectedCod}
         onClose={() => setSelectedCod(null)}
-        onConfirm={handleConfirmCollection}
-        loading={actionLoading}
       />
     </div>
   );

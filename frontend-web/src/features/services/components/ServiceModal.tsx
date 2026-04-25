@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { X, Save, Clock, Percent, Package, Plus, Trash2, Beaker } from "lucide-react";
+import { X, Save, Percent, Plus, Trash2, Beaker } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import type { LaundryService } from "../types";
 import { getInventory } from "../../inventory/api/inventory.api";
 import type { InventoryItem } from "../../inventory/types";
+import { categoryApi } from "../../category/api/category.api";
+import type { ServiceCategory } from "../../category/types";
 import { toast } from "react-hot-toast";
 
 interface ServiceModalProps {
@@ -19,8 +21,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
     name: "",
     category: "Wash & Fold",
     unit: "KG",
-    basePrice: 0,
-    estimatedHours: 24,
+    price: 0,
     isActive: true,
     isPopular: false,
     description: "",
@@ -28,23 +29,28 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
   });
 
   const [inventoryRegistry, setInventoryRegistry] = useState<InventoryItem[]>([]);
-  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       const fetchInventory = async () => {
         try {
-          setLoadingInventory(true);
           const response = await getInventory();
           const data = (response as any).items || response;
           setInventoryRegistry(Array.isArray(data) ? data : []);
         } catch (error) {
           toast.error("Failed to load inventory for mapping");
-        } finally {
-          setLoadingInventory(false);
         }
       };
       fetchInventory();
+
+      categoryApi.getAllCategories<ServiceCategory>("SERVICE").then((cats) => {
+        const names = cats.map((c) => c.name);
+        setCategories(names);
+        if (!initialData && names.length > 0) {
+          setFormData((prev) => ({ ...prev, category: names[0] }));
+        }
+      }).catch(() => { });
     }
   }, [isOpen]);
 
@@ -59,8 +65,7 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
         name: "",
         category: "Wash & Fold",
         unit: "KG",
-        basePrice: 0,
-        estimatedHours: 24,
+        price: 0,
         isActive: true,
         isPopular: false,
         description: "",
@@ -73,7 +78,11 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = {
+      ...formData,
+      price: (formData as any).price ?? (formData as any).basePrice ?? 0,
+    };
+    onSubmit(payload);
     onClose();
   };
 
@@ -123,7 +132,6 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
           </div>
 
           <div className="p-8 space-y-8 flex-1">
-            {/* Essential Identity */}
             <div className="space-y-4">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Service Identity</label>
               <Input
@@ -137,13 +145,14 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
                 <select
                   className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-sm font-bold text-slate-700 outline-none ring-offset-white focus:ring-2 focus:ring-blue-500/10"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
-                  <option>Wash & Fold</option>
-                  <option>Dry Cleaning</option>
-                  <option>Ironing</option>
-                  <option>Premium Care</option>
-                  <option>Other</option>
+                  {categories.length === 0 && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
                 <select
                   className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/10"
@@ -159,7 +168,6 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
               </div>
             </div>
 
-            {/* Inventory Consumption Section */}
             <div className="space-y-4 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -223,37 +231,20 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
               <p className="text-[9px] text-slate-400 font-medium italic mt-2">Inventory will be deducted automatically per reservation.</p>
             </div>
 
-            {/* Financials & Logistics */}
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  <Percent size={12} /> Base Rate (LKR)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  className="h-14 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/10 text-base font-bold"
-                  value={formData.basePrice}
-                  onChange={(e) => setFormData({ ...formData, basePrice: Number(e.target.value) })}
-                  required
-                />
-              </div>
-              <div className="space-y-4">
-                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  <Clock size={12} /> Est. Time (Hours)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="24"
-                  className="h-14 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/10 text-base font-bold"
-                  value={formData.estimatedHours}
-                  onChange={(e) => setFormData({ ...formData, estimatedHours: Number(e.target.value) })}
-                  required
-                />
-              </div>
+            <div className="space-y-4">
+              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Percent size={12} /> Base Rate (LKR)
+              </label>
+              <Input
+                type="number"
+                placeholder="0.00"
+                className="h-14 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/10 text-base font-bold"
+                value={(formData as any).price ?? (formData as any).basePrice ?? ""}
+                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                required
+              />
             </div>
 
-            {/* Qualitative */}
             <div className="space-y-4">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Service Narrative</label>
               <textarea
@@ -264,14 +255,13 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
               />
             </div>
 
-            {/* Flags */}
             <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, isPopular: !formData.isPopular })}
                 className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all ${formData.isPopular
-                    ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-500/10"
-                    : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-500/10"
+                  : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
                   }`}
               >
                 <Star size={18} className={formData.isPopular ? "fill-amber-500" : ""} />
@@ -281,8 +271,8 @@ export default function ServiceModal({ isOpen, onClose, onSubmit, initialData }:
                 type="button"
                 onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
                 className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all ${formData.isActive
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-500/10"
-                    : "bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-500/10"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-500/10"
+                  : "bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-500/10"
                   }`}
               >
                 <div className={`w-2 h-2 rounded-full ${formData.isActive ? "bg-emerald-500" : "bg-rose-500"}`} />

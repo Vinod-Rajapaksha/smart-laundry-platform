@@ -6,7 +6,17 @@ import Inventory from '../../database/models/Inventory.js';
 import CashOnDelivery from '../../database/models/CashOnDelivery.js';
 import Payment from '../../database/models/Payment.js';
 import ApiError from '../../core/apiError.js';
-import { PAYMENT_STATUS, ORDER_STATUS, DEFAULT_PAGINATION, LOYALTY_RULES, NOTIFICATION_TYPES } from '../../core/constants.js';
+import {
+  PAYMENT_STATUS,
+  ORDER_STATUS,
+  DEFAULT_PAGINATION,
+  LOYALTY_RULES,
+  NOTIFICATION_TYPES,
+  PAYMENT_METHODS,
+  ROLES,
+  LOGISTICS_JOB_TYPES,
+  DISCOUNT_TYPE
+} from '../../core/constants.js';
 import { generateOrderNo } from '../../utils/reference.js';
 import * as voucherService from '../voucher/service.js';
 import * as loyaltyService from '../loyalty/loyalty.service.js';
@@ -26,11 +36,10 @@ interface CreateOrderInput {
   extraFee?: number;
   deliveryFee?: number;
   paymentMethod: string;
-  options?: string[]; // Inventory item IDs
+  options?: string[];
 }
 
 export const createOrder = async (userId: string, input: CreateOrderInput) => {
-  // 1. Fetch main service
   const service = await Service.findById(input.serviceId);
   if (!service) {
     throw new ApiError(404, 'Service not found');
@@ -40,7 +49,6 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
   let extraFromOptions = 0;
   const selectedOptions = [];
 
-  // 2. Process laundry options
   if (input.options && input.options.length > 0) {
     const inventoryItems = await Inventory.find({
       _id: { $in: input.options },
@@ -65,7 +73,6 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
   const deliveryFee = input.deliveryFee || 0;
   const totalAmount = subtotal + extraFee + deliveryFee;
 
-  // 3. Generate unique order number
   let orderNo = generateOrderNo();
   let exists = await Order.exists({ orderNo });
   while (exists) {
@@ -73,7 +80,6 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     exists = await Order.exists({ orderNo });
   }
 
-  // 4. Create Order
   const order = await Order.create({
     orderNo,
     userId,
@@ -97,11 +103,10 @@ export const createOrder = async (userId: string, input: CreateOrderInput) => {
     options: selectedOptions,
   });
 
-  // Notify Admins
-  if (order.paymentMethod !== 'NONE') {
+  if (order.paymentMethod !== PAYMENT_METHODS.NONE) {
     try {
       const User = await import('../../database/models/User.js').then(m => m.default);
-      const admins = await User.find({ role: 'ADMIN' });
+      const admins = await User.find({ role: ROLES.ADMIN });
       for (const admin of admins) {
         await createNotification(admin._id.toString(), {
           title: 'New Order Received',
@@ -139,7 +144,7 @@ export const claimOrder = async (orderId: string, staffId: string) => {
   await order.save();
 
   try {
-    const jobType = nextStatus === ORDER_STATUS.PICKUP_ASSIGNED ? 'PICKUP' : 'DELIVERY';
+    const jobType = nextStatus === ORDER_STATUS.PICKUP_ASSIGNED ? LOGISTICS_JOB_TYPES.PICKUP : LOGISTICS_JOB_TYPES.DELIVERY;
     const { createJobFromOrder } = await import('./delivery.service.js');
     await createJobFromOrder(order._id.toString(), staffId, jobType);
   } catch (e) {
@@ -160,10 +165,10 @@ export const getAvailableOrders = async (query: any) => {
     status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.READY] },
     isActive: true,
     $or: [
-      { paymentMethod: 'COD' },
+      { paymentMethod: PAYMENT_METHODS.COD },
       { paymentStatus: PAYMENT_STATUS.PAID }
     ],
-    paymentMethod: { $ne: 'NONE' }
+    paymentMethod: { $ne: PAYMENT_METHODS.NONE }
   };
 
   const [orders, total] = await Promise.all([
@@ -260,7 +265,7 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
   const orderToUpdate = await Order.findById(id);
   if (!orderToUpdate) throw new ApiError(404, 'Order not found');
 
-  if (status === ORDER_STATUS.PICKED_UP && orderToUpdate.paymentMethod === 'COD') {
+  if (status === ORDER_STATUS.PICKED_UP && orderToUpdate.paymentMethod === PAYMENT_METHODS.COD) {
     updateData.paymentStatus = PAYMENT_STATUS.PAID;
     updateData.paidAt = new Date();
 
@@ -276,9 +281,8 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
         }
       );
 
-      // 2. Update Central Payment Record
       await Payment.findOneAndUpdate(
-        { orderId: id, method: 'COD' },
+        { orderId: id, method: PAYMENT_METHODS.COD },
         {
           $set: {
             status: PAYMENT_STATUS.PAID,
@@ -287,7 +291,6 @@ export const updateOrderStatus = async (id: string, status: string, updateBy: st
         }
       );
 
-      // 3. Award Loyalty Points
       await loyaltyService.awardLoyaltyPoints(orderToUpdate.userId.toString(), 10, orderToUpdate._id.toString());
 
     } catch (e) {
@@ -360,7 +363,7 @@ export const cancelOrder = async (id: string, userId: string) => {
     throw new ApiError(400, 'Order cannot be cancelled at this stage');
   }
 
-  if (order.paymentMethod === 'COD' && order.status !== ORDER_STATUS.ORDER_PLACED) {
+  if (order.paymentMethod === PAYMENT_METHODS.COD && order.status !== ORDER_STATUS.ORDER_PLACED) {
     throw new ApiError(400, 'Order already being processed and cannot be cancelled');
   }
 
@@ -461,15 +464,12 @@ export const applyVoucher = async (orderId: string, userId: string, voucherCode:
     throw new ApiError(400, 'A voucher has already been applied to this order');
   }
 
-  // Calculate order amount for validation (subtotal + extraFee)
   const currentAmount = order.subtotal + order.extraFee;
 
-  // Validate voucher
   const voucher = await voucherService.validateVoucher(voucherCode, userId, currentAmount);
 
-  // Calculate discount
   let discountTotal = 0;
-  if (voucher.discountType === 'PERCENTAGE') {
+  if (voucher.discountType === DISCOUNT_TYPE.PERCENTAGE) {
     discountTotal = (currentAmount * voucher.discountValue) / 100;
     if (voucher.maxDiscount && discountTotal > voucher.maxDiscount) {
       discountTotal = voucher.maxDiscount;
@@ -478,12 +478,10 @@ export const applyVoucher = async (orderId: string, userId: string, voucherCode:
     discountTotal = voucher.discountValue;
   }
 
-  // Ensure discount doesn't exceed order amount
   if (discountTotal > currentAmount) {
     discountTotal = currentAmount;
   }
 
-  // Update order
   order.discountTotal = discountTotal;
   order.totalAmount = currentAmount + order.deliveryFee - discountTotal;
   order.voucherId = voucher._id;
@@ -510,7 +508,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', (err) => reject(err));
 
-    // Header
     doc
       .fillColor('#444444')
       .fontSize(25)
@@ -521,7 +518,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
 
     doc.moveDown();
 
-    // Invoice Info
     doc
       .fillColor('#000000')
       .fontSize(18)
@@ -539,7 +535,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       .text('Status:', 50, invoiceTableTop + 30)
       .text(order.status, 150, invoiceTableTop + 30);
 
-    // Customer Info
     const customerInfoTop = 160;
     doc
       .fontSize(10)
@@ -550,7 +545,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       .text((order.userId as any)?.email || '', 350, customerInfoTop + 30)
       .text(order.pickupAddress || '', 350, customerInfoTop + 45);
 
-    // Items Header
     const itemTableTop = 250;
     doc
       .font('Helvetica-Bold')
@@ -565,7 +559,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       .lineTo(550, itemTableTop + 15)
       .stroke();
 
-    // Line items
     let position = itemTableTop + 30;
     doc
       .font('Helvetica')
@@ -574,7 +567,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       .text(`LKR ${(order.subtotal / (order.weightKg || 1)).toFixed(2)}`, 370, position, { width: 90, align: 'right' })
       .text(`LKR ${order.subtotal.toFixed(2)}`, 480, position, { width: 50, align: 'right' });
 
-    // Options (extra features)
     if (order.options && order.options.length > 0) {
       order.options.forEach((opt: any) => {
         position += 20;
@@ -585,14 +577,12 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       });
     }
 
-    // Divider
     position += 30;
     doc
       .moveTo(50, position)
       .lineTo(550, position)
       .stroke();
 
-    // Calculations
     position += 20;
     doc
       .fontSize(10)
@@ -625,7 +615,6 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
       .text('TOTAL:', 350, position)
       .text(`LKR ${order.totalAmount.toFixed(2)}`, 450, position, { width: 100, align: 'right' });
 
-    // Footer
     doc
       .font('Helvetica')
       .fontSize(10)

@@ -6,7 +6,7 @@ let io: Server;
 export const initSocket = (server: HttpServer) => {
   io = new Server(server, {
     cors: {
-      origin: '*', // For production, restrict to allowed origins
+      origin: '*',
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     },
   });
@@ -14,7 +14,6 @@ export const initSocket = (server: HttpServer) => {
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    // Allow user to join their specific private room (e.g., room ID = user ID)
     socket.on('join_user_room', (userId: string) => {
       socket.join(`user_${userId}`);
       console.log(`Socket ${socket.id} joined room user_${userId}`);

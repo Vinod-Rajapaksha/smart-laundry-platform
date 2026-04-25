@@ -4,7 +4,8 @@ import ReportTable from "./ReportTable";
 import ReportModal from "./ReportModal";
 import { ReportHeader } from "./ReportHeader";
 import type { Report, Tab } from "../types";
-import { getReports, createReport, downloadReport } from "../api/reports.api";
+import { getReports, createReport, downloadReport, deleteReport } from "../api/reports.api";
+
 import { toast } from "react-hot-toast";
 
 export default function ReportContainer() {
@@ -66,6 +67,15 @@ export default function ReportContainer() {
       toast.error("Download failed", { id: "dl" });
     }
   };
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteReport(id);
+      toast.success("Report deleted");
+      fetchReports();
+    } catch {
+      toast.error("Failed to delete report");
+    }
+  };
 
   const filteredReports = reports.filter((r) => {
     const matchesSearch = r.reportType.toLowerCase().includes(searchQuery.toLowerCase());
@@ -95,7 +105,9 @@ export default function ReportContainer() {
         <ReportTable
           reports={filteredReports}
           onDownload={handleDownload}
+          onDelete={handleDelete}
         />
+
       )}
 
       <ReportModal

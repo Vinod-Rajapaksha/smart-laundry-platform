@@ -71,8 +71,8 @@ export const getFilteredCashOnDeliveries = async (status?: string, search?: stri
     },
     {
       $unwind: {
-          path: '$collector',
-          preserveNullAndEmptyArrays: true
+        path: '$collector',
+        preserveNullAndEmptyArrays: true
       }
     }
   ];
@@ -83,10 +83,8 @@ export const getFilteredCashOnDeliveries = async (status?: string, search?: stri
       $match: {
         $or: [
           { 'order.orderNo': searchRegex },
-          { 'user.firstName': searchRegex },
-          { 'user.lastName': searchRegex },
-          { 'collector.firstName': searchRegex },
-          { 'collector.lastName': searchRegex },
+          { 'user.name': searchRegex },
+          { 'collector.name': searchRegex },
           { notes: searchRegex }
         ]
       }

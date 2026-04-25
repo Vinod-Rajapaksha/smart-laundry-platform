@@ -8,8 +8,13 @@ import ApiError from '../../../core/apiError.js';
 export const getTransfersHandler = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.set('Cache-Control', 'no-store');
 
-  const { status, search } = req.query;
-  const result = await getFilteredTransfers(status as string, search as string);
+  const { status, search, startDate, endDate } = req.query;
+  const result = await getFilteredTransfers(
+    status as string,
+    search as string,
+    startDate as string,
+    endDate as string
+  );
 
   return ApiResponse(res, 200, 'Transfers fetched successfully', result);
 });

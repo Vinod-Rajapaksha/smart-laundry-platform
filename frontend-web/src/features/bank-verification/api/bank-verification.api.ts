@@ -51,10 +51,12 @@ export interface PendingTransferData {
 }
 
 export const bankVerificationApi = {
-  getTransfers: (params?: { status?: string; search?: string }) => {
+  getTransfers: (params?: { status?: string; search?: string; startDate?: string; endDate?: string }) => {
     const query = new URLSearchParams();
     if (params?.status) query.append("status", params.status);
     if (params?.search) query.append("search", params.search);
+    if (params?.startDate) query.append("startDate", params.startDate);
+    if (params?.endDate) query.append("endDate", params.endDate);
 
     return apiFetch<PendingTransferData[]>(`/payments/bank-transfer?${query.toString()}`);
   },

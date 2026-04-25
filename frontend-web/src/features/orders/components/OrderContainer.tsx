@@ -3,8 +3,8 @@ import OrderFilters from "./OrderFilters";
 import OrderTable from "./OrderTable";
 import OrderDrawer from "./OrderDrawer";
 import { OrderHeader } from "./OrderHeader";
-import type { Order, Tab, OrderStatus } from "../types";
-import { getOrders, updateOrderStatus, updateOrder, deleteOrder } from "../api/orders.api";
+import type { Order, Tab } from "../types";
+import { getOrders, updateOrder, deleteOrder } from "../api/orders.api";
 import { toast } from "react-hot-toast";
 
 export default function OrderContainer() {
@@ -32,23 +32,6 @@ export default function OrderContainer() {
   useEffect(() => {
     fetchOrders();
   }, [activeTab]);
-
-  const handleUpdateStatus = async (id: string, status: OrderStatus) => {
-    try {
-      setActionLoading(true);
-      await updateOrderStatus(id, status);
-      toast.success(`Order set to ${status}`);
-
-      setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
-      if (selectedOrder?._id === id) {
-        setSelectedOrder(prev => prev ? { ...prev, status } : null);
-      }
-    } catch (error) {
-      toast.error("Failed to update status");
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleUpdateOrder = async (id: string, data: any) => {
     try {
@@ -86,21 +69,33 @@ export default function OrderContainer() {
     <div className="w-full max-w-[1256px] mx-auto space-y-6 animate-in fade-in zoom-in duration-700 font-poppins">
       <OrderHeader />
       {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-          <p className="text-sm font-medium text-slate-500 mb-1">Total Orders</p>
-          <p className="text-3xl font-bold text-slate-900">{orders.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+          <p className="text-2xl font-black text-slate-900">{orders.length}</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-          <p className="text-sm font-medium text-slate-500 mb-1">Processing</p>
-          <p className="text-3xl font-bold text-blue-600">
-            {orders.filter(o => o.status === "Processing").length}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1">Pending</p>
+          <p className="text-2xl font-black text-amber-600">
+            {orders.filter(o => !["DELIVERED", "CANCELLED"].includes(o.status)).length}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-          <p className="text-sm font-medium text-slate-500 mb-1">Pending Action</p>
-          <p className="text-3xl font-bold text-amber-600">
-            {orders.filter(o => o.status === "Pending").length}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Pickup</p>
+          <p className="text-2xl font-black text-blue-600">
+            {orders.filter(o => o.status.startsWith("PICKUP") || o.status === "PICKED_UP").length}
+          </p>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Processing</p>
+          <p className="text-2xl font-black text-indigo-600">
+            {orders.filter(o => ["WASHING", "DRYING", "PROCESSING", "HANDED_OVER"].includes(o.status)).length}
+          </p>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Delivery</p>
+          <p className="text-2xl font-black text-emerald-600">
+            {orders.filter(o => o.status.startsWith("DELIVERY") || o.status === "DELIVERED").length}
           </p>
         </div>
       </div>
@@ -126,7 +121,6 @@ export default function OrderContainer() {
       <OrderDrawer
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        onUpdateStatus={handleUpdateStatus}
         onUpdateOrder={handleUpdateOrder}
         onDeleteOrder={handleDeleteOrder}
         loading={actionLoading}

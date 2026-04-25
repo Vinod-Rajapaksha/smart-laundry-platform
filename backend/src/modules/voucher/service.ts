@@ -3,9 +3,16 @@ import Voucher from '../../database/models/Voucher.js';
 import VoucherRedemption from '../../database/models/VoucherRedemption.js';
 import Order from '../../database/models/Order.js';
 import ApiError from '../../core/apiError.js';
+import { LOYALTY_TIER_NAME, DISCOUNT_TYPE } from '../../core/constants.js';
 
 export const createVoucher = async (data: any) => {
   return Voucher.create(data);
+};
+
+export const updateVoucher = async (id: string, data: any) => {
+  const voucher = await Voucher.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!voucher) throw new ApiError(404, 'Voucher not found');
+  return voucher;
 };
 
 export const getAllVouchers = async (filter: any = {}) => {
@@ -29,11 +36,11 @@ export const validateVoucher = async (code: string, userId: string, orderAmount:
   // Loyalty member restriction: ONLY bronze members can apply vouchers
   const user = await mongoose.model('User').findById(userId);
   if (user && user.membership) {
-     const level = user.membership.level;
-     // If not BRONZE (and not null/entry), block voucher usage
-     if (level !== 'BRONZE' && level !== 'null' && level !== null) {
-        throw new ApiError(403, 'Vouchers are only available for Bronze members. Premium tiers already receive automatic loyalty discounts.');
-     }
+    const level = user.membership.level;
+    // If not BRONZE, block voucher usage
+    if (level !== LOYALTY_TIER_NAME.BRONZE && level !== 'null' && level !== null) {
+      throw new ApiError(403, 'Vouchers are only available for Bronze members. Premium tiers already receive automatic loyalty discounts.');
+    }
   }
 
   // Date validation
@@ -92,7 +99,7 @@ export const applyVoucherToOrder = async (orderId: string, userId: string, vouch
 
   // Calculate discount
   let discountTotal = 0;
-  if (voucher.discountType === 'PERCENTAGE') {
+  if (voucher.discountType === DISCOUNT_TYPE.PERCENTAGE) {
     discountTotal = (currentAmount * voucher.discountValue) / 100;
     if (voucher.maxDiscount && discountTotal > voucher.maxDiscount) {
       discountTotal = voucher.maxDiscount;
@@ -101,12 +108,10 @@ export const applyVoucherToOrder = async (orderId: string, userId: string, vouch
     discountTotal = voucher.discountValue;
   }
 
-  // Ensure discount doesn't exceed order amount
   if (discountTotal > currentAmount) {
     discountTotal = currentAmount;
   }
 
-  // Update order
   order.discountTotal = discountTotal;
   order.totalAmount = currentAmount + order.deliveryFee - discountTotal;
   order.voucherId = voucher._id;

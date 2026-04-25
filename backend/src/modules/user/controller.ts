@@ -29,13 +29,11 @@ export const uploadAvatar = asyncHandler(async (req: Request, res: Response) => 
   }
 
   const userId = (req as any).user.id;
-  
-  // Upload to cloudinary
+
   const avatarUrl = await uploadToCloudinary(req.file.buffer, 'avatars');
-  
-  // Update user profile
+
   const result = await service.updateProfile(userId, { avatar: avatarUrl });
-  
+
   return ApiResponse(res, 200, 'Avatar uploaded successfully', result);
 });
 

@@ -128,19 +128,17 @@ export const sendForgotPasswordOtp = async (email: string) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    // For security, don't reveal if user exists. Just return true.
     return true;
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 mins expiry
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
   user.otp = otp;
   user.otpExpiresAt = expiresAt;
   await user.save();
 
-  // Send via SMSlenz
   await sendSms(user.telephone, `Your password reset OTP is ${otp}. Valid for 10 minutes.`);
 
   return true;

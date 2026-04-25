@@ -5,16 +5,34 @@ import Payment from '../../../database/models/Payment.js';
 import ApiError from '../../../core/apiError.js';
 import { uploadToCloudinary } from '../../../utils/cloudinary.js';
 import { processSlipOCR } from '../../../utils/ocrService.js';
-import { PAYMENT_METHODS, PAYMENT_STATUS } from '../../../core/constants.js';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_STATUS,
+  OCR_STATUS,
+  BANK_VERIFICATION_STATUS
+} from '../../../core/constants.js';
 
-export const getFilteredTransfers = async (status?: string, search?: string) => {
+export const getFilteredTransfers = async (status?: string, search?: string, startDate?: string, endDate?: string) => {
   const pipeline: any[] = [];
 
-  // Match status if provided
+  const matchQuery: any = {};
+
   if (status && status !== 'All Transactions') {
-    pipeline.push({
-      $match: { verifyStatus: status.toUpperCase() }
-    });
+    matchQuery.verifyStatus = status.toUpperCase();
+  }
+
+  if (startDate || endDate) {
+    matchQuery.createdAt = {};
+    if (startDate) matchQuery.createdAt.$gte = new Date(startDate);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      matchQuery.createdAt.$lte = end;
+    }
+  }
+
+  if (Object.keys(matchQuery).length > 0) {
+    pipeline.push({ $match: matchQuery });
   }
 
   // Lookup User
@@ -76,8 +94,7 @@ export const getFilteredTransfers = async (status?: string, search?: string) => 
           { referenceNo: searchRegex },
           { bankName: searchRegex },
           { 'paymentId.orderId.orderNo': searchRegex },
-          { 'userId.firstName': searchRegex },
-          { 'userId.lastName': searchRegex },
+          { 'userId.name': searchRegex },
           { 'userId.email': searchRegex },
         ]
       }
@@ -132,14 +149,14 @@ export const submitBankTransfer = async (
     accountNo,
     slipImageUrl,
     systemRefId: String(payment.transactionRef || ''),
-    ocrStatus: 'PENDING',
+    ocrStatus: OCR_STATUS.PENDING,
   });
 
   try {
     const ocrResult = await processSlipOCR(slipFile.buffer, bankTransfer.systemRefId);
     bankTransfer.ocrText = ocrResult.text;
     bankTransfer.ocrConfidence = ocrResult.confidence;
-    bankTransfer.ocrStatus = ocrResult.isMatch ? 'MATCHED' : 'MISMATCHED';
+    bankTransfer.ocrStatus = ocrResult.isMatch ? OCR_STATUS.MATCHED : OCR_STATUS.MISMATCHED;
     bankTransfer.extractedAmount = ocrResult.extractedAmount;
     bankTransfer.extractedDate = ocrResult.extractedDate;
     bankTransfer.extractedRef = ocrResult.extractedRef;
@@ -147,14 +164,14 @@ export const submitBankTransfer = async (
     bankTransfer.extractedAccount = ocrResult.extractedAccount;
     await bankTransfer.save();
   } catch (err) {
-    bankTransfer.ocrStatus = 'FAILED';
+    bankTransfer.ocrStatus = OCR_STATUS.FAILED;
     await bankTransfer.save();
   }
 
   order.paymentMethod = PAYMENT_METHODS.BANK_TRANSFER;
   order.paymentStatus = PAYMENT_STATUS.PENDING;
   order.paidAt = new Date();
-  order.bankVerificationStatus = 'PENDING';
+  order.bankVerificationStatus = BANK_VERIFICATION_STATUS.PENDING;
   await order.save();
 
   payment.paidAt = new Date();
@@ -166,7 +183,7 @@ export const submitBankTransfer = async (
 export const verifyTransfer = async (
   transferId: string,
   adminId: string,
-  status: 'APPROVED' | 'REJECTED',
+  status: typeof BANK_VERIFICATION_STATUS.APPROVED | typeof BANK_VERIFICATION_STATUS.REJECTED,
   isSuspicious: boolean,
   internalNotes?: string,
   rejectReason?: string
@@ -187,12 +204,12 @@ export const verifyTransfer = async (
 
   const payment = await Payment.findById(transfer.paymentId);
   if (payment) {
-    payment.status = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
+    payment.status = status === BANK_VERIFICATION_STATUS.APPROVED ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
     await payment.save();
 
     const order = await Order.findById(payment.orderId);
     if (order) {
-      order.paymentStatus = status === 'APPROVED' ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
+      order.paymentStatus = status === BANK_VERIFICATION_STATUS.APPROVED ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.FAILED;
       order.bankVerificationStatus = status;
       await order.save();
     }

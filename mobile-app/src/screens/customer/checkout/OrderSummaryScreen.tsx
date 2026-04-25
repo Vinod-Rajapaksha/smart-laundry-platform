@@ -32,9 +32,7 @@ const OrderSummaryScreen = () => {
             setLoading(true);
             const data = await orderService.getOrderById(orderId as string);
             setOrder(data);
-            // If order already has a voucher, pre-fill it or show applied state
             if (data.voucherId) {
-                // In a real app we might want the code but for now let's just use the presence
             }
         } catch (error) {
             console.error('Failed to fetch order details:', error);
@@ -46,14 +44,13 @@ const OrderSummaryScreen = () => {
 
     const handleApplyVoucher = async () => {
         if (!order || !voucherCode.trim()) return;
-        
+
         try {
             setIsApplyingVoucher(true);
             await voucherService.applyVoucherToOrder(order._id, voucherCode.trim());
-            
-            // Re-fetch order to get updated totals
+
             await fetchOrderDetails();
-            
+
             setVoucherCode('');
             setShowVoucherInput(false);
             Alert.alert('Success', 'Voucher applied successfully!');
@@ -218,18 +215,18 @@ const OrderSummaryScreen = () => {
                             </View>
                         </View>
                     )}
-                    
+
                     {!order.voucherId && !showVoucherInput && (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={{ marginTop: 12, paddingVertical: 8, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F1F5F9' }}
                             onPress={() => setShowVoucherInput(true)}
                         >
                             <Text style={{ color: COLORS.PRIMARY, fontSize: 13, fontWeight: '600' }}>I have a specific code</Text>
                         </TouchableOpacity>
                     )}
-                    
+
                     {showVoucherInput && (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={{ marginTop: 12, alignItems: 'center' }}
                             onPress={() => setShowVoucherInput(false)}
                         >

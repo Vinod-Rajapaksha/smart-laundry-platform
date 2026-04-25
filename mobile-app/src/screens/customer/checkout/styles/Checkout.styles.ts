@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-  // Order Summary Styles
   orderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,7 +132,6 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.FONT_FAMILY.BOLD,
     color: COLORS.PRIMARY,
   },
-  // Selection Card Styles
   selectionCard: {
     backgroundColor: COLORS.WHITE,
     borderRadius: 24,
@@ -189,7 +187,6 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.FONT_FAMILY.REGULAR,
     color: COLORS.TEXT_SECONDARY,
   },
-  // Bank Details
   bankDetailBox: {
     backgroundColor: COLORS.BACKGROUND,
     borderRadius: 12,
@@ -207,7 +204,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.BORDER_LIGHT,
   },
-  // Transfer Slip Area
   uploadArea: {
     borderStyle: 'dashed',
     borderWidth: 2,
@@ -230,7 +226,6 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.FONT_FAMILY.MEDIUM,
     color: COLORS.TEXT_MUTED,
   },
-  // Payment Status
   statusContainer: {
     flex: 1,
     alignItems: 'center',

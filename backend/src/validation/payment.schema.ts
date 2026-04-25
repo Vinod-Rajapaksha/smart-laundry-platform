@@ -1,11 +1,9 @@
 import { z } from "zod";
-
-export const paymentMethods = ["CARD", "COD", "BANK_TRANSFER"] as const;
-export const paymentStatus = ["PENDING", "PAID", "FAILED"] as const;
+import { PAYMENT_METHODS, BANK_VERIFICATION_STATUS } from "../core/constants.js";
 
 export const initPaymentSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),
-  method: z.enum(paymentMethods),
+  method: z.enum(Object.values(PAYMENT_METHODS) as [string, ...string[]]),
 });
 
 export const submitBankTransferSchema = z.object({
@@ -15,7 +13,7 @@ export const submitBankTransferSchema = z.object({
 });
 
 export const verifyTransferSchema = z.object({
-  status: z.enum(["APPROVED", "REJECTED"]),
+  status: z.enum([BANK_VERIFICATION_STATUS.APPROVED, BANK_VERIFICATION_STATUS.REJECTED]),
   isSuspicious: z.boolean().optional(),
   internalNotes: z.string().optional(),
   rejectReason: z.string().optional(),

@@ -53,7 +53,7 @@ export const CODTable = ({ data, loading, onViewDetails }: CODTableProps) => {
             <span className="text-sm font-medium text-slate-700">{item.collector.firstName} {item.collector.lastName}</span>
           </div>
         ) : (
-          <span className="text-[10px] font-black text-slate-300 uppercase italic tracking-widest">Unassigned</span>
+          <span className="text-[10px] font-black text-slate-300 uppercase italic tracking-widest">Pending</span>
         )
       ),
     },

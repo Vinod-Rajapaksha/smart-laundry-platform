@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  View, 
-  TextInput, 
-  Text, 
-  StyleSheet, 
-  TextInputProps, 
-  ViewStyle, 
-  TextStyle 
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+  TextStyle
 } from 'react-native';
 import { COLORS } from '../../theme/colors';
 import { TYPOGRAPHY } from '../../theme/typography';
@@ -71,7 +71,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 56,
-    // Soft Shadow
     shadowColor: COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

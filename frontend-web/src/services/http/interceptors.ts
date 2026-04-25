@@ -94,7 +94,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (res.ok) return unwrapApi(raw) as T;
 
-  if (res.status === 401) {
+  if (res.status === 401 && path !== "/auth/login") {
     try {
       if (!isRefreshing) {
         isRefreshing = true;

@@ -8,16 +8,32 @@ import Feedback from '../../database/models/Feedback.js';
 import Inventory from '../../database/models/Inventory.js';
 import Service from '../../database/models/Service.js';
 import Voucher from '../../database/models/Voucher.js';
-import { ORDER_STATUS, ROLES } from '../../core/constants.js';
+import { ORDER_STATUS, ROLES, ANALYTICS_DATE_RANGES, PAYMENT_METHODS } from '../../core/constants.js';
 import { Response } from 'express';
 
-// 1. Admin Dashboard
-export const getDashboardKPIs = async () => {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+export const getDashboardKPIs = async (range: string = 'today') => {
+  const now = new Date();
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+
+  if (range === ANALYTICS_DATE_RANGES.YESTERDAY) {
+    startDate.setDate(startDate.getDate() - 1);
+    now.setHours(0, 0, 0, 0);
+  } else if (range === ANALYTICS_DATE_RANGES.WEEK) {
+    startDate.setDate(startDate.getDate() - 7);
+  } else if (range === ANALYTICS_DATE_RANGES.MONTH) {
+    startDate.setMonth(startDate.getMonth() - 1);
+  } else if (range === ANALYTICS_DATE_RANGES.YEAR) {
+    startDate.setFullYear(startDate.getFullYear() - 1);
+  } else if (range === ANALYTICS_DATE_RANGES.OVERALL) {
+    startDate.setFullYear(2020);
+  }
+
+  const dateFilter = { $gte: startDate, $lte: now };
 
   const [
-    todayRevenueRes,
+    orderRevenueRes,
+    manualRevenueRes,
     newOrders,
     activeStaff,
     pendingDeliveries,
@@ -30,35 +46,47 @@ export const getDashboardKPIs = async () => {
     totalCustomers
   ] = await Promise.all([
     Order.aggregate([
-      { $match: { createdAt: { $gte: startOfToday }, status: ORDER_STATUS.DELIVERED } },
+      { $match: { paidAt: dateFilter } },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } }
     ]),
-    Order.countDocuments({ createdAt: { $gte: startOfToday } }),
+    Revenue.aggregate([
+      { $match: { date: dateFilter } },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]),
+    Order.countDocuments({ createdAt: dateFilter }),
     User.countDocuments({ role: ROLES.STAFF, isActive: true }),
-    Order.countDocuments({ 
-        status: { $in: [
-            ORDER_STATUS.READY, 
-            ORDER_STATUS.DELIVERY_ASSIGNED, 
-            ORDER_STATUS.DELIVERY_ON_THE_WAY
-        ]} 
+    Order.countDocuments({
+      status: {
+        $in: [
+          ORDER_STATUS.READY,
+          ORDER_STATUS.DELIVERY_ASSIGNED,
+          ORDER_STATUS.DELIVERY_ON_THE_WAY
+        ]
+      }
     }),
     Order.aggregate([
-        { $match: { status: ORDER_STATUS.DELIVERED } },
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-            amount: { $sum: "$totalAmount" }
-          }
-        },
-        { $sort: { _id: 1 } },
-        { $limit: 6 }
+      { $match: { paidAt: dateFilter } },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: range === 'year' || range === 'overall' ? "%Y-%m" : "%Y-%m-%d",
+              date: "$paidAt"
+            }
+          },
+          amount: { $sum: "$totalAmount" }
+        }
+      },
+      { $sort: { _id: 1 } },
+      { $limit: 30 }
     ]),
     Order.aggregate([
-        { $group: { _id: "$status", count: { $sum: 1 } } }
+      { $match: { createdAt: dateFilter } },
+      { $group: { _id: "$status", count: { $sum: 1 } } }
     ]),
     Feedback.aggregate([
-        { $match: { status: 'approved' } },
-        { $group: { _id: null, avg: { $avg: "$rating" } } }
+      { $match: { status: 'approved' } },
+      { $group: { _id: null, avg: { $avg: "$rating" } } }
     ]),
     Inventory.countDocuments({ $expr: { $lte: ["$qtyInStock", "$reorderLevel"] } }),
     Service.countDocuments({ isActive: true }),
@@ -66,8 +94,10 @@ export const getDashboardKPIs = async () => {
     User.countDocuments({ role: ROLES.CUSTOMER })
   ]);
 
-  const todayRevenue = todayRevenueRes[0]?.total || 0;
-  
+  const orderRevenue = orderRevenueRes[0]?.total || 0;
+  const manualRevenue = manualRevenueRes[0]?.total || 0;
+  const todayRevenue = orderRevenue + manualRevenue;
+
   const revenueTrend = revenueTrendRaw.map(item => ({
     date: item._id,
     amount: item.amount
@@ -80,12 +110,12 @@ export const getDashboardKPIs = async () => {
 
   const averageRating = averageRatingRes[0]?.avg || 0;
 
-  return { 
-    todayRevenue, 
-    newOrders, 
-    activeStaff, 
-    pendingDeliveries, 
-    revenueTrend, 
+  return {
+    todayRevenue,
+    newOrders,
+    activeStaff,
+    pendingDeliveries,
+    revenueTrend,
     orderStatusDistribution,
     averageRating,
     lowStockItems,
@@ -95,17 +125,14 @@ export const getDashboardKPIs = async () => {
   };
 };
 
-// 2 & 3. Financial Analysis & Monthly Interaction
 export const getMonthlyAnalysis = async (year: number, month: number) => {
   const startOfMonth = new Date(year, month - 1, 1);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59);
 
-  // Previous month for growth
   const startOfPrevMonth = new Date(year, month - 2, 1);
   const endOfPrevMonth = new Date(year, month - 1, 0, 23, 59, 59);
 
   const calculateTotals = async (start: Date, end: Date) => {
-    // Orders revenue + Manual revenue
     const ordersRev = await Order.aggregate([
       { $match: { createdAt: { $gte: start, $lte: end }, status: ORDER_STATUS.DELIVERED } },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } }
@@ -143,7 +170,6 @@ export const getMonthlyAnalysis = async (year: number, month: number) => {
   };
 };
 
-// 4. Add Revenue / Expense
 export const addRevenue = async (data: { name: string; amount: number; date: Date; sourceType?: string }) => {
   return Revenue.create({ ...data, sourceType: data.sourceType || 'MANUAL' });
 };
@@ -152,7 +178,6 @@ export const addExpense = async (data: { name: string; amount: number; date: Dat
   return Expense.create(data);
 };
 
-// 5. Report Generation - Preview
 export const previewReport = async (periodFrom: Date, periodTo: Date, sections: string[]) => {
   const result: any = {};
 
@@ -183,7 +208,6 @@ export const previewReport = async (periodFrom: Date, periodTo: Date, sections: 
   return result;
 };
 
-// 5. Report Generation - Save (Step 3)
 export const saveReport = async (periodFrom: Date, periodTo: Date, reportType: string, generatedBy: string) => {
   const count = await Report.countDocuments();
   const reportCode = `REP-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
@@ -194,7 +218,12 @@ export const getReports = async () => {
   return Report.find().sort({ createdAt: -1 }).populate('generatedBy', 'name');
 };
 
-// 5. Report Generation - Download PDF (Step 4)
+export const deleteReport = async (id: string) => {
+  const report = await Report.findByIdAndDelete(id);
+  if (!report) throw new Error('Report not found');
+  return report;
+};
+
 export const downloadReport = async (reportId: string, res: Response) => {
   const report = await Report.findById(reportId);
   if (!report) throw new Error('Report not found');
@@ -202,10 +231,8 @@ export const downloadReport = async (reportId: string, res: Response) => {
   const periodFrom = new Date(report.periodFrom);
   const periodTo = new Date(report.periodTo);
 
-  // 1. Core Financials
   const preview = await previewReport(periodFrom, periodTo, ['Revenue', 'Expenses', 'Net Profit']);
 
-  // 2. Deep Operational Analytics
   const [completedOrders, allOrders, newCustomers, lowStockItems] = await Promise.all([
     Order.countDocuments({ createdAt: { $gte: periodFrom, $lte: periodTo }, status: ORDER_STATUS.DELIVERED }),
     Order.countDocuments({ createdAt: { $gte: periodFrom, $lte: periodTo } }),
@@ -215,7 +242,6 @@ export const downloadReport = async (reportId: string, res: Response) => {
 
   const successRate = allOrders > 0 ? ((completedOrders / allOrders) * 100).toFixed(1) : '100.0';
 
-  // Create real PDF
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
   res.setHeader('Content-disposition', `attachment; filename=Report_${report.reportCode || reportId}.pdf`);
@@ -223,23 +249,20 @@ export const downloadReport = async (reportId: string, res: Response) => {
 
   doc.pipe(res);
 
-  // BRANDING HEADER
-  doc.rect(0, 0, 600, 100).fill('#1e293b'); // Dark Slate Background
+  doc.rect(0, 0, 600, 100).fill('#1e293b');
   doc.fillColor('#ffffff').fontSize(28).font('Helvetica-Bold').text('B & W Laundry', 50, 35);
   doc.fontSize(10).font('Helvetica').text('Intelligent Operations Command Center', 50, 65);
-  
-  // Title & Meta Document details
+
   doc.moveDown(4);
   doc.fillColor('#0f172a').fontSize(20).font('Helvetica-Bold').text(`Administrative Report: ${report.reportType}`);
-  doc.rect(50, 145, 500, 2).fill('#3b82f6'); // Blue Accent Line
-  
+  doc.rect(50, 145, 500, 2).fill('#3b82f6');
+
   doc.moveDown(1.5);
   doc.fillColor('#475569').fontSize(11).font('Helvetica');
   doc.text(`Report ID:       ${report.reportCode || report._id}`);
   doc.text(`Period:            ${periodFrom.toLocaleDateString()}  to  ${periodTo.toLocaleDateString()}`);
   doc.text(`Generated:      ${new Date().toLocaleString()}`);
 
-  // FINANCIAL SUMMARY SECTION
   doc.moveDown(2);
   doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('1. Financial Executive Summary');
   doc.rect(50, doc.y + 5, 500, 1).fill('#e2e8f0');
@@ -252,7 +275,6 @@ export const downloadReport = async (reportId: string, res: Response) => {
   doc.moveDown(0.5);
   doc.font('Helvetica-Bold').fillColor('#10b981').text('Calculated Net Profit:', 50, doc.y, { continued: true }).text(`LKR ${preview.netProfitTotal.toFixed(2)}`, { align: 'right' });
 
-  // OPERATIONAL METRICS SECTION
   doc.moveDown(4);
   doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('2. Operational Efficiency Tracker', 50, doc.y);
   doc.rect(50, doc.y + 5, 500, 1).fill('#e2e8f0');
@@ -264,7 +286,6 @@ export const downloadReport = async (reportId: string, res: Response) => {
   doc.text(`Operational Success Rate: ${successRate}%`);
   doc.text(`New Customer Acquisitions: ${newCustomers}`);
 
-  // INVENTORY ALERTS SECTION
   if (lowStockItems.length > 0) {
     doc.moveDown(3);
     doc.fillColor('#ef4444').fontSize(16).font('Helvetica-Bold').text('3. Critical Inventory Action Required');
@@ -283,7 +304,6 @@ export const downloadReport = async (reportId: string, res: Response) => {
     doc.font('Helvetica').fontSize(11).fillColor('#475569').text('All critical stock levels are stable. No immediate logistics action required.');
   }
 
-  // FOOTER
   const pageHeight = doc.page.height;
   doc.font('Helvetica').fontSize(9).fillColor('#94a3b8').text('CONFIDENTIAL - Smart Laundry Platform Automated Intelligence Report', 50, pageHeight - 50, { align: 'center' });
 
@@ -295,26 +315,26 @@ export const getStaffDashboardStats = async () => {
   today.setHours(0, 0, 0, 0);
 
   const [pickups, processing, deliveries, completedToday] = await Promise.all([
-    Order.countDocuments({ 
+    Order.countDocuments({
       status: { $in: [ORDER_STATUS.ORDER_PLACED, ORDER_STATUS.PICKUP_ASSIGNED, ORDER_STATUS.PICKUP_ON_THE_WAY] },
       $or: [
-        { paymentMethod: 'COD' },
+        { paymentMethod: PAYMENT_METHODS.COD },
         { paymentStatus: 'PAID' }
       ],
-      paymentMethod: { $ne: 'NONE' }
+      paymentMethod: { $ne: PAYMENT_METHODS.NONE }
     }),
-    Order.countDocuments({ 
-      status: { $in: [ORDER_STATUS.PICKED_UP, ORDER_STATUS.WASHING, ORDER_STATUS.DRYING, ORDER_STATUS.PROCESSING] } 
+    Order.countDocuments({
+      status: { $in: [ORDER_STATUS.PICKED_UP, ORDER_STATUS.WASHING, ORDER_STATUS.DRYING, ORDER_STATUS.PROCESSING] }
     }),
-    Order.countDocuments({ 
+    Order.countDocuments({
       status: { $in: [ORDER_STATUS.READY, ORDER_STATUS.DELIVERY_ASSIGNED, ORDER_STATUS.DELIVERY_ON_THE_WAY] },
       $or: [
-        { paymentMethod: 'COD' },
+        { paymentMethod: PAYMENT_METHODS.COD },
         { paymentStatus: 'PAID' }
       ],
-      paymentMethod: { $ne: 'NONE' }
+      paymentMethod: { $ne: PAYMENT_METHODS.NONE }
     }),
-    Order.countDocuments({ 
+    Order.countDocuments({
       status: ORDER_STATUS.DELIVERED,
       updatedAt: { $gte: today }
     })

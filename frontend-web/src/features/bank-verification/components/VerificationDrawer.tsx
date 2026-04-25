@@ -57,16 +57,11 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 transition-opacity"
         onClick={onClose}
       />
-
-      {/* Drawer */}
       <div className={`fixed inset-y-0 right-0 w-[580px] bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] z-50 transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-
-        {/* Header */}
         <div className="flex items-center px-8 py-6 border-b border-slate-100 bg-white">
           <div className="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center text-white mr-4 shadow-lg shadow-blue-100">
             <ShieldCheck size={24} />
@@ -89,8 +84,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50">
 
           <div className="p-8 space-y-8">
-
-            {/* Payment Proof Section - Screenshot 2 style */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest">Payment Proof</h3>
@@ -114,7 +107,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                 </div>
               </div>
 
-              {/* Customer Row */}
               <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center overflow-hidden">
                   {transfer.userId?.avatar ? (
@@ -138,7 +130,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
               </div>
             </section>
 
-            {/* Order & Customer Details - Screenshot 2 style */}
             <section>
               <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Order & Customer</h3>
 
@@ -193,7 +184,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                 </div>
               </div>
 
-              {/* Special Instructions - Screenshot 2 style */}
               <div className="mt-4 bg-[#fffbeb] border border-[#fef3c7] rounded-xl p-5">
                 <p className="text-[11px] font-extrabold text-[#92400e] uppercase tracking-wider mb-2">Special Instructions</p>
                 <p className="text-[14px] text-[#92400e] italic leading-relaxed font-medium">
@@ -202,7 +192,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
               </div>
             </section>
 
-            {/* Verification Evidence - Comparison Section */}
             <section className="space-y-4">
               <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Search size={14} /> Verification Evidence
@@ -219,7 +208,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {/* Amount Comparison */}
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-5 font-bold text-slate-500">Total Amount</td>
                       <td className="px-6 py-5 font-black text-slate-900">Rs.{transfer.paymentId?.amount?.toLocaleString()}</td>
@@ -235,7 +223,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                       </td>
                     </tr>
 
-                    {/* Reference ID Comparison */}
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-5 font-bold text-slate-500">Ref / Remark</td>
                       <td className="px-6 py-5 font-black text-slate-900 tracking-tight">{transfer.systemRefId}</td>
@@ -251,7 +238,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                       </td>
                     </tr>
 
-                    {/* Date Comparison */}
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-5 font-bold text-slate-500">Transfer Date</td>
                       <td className="px-6 py-5 font-bold text-slate-700">{formattedDate}</td>
@@ -263,7 +249,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                       </td>
                     </tr>
 
-                    {/* Bank Comparison */}
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-5 font-bold text-slate-500">Originating Bank</td>
                       <td className="px-6 py-5 font-bold text-slate-700">{transfer.bankName}</td>
@@ -275,7 +260,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                       </td>
                     </tr>
 
-                    {/* Account Number Evidence */}
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-5 font-bold text-slate-500">Account Number</td>
                       <td className="px-6 py-5 font-black text-slate-900 tracking-widest">{transfer.accountNo || 'Not Provided'}</td>
@@ -290,7 +274,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                 </table>
               </div>
 
-              {/* Raw OCR Text Viewer */}
               <div className="bg-slate-900 rounded-2xl p-6 relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -309,7 +292,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
               </div>
             </section>
 
-            {/* Admin Actions - Visible only if Pending */}
             {transfer.verifyStatus === 'PENDING' && (
               <section className="space-y-6">
                 <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest">Admin Actions</h3>
@@ -341,7 +323,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-4 pt-2">
                   <button
                     className="flex-1 h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
@@ -367,7 +348,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                   </button>
                 </div>
 
-                {/* Rejection Reason Input */}
                 <div className="mt-4">
                   <label className="block text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Rejection Reason (Required for Reject)</label>
                   <textarea
@@ -381,7 +361,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
               </section>
             )}
 
-            {/* View-only Notes (if processed) */}
             {transfer.verifyStatus !== 'PENDING' && (transfer.internalNotes || transfer.rejectReason) && (
               <section className="space-y-4">
                 <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest">Audit Comments</h3>
@@ -400,11 +379,9 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
               </section>
             )}
 
-            {/* Audit Info / Timeline */}
             <section>
               <h3 className="text-[13px] font-extrabold text-slate-400 uppercase tracking-widest mb-6 px-1">Audit Log</h3>
               <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-1 before:bottom-1 before:w-[2px] before:bg-slate-100">
-                {/* Submission */}
                 <div className="relative">
                   <div className="absolute -left-8 top-1 w-[24px] h-[24px] rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center z-10">
                     <CheckCircle size={12} className="text-white" />
@@ -415,7 +392,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                   </div>
                 </div>
 
-                {/* OCR Analysis */}
                 <div className="relative">
                   <div className={`absolute -left-8 top-1 w-[24px] h-[24px] rounded-full border-4 border-white shadow-sm z-10 flex items-center justify-center ${transfer.ocrStatus === 'FAILED' ? 'bg-rose-500' : 'bg-blue-500'}`}>
                     <Terminal size={12} className="text-white" />
@@ -428,7 +404,6 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
                   </div>
                 </div>
 
-                {/* Final Decision */}
                 <div className="relative">
                   <div className={`absolute -left-8 top-1 w-[24px] h-[24px] rounded-full border-4 border-white shadow-sm z-10 flex items-center justify-center ${transfer.verifyStatus === 'PENDING' ? 'bg-slate-200' : transfer.verifyStatus === 'APPROVED' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
                     <ShieldCheck size={12} className="text-white" />
@@ -448,7 +423,7 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
           </div>
         </div>
 
-        {/* Footer Banner */}
+        {/* Footer */}
         <div className={`mx-8 my-6 px-6 py-4 rounded-2xl flex items-center justify-center gap-3 border ${transfer.verifyStatus === 'PENDING'
           ? 'bg-[#fff9f2] border-[#ffedd5]'
           : transfer.verifyStatus === 'APPROVED'

@@ -1,111 +1,114 @@
 import { useState } from "react";
+import { Search, RotateCcw, Calendar } from "lucide-react";
 
 const tabs = ["Pending", "Approved", "Rejected", "All Transactions"];
-const amountOptions = [
-  { value: "", label: "Any Amount" },
-  { value: "0-100", label: "Rs.0 - Rs.100" },
-  { value: "100-500", label: "Rs.100 - Rs.500" },
-  { value: "500-1000", label: "Rs.500 - Rs.1,000" },
-  { value: "1000+", label: "Rs.1,000+" },
-];
 
 interface BankVerificationFiltersProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onSearch?: (query: string) => void;
+  startDate: string;
+  endDate: string;
+  onDateChange: (startDate: string, endDate: string) => void;
 }
 
-export const BankVerificationFilters = ({ activeTab, onTabChange, onSearch }: BankVerificationFiltersProps) => {
+export const BankVerificationFilters = ({
+  activeTab,
+  onTabChange,
+  onSearch,
+  startDate,
+  endDate,
+  onDateChange
+}: BankVerificationFiltersProps) => {
   const [search, setSearch] = useState("");
 
-  const handleApply = () => {
-    if (onSearch) onSearch(search);
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    onSearch?.(val);
+  };
+
+  const handleReset = () => {
+    setSearch("");
+    onDateChange("", "");
+    onSearch?.("");
   };
 
   return (
-    <div className="flex flex-col w-full bg-white rounded-xl border border-slate-200 shadow-sm">
-      {/* Tabs */}
-      <div className="flex border-b border-slate-100 px-6 pt-2 gap-8">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => onTabChange(tab)}
-            className={`pb-4 pt-4 text-sm font-semibold transition-colors relative ${
-              activeTab === tab
-                ? "text-[#3b82f6]"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            {tab}
-            {activeTab === tab && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3b82f6] rounded-t-md" />
-            )}
-          </button>
-        ))}
+    <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab;
+
+          return (
+            <button
+              key={tab}
+              onClick={() => onTabChange(tab)}
+              className={`relative px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap
+                ${isActive
+                  ? "text-white bg-blue-600 shadow"
+                  : "text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200"
+                }`}
+            >
+              {tab === "All Transactions" ? "Master Ledger" : tab}
+
+              {isActive && (
+                <span className="absolute inset-0 rounded-full ring-2 ring-blue-400/30"></span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Filters Form */}
-      <div className="flex items-end gap-4 p-6 w-full">
-        <div className="flex flex-col gap-2 flex-[2]">
-          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Search</label>
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+        <div className="relative w-full lg:max-w-sm group">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Search Order ID, Customer Name, Ref No..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm 
+              focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+              transition shadow-sm"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-2xl border border-slate-200">
+
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
-            </span>
+            <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
-              type="text"
-              placeholder="Order ID, Ref, or Customer"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              type="date"
+              value={startDate}
+              onChange={(e) => onDateChange(e.target.value, endDate)}
+              className="pl-7 pr-2 py-2 bg-white rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <span className="text-slate-400 text-xs">to</span>
+
+          <div className="relative">
+            <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => onDateChange(startDate, e.target.value)}
+              className="pl-7 pr-2 py-2 bg-white rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
-
-        <div className="flex flex-col gap-2 flex-1">
-          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date Range</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="mm/dd/yyyy"
-              className="w-full pl-9 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 flex-1">
-          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Amount Range</label>
-          <select className="w-full px-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none transition-all">
-            {amountOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex gap-3 ml-2">
-          <button 
-            className="px-6 py-2.5 bg-[#f1f5f9] text-slate-700 font-semibold rounded-lg text-sm hover:bg-slate-200 transition-colors"
-            onClick={() => {
-              setSearch("");
-              if (onSearch) onSearch("");
-            }}
-          >
-            Reset
-          </button>
-          <button 
-            className="px-8 py-2.5 bg-[#3b82f6] text-white font-semibold rounded-lg text-sm hover:bg-blue-600 shadow-sm transition-colors"
-            onClick={handleApply}
-          >
-            Apply
-          </button>
-        </div>
+        <button
+          onClick={handleReset}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-red-50 
+            text-slate-500 hover:text-red-500 rounded-xl border border-slate-200 transition-all active:scale-95"
+        >
+          <RotateCcw size={16} className="transition-transform group-hover:-rotate-45" />
+          <span className="text-xs font-medium">Reset</span>
+        </button>
       </div>
     </div>
   );

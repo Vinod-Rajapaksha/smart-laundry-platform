@@ -10,7 +10,7 @@ export const getCashOnDeliveriesHandler = asyncHandler(async (req: AuthRequest, 
 
   const { status, search } = req.query;
   const result = await getFilteredCashOnDeliveries(status as string, search as string);
-  
+
   return ApiResponse(res, 200, 'COD transactions fetched successfully', result);
 });
 
@@ -25,19 +25,16 @@ export const confirmCOD = asyncHandler(async (req: AuthRequest, res: Response) =
 
   let result;
   if (id) {
-    // Audit drawer confirm
     const codRecord = await CashOnDelivery.findById(id).populate('orderId');
     if (!codRecord) throw new Error('COD record not found');
-    
-    codRecord.status = 'COMPLETED';
+
+    codRecord.status = 'PAID';
     codRecord.collectedAt = new Date();
     await codRecord.save();
-    
-    // Also update order/payment
+
     await confirmCODPayment((codRecord.orderId as any).orderNo, userId);
     result = codRecord;
   } else {
-    // Standard init/confirm
     result = await confirmCODPayment(orderId, userId);
   }
 

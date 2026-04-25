@@ -14,7 +14,6 @@ interface CategoryModalProps {
 export default function CategoryModal({ type, item, isOpen, onClose, onSave, loading }: CategoryModalProps) {
   const [formData, setFormData] = useState<any>({
     name: "",
-    price: 0,
     description: "",
     isActive: true,
   });
@@ -25,7 +24,6 @@ export default function CategoryModal({ type, item, isOpen, onClose, onSave, loa
     } else {
       setFormData({
         name: "",
-        price: 0,
         description: "",
         isActive: true,
       });
@@ -73,28 +71,15 @@ export default function CategoryModal({ type, item, isOpen, onClose, onSave, loa
               />
             </div>
             
-            {type === "SERVICE" ? (
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Base Price (LKR)</label>
-                <input
-                  type="number"
-                  className={`w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-${colorClass}-500/20 transition font-bold text-slate-700`}
-                  value={formData.price}
-                  onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
-                  placeholder="0"
-                />
-              </div>
-            ) : (
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Description</label>
-                <textarea
-                  className={`w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-${colorClass}-500/20 transition font-bold text-slate-700 min-h-[100px]`}
-                  value={formData.description || ""}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe the category usage..."
-                />
-              </div>
-            )}
+            <div>
+              <label className={`block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1`}>Description</label>
+              <textarea
+                className={`w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-${colorClass}-500/20 transition font-bold text-slate-700 min-h-[100px] resize-none`}
+                value={formData.description || ""}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe the category usage..."
+              />
+            </div>
 
             <div className="flex items-center gap-3 px-1">
               <input

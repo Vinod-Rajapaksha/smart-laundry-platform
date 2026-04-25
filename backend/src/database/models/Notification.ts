@@ -27,7 +27,7 @@ const notificationSchema = new mongoose.Schema(
       default: false,
     },
     data: {
-      type: Object, // For attaching metadata like orderId
+      type: Object,
       default: null,
     },
   },

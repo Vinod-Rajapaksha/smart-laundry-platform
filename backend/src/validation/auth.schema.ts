@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-export const roles = ["ADMIN", "STAFF", "CUSTOMER"] as const;
-
 export const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Valid email is required"),
@@ -11,7 +9,7 @@ export const registerSchema = z.object({
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
   ),
-  role: z.enum(roles).optional(),
+  role: z.enum(["ADMIN", "STAFF", "CUSTOMER"]).optional(),
 });
 
 export const loginSchema = z.object({

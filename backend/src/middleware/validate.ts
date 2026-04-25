@@ -7,11 +7,20 @@ type AnyZodObject = ZodObject<any, any>;
 export const validateRequest = (schema: AnyZodObject) => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      await schema.parseAsync({
+      const validated = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
       });
+      
+      req.body = validated.body;
+      
+      Object.keys(req.params).forEach(key => delete req.params[key]);
+      Object.assign(req.params, validated.params);
+      
+      Object.keys(req.query).forEach(key => delete req.query[key]);
+      Object.assign(req.query, validated.query);
+
       return next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -41,7 +50,9 @@ export const validateBody = (schema: AnyZodObject) => {
 export const validateParams = (schema: AnyZodObject) => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      req.params = (await schema.parseAsync(req.params)) as any;
+      const validated = await schema.parseAsync(req.params);
+      Object.keys(req.params).forEach(key => delete req.params[key]);
+      Object.assign(req.params, validated);
       return next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -56,7 +67,9 @@ export const validateParams = (schema: AnyZodObject) => {
 export const validateQuery = (schema: AnyZodObject) => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      req.query = (await schema.parseAsync(req.query)) as any;
+      const validated = await schema.parseAsync(req.query);
+      Object.keys(req.query).forEach(key => delete req.query[key]);
+      Object.assign(req.query, validated);
       return next();
     } catch (error) {
       if (error instanceof ZodError) {

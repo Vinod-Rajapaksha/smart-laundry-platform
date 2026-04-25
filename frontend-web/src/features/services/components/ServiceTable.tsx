@@ -18,7 +18,7 @@ export default function ServiceTable({ data, loading, pagination, onEdit, onDele
       header: "Service Details",
       cell: (svc) => (
         <div className="flex items-center gap-3">
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="font-black text-slate-900 tracking-tight">{svc.name}</span>
               {svc.isPopular && (
@@ -27,7 +27,9 @@ export default function ServiceTable({ data, loading, pagination, onEdit, onDele
                 </Badge>
               )}
             </div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{svc.category}</span>
+            <span className="inline-flex w-fit items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-wider">
+              {svc.category}
+            </span>
           </div>
         </div>
       ),
@@ -36,19 +38,12 @@ export default function ServiceTable({ data, loading, pagination, onEdit, onDele
       header: "Pricing",
       cell: (svc) => (
         <div className="flex flex-col">
-          <span className="font-black text-slate-900 leading-none">Rs.{(svc.basePrice || 0).toLocaleString()}</span>
+          <span className="font-black text-slate-900 leading-none">Rs.{((svc as any).price ?? svc.basePrice ?? 0).toLocaleString()}</span>
           <span className="text-[10px] text-slate-400 font-bold">per {svc.unit}</span>
         </div>
       ),
     },
-    {
-      header: "Estimated Time",
-      cell: (svc) => (
-        <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-          {svc.estimatedHours} hrs
-        </span>
-      ),
-    },
+
     {
       header: "Status",
       cell: (svc) => (

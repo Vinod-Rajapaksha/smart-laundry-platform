@@ -4,7 +4,13 @@ import Order from '../../../database/models/Order.js';
 import BankTransfer from '../../../database/models/BankTransfer.js';
 import CashOnDelivery from '../../../database/models/CashOnDelivery.js';
 import ApiError from '../../../core/apiError.js';
-import { PAYMENT_METHODS, PAYMENT_STATUS, NOTIFICATION_TYPES } from '../../../core/constants.js';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_STATUS,
+  NOTIFICATION_TYPES,
+  PAYMENT_PROVIDERS,
+  BANK_VERIFICATION_STATUS
+} from '../../../core/constants.js';
 import { generateBankReference } from '../../../utils/reference.js';
 import * as loyaltyService from '../../loyalty/loyalty.service.js';
 import { createNotification } from '../../notification/service.js';
@@ -47,7 +53,7 @@ export async function initBankTransferPayment(orderId: string, userId: string) {
     reference = payment.transactionRef;
     if (payment.method !== PAYMENT_METHODS.BANK_TRANSFER) {
       payment.method = PAYMENT_METHODS.BANK_TRANSFER;
-      payment.provider = 'BANK';
+      payment.provider = PAYMENT_PROVIDERS.BANK;
       await payment.save();
     }
   } else {
@@ -58,7 +64,7 @@ export async function initBankTransferPayment(orderId: string, userId: string) {
       amount: order.totalAmount,
       method: PAYMENT_METHODS.BANK_TRANSFER,
       status: PAYMENT_STATUS.PENDING,
-      provider: 'BANK',
+      provider: PAYMENT_PROVIDERS.BANK,
       transactionRef: reference,
       paidAt: null,
     });
@@ -106,7 +112,7 @@ export async function initCODPayment(orderId: string, userId: string) {
   if (payment) {
     if (payment.method !== PAYMENT_METHODS.COD) {
       payment.method = PAYMENT_METHODS.COD;
-      payment.provider = 'COD';
+      payment.provider = PAYMENT_PROVIDERS.COD;
       await payment.save();
     }
   } else {
@@ -117,7 +123,7 @@ export async function initCODPayment(orderId: string, userId: string) {
       amount: order.totalAmount,
       method: PAYMENT_METHODS.COD,
       status: PAYMENT_STATUS.PENDING,
-      provider: 'COD',
+      provider: PAYMENT_PROVIDERS.COD,
       transactionRef: reference,
       paidAt: null,
     });
@@ -154,7 +160,6 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
 
   if (!order) throw new ApiError(404, 'Order not found');
 
-  // Populate gives us an object, so we extract _id carefully
   const orderOwnerId = order.userId && (order.userId as any)._id ? (order.userId as any)._id.toString() : order.userId?.toString();
 
   if (orderOwnerId !== String(userId)) {
@@ -175,7 +180,7 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
     reference = payment.transactionRef;
     if (payment.method !== PAYMENT_METHODS.CARD) {
       payment.method = PAYMENT_METHODS.CARD;
-      payment.provider = 'PAYHERE';
+      payment.provider = PAYMENT_PROVIDERS.PAYHERE;
       await payment.save();
     }
   } else {
@@ -186,7 +191,7 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
       amount: order.totalAmount,
       method: PAYMENT_METHODS.CARD,
       status: PAYMENT_STATUS.PENDING,
-      provider: 'PAYHERE',
+      provider: PAYMENT_PROVIDERS.PAYHERE,
       transactionRef: reference,
       paidAt: null,
     });
@@ -212,8 +217,8 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
     payhereParams: {
       sandbox: true,
       merchant_id: merchantId,
-      return_url: 'https://www.bnwlaundry.lk/payment/success',
-      cancel_url: 'https://www.bnwlaundry.lk/payment/cancel',
+      return_url: `${process.env.API_BASE_URL}/payment/success`,
+      cancel_url: `${process.env.API_BASE_URL}/payment/cancel`,
       notify_url: `${process.env.API_BASE_URL}/api/payments/online/payhere/notify`,
       order_id: reference,
       items: 'Laundry Order #' + order._id.toString().substring(0, 8),
@@ -225,7 +230,7 @@ export async function initCardPayment(orderId: string, userId: string, saveCard:
       email: customer?.email || '',
       phone: customer?.telephone || '',
       address: customer?.address || 'Sri Lanka',
-      city: 'Colombo',
+      city: '',
       country: 'Sri Lanka',
       custom_1: saveCard ? 'SAVE_CARD' : 'NO_SAVE'
     }
@@ -309,9 +314,9 @@ export async function getPaymentDashboardStats() {
 
   // Counts from specific models
   const [pendingVerifications, activeCOD] = await Promise.all([
-    BankTransfer.countDocuments({ verifyStatus: 'PENDING' }),
+    BankTransfer.countDocuments({ verifyStatus: BANK_VERIFICATION_STATUS.PENDING }),
     CashOnDelivery.aggregate([
-      { $match: { status: 'PENDING' } },
+      { $match: { status: BANK_VERIFICATION_STATUS.PENDING } },
       {
         $lookup: {
           from: 'payments',
@@ -335,7 +340,7 @@ export async function getPaymentDashboardStats() {
   const methodData = methodSplit.map(m => ({
     name: m._id,
     value: Math.round((m.value / totalMethodCount) * 100),
-    color: m._id === 'ONLINE' ? '#3b82f6' : m._id === 'COD' ? '#10b981' : '#8b5cf6'
+    color: m._id === PAYMENT_METHODS.CARD || m._id === 'ONLINE' ? '#3b82f6' : m._id === PAYMENT_METHODS.COD ? '#10b981' : '#8b5cf6'
   }));
 
   return {

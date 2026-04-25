@@ -4,10 +4,6 @@ import { Home, ClipboardList, Wallet, User } from 'lucide-react-native';
 import { COLORS } from '../../../../src/theme/colors';
 import { Platform, StyleSheet } from 'react-native';
 
-/**
- * Main Tab Layout for the Customer dashboard.
- * Features a modern, clean design with platform-specific adjustments.
- */
 export default function TabLayout() {
   return (
     <Tabs

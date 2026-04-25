@@ -91,7 +91,6 @@ export const chargeSavedCardHandler = asyncHandler(async (req: AuthRequest, res:
     order.paidAt = new Date();
     await order.save();
 
-    // 1. Create Payment record for Saved Card
     const payment = await Payment.create({
       orderId: order._id,
       userId: order.userId,
@@ -103,7 +102,6 @@ export const chargeSavedCardHandler = asyncHandler(async (req: AuthRequest, res:
       paidAt: new Date(),
     });
 
-    // 2. Create OnlineTransaction Detail
     await OnlineTransaction.create({
       paymentId: payment._id,
       orderId: order._id,
@@ -158,11 +156,11 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
     return res.status(400).send('Invalid signature');
   }
 
-  // Find Payment by transactionRef (which PayHere sends as order_id)
+  // Find Payment by transactionRef
   const payment = await Payment.findOne({ transactionRef: order_id });
   if (!payment) {
     console.error(`Payment not found for reference: ${order_id}`);
-    return res.status(200).send('OK'); // Still send OK to stop retries
+    return res.status(200).send('OK');
   }
 
   const order = await Order.findById(payment.orderId);
@@ -200,14 +198,12 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
         order.paidAt = new Date();
         await order.save();
 
-        // Update Payment record
         const updatedPayment = await Payment.findOneAndUpdate(
           { orderId: order._id, transactionRef: order_id },
           { $set: { status: 'PAID', paidAt: new Date() } },
           { new: true }
         );
 
-        // Create OnlineTransaction detail record for auto-charge
         if (updatedPayment) {
           await OnlineTransaction.create({
             paymentId: updatedPayment._id,
@@ -238,13 +234,11 @@ export const payhereNotifyHandler = asyncHandler(async (req: Request, res: Respo
     order.paidAt = new Date();
     await order.save();
 
-    // Update Payment record
     await Payment.findOneAndUpdate(
       { orderId: order._id, transactionRef: order_id },
       { $set: { status: 'PAID', paidAt: new Date() } }
     );
 
-    // Create OnlineTransaction detail record
     await OnlineTransaction.create({
       paymentId: payment._id,
       orderId: order._id,

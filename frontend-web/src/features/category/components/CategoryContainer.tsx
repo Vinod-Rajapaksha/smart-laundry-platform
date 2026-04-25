@@ -6,6 +6,8 @@ import CategoryModal from "./CategoryModal";
 import type { CategoryType } from "../types";
 import { categoryApi } from "../api/category.api";
 import { toast } from "react-hot-toast";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { AlertTriangle } from "lucide-react";
 
 export default function CategoryContainer() {
   const [type, setType] = useState<CategoryType>("SERVICE");
@@ -15,6 +17,8 @@ export default function CategoryContainer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const fetchItems = async () => {
     try {
@@ -53,16 +57,23 @@ export default function CategoryContainer() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("This will permanently remove this category. Continue?")) return;
+    setItemToDelete(id);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
     try {
       setActionLoading(true);
-      await categoryApi.deleteCategory(type, id);
+      await categoryApi.deleteCategory(type, itemToDelete);
       toast.success("Category removed");
       fetchItems();
     } catch (error) {
       toast.error("Delete failed");
     } finally {
       setActionLoading(false);
+      setShowConfirm(false);
+      setItemToDelete(null);
     }
   };
 
@@ -125,6 +136,16 @@ export default function CategoryContainer() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         loading={actionLoading}
+      />
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Remove Category"
+        description="Are you sure you want to permanently remove this category? This action cannot be undone and may affect items or services associated with it."
+        confirmText="Remove"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowConfirm(false)}
+        icon={<AlertTriangle size={32} />}
       />
     </div>
   );

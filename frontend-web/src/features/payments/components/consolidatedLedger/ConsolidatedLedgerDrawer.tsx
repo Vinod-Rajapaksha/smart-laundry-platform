@@ -1,5 +1,5 @@
 import type { Payment } from "../../types";
-import { X, Receipt, ExternalLink, Calendar, CreditCard, ShieldCheck, AlertTriangle } from "lucide-react";
+import { X, Receipt, Calendar, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 
 interface ConsolidatedLedgerDrawerProps {
@@ -9,7 +9,7 @@ interface ConsolidatedLedgerDrawerProps {
   loading?: boolean;
 }
 
-export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }: ConsolidatedLedgerDrawerProps) => {
+export const ConsolidatedLedgerDrawer = ({ payment, onClose }: ConsolidatedLedgerDrawerProps) => {
   if (!payment) return null;
 
   return (
@@ -28,7 +28,7 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-900 leading-none">Transaction</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ref: {payment.transactionRef?.substring(0, 12) || 'N/A'}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{payment.transactionRef?.substring(0, 12) || 'N/A'}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition text-slate-400">
@@ -37,7 +37,6 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }
           </div>
 
           <div className="flex-1 p-8 space-y-10">
-            {/* AMOUNT HERO */}
             <div className="text-center p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Transfer Amount</p>
               <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">LKR {payment.amount.toLocaleString()}</h3>
@@ -47,7 +46,6 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }
               </div>
             </div>
 
-            {/* DETAILS GRID */}
             <div className="grid gap-6">
               <div className="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors group cursor-pointer border border-transparent hover:border-slate-200">
                 <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl group-hover:bg-indigo-500 group-hover:text-white transition-colors">
@@ -57,7 +55,6 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }
                   <p className="text-[10px] font-black text-slate-400 uppercase mb-0.5">Payment Method</p>
                   <p className="font-bold text-slate-800 uppercase text-sm tracking-widest">{payment.method}</p>
                 </div>
-                <ExternalLink size={14} className="text-slate-300" />
               </div>
 
               <div className="flex items-start gap-4 p-4 border border-slate-100 rounded-2xl shadow-sm">
@@ -67,40 +64,13 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose, onVerify, loading }
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase mb-0.5">Date & Time</p>
                   <p className="font-bold text-slate-800 text-sm">
-                    {payment.paidAt && !isNaN(new Date(payment.paidAt).getTime()) 
-                      ? format(new Date(payment.paidAt), "MMMM dd, HH:mm:ss") 
+                    {payment.paidAt && !isNaN(new Date(payment.paidAt).getTime())
+                      ? format(new Date(payment.paidAt), "MMMM dd, HH:mm:ss")
                       : "--"}
                   </p>
                 </div>
               </div>
             </div>
-
-            {/* ACTION CENTER */}
-            {payment.status === "PENDING" && (
-              <section className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle size={16} className="text-amber-500" />
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Verification Required</span>
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    disabled={loading}
-                    onClick={() => onVerify(payment._id, 'FAILED')}
-                    className="flex-1 py-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:border-rose-500 hover:text-rose-600 transition active:scale-95"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    disabled={loading}
-                    onClick={() => onVerify(payment._id, 'PAID')}
-                    className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition active:scale-95 shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
-                  >
-                    <ShieldCheck size={20} />
-                    Confirm
-                  </button>
-                </div>
-              </section>
-            )}
           </div>
 
           <div className="p-8 border-t border-slate-100 bg-slate-50/50">

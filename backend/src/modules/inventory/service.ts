@@ -1,7 +1,7 @@
 import Inventory from '../../database/models/Inventory.js';
 import StockMovement from '../../database/models/StockMovement.js';
 import ApiError from '../../core/apiError.js';
-import { DEFAULT_PAGINATION } from '../../core/constants.js';
+import { DEFAULT_PAGINATION, STOCK_MOVEMENT_TYPES } from '../../core/constants.js';
 import { generateInventoryId } from '../../utils/reference.js';
 import { sendEmail } from '../../utils/mailService.js';
 import mongoose from 'mongoose';
@@ -86,7 +86,7 @@ export const getInventoryById = async (id: string) => {
 };
 
 export const getAllInventory = async (query: any) => {
-  const { category, isActive, isDefault, page, limit } = query;
+  const { category, status, isActive, isDefault, page, limit } = query;
   const p = parseInt(page) || DEFAULT_PAGINATION.PAGE;
   const l = parseInt(limit) || DEFAULT_PAGINATION.LIMIT;
   const skip = (p - 1) * l;
@@ -95,6 +95,12 @@ export const getAllInventory = async (query: any) => {
   if (category) filter.categoryName = category;
   if (isActive !== undefined) filter.isActive = isActive;
   if (isDefault !== undefined) filter.isDefault = isDefault;
+
+  if (status === 'inactive') {
+    filter.isActive = false;
+  } else if (status === 'low') {
+    filter.$expr = { $lte: ['$qtyInStock', '$reorderLevel'] };
+  }
 
   const [items, total] = await Promise.all([
     Inventory.find(filter)
@@ -164,7 +170,7 @@ export const confirmRestock = async (id: string, actualQty?: number) => {
 
   await StockMovement.create({
     itemId: id,
-    type: 'IN',
+    type: STOCK_MOVEMENT_TYPES.IN,
     quantity: qtyToAdd,
     reason: 'Restock Order Arrived',
     referenceId: id
@@ -174,7 +180,6 @@ export const confirmRestock = async (id: string, actualQty?: number) => {
 };
 
 export const deductStockForOrder = async (orderId: string, serviceId: string, options: any[], multiplier: number) => {
-  // 1. Deduct items linked to the service (consumption per unit)
   const service = await mongoose.model('Service').findById(serviceId);
   if (service && service.inventoryItems && service.inventoryItems.length > 0) {
     for (const mapping of service.inventoryItems) {
@@ -183,10 +188,9 @@ export const deductStockForOrder = async (orderId: string, serviceId: string, op
         $inc: { qtyInStock: -amountToDeduct }
       });
 
-      // Log movement
       await StockMovement.create({
         itemId: mapping.itemId,
-        type: 'OUT',
+        type: STOCK_MOVEMENT_TYPES.OUT,
         quantity: amountToDeduct,
         reason: `Order Delivery: Service Consumption`,
         referenceId: orderId
@@ -194,17 +198,15 @@ export const deductStockForOrder = async (orderId: string, serviceId: string, op
     }
   }
 
-  // 2. Deduct items selected as options (one-time deduction per order)
   if (options && options.length > 0) {
     for (const opt of options) {
       await Inventory.findByIdAndUpdate(opt.inventoryId, {
         $inc: { qtyInStock: -1 }
       });
 
-      // Log movement
       await StockMovement.create({
         itemId: opt.inventoryId,
-        type: 'OUT',
+        type: STOCK_MOVEMENT_TYPES.OUT,
         quantity: 1,
         reason: `Order Delivery: Add-on Option`,
         referenceId: orderId

@@ -4,10 +4,6 @@ import { Home, LayoutList, QrCode, User } from 'lucide-react-native';
 import { COLORS } from '../../../../src/theme/colors';
 import { Platform, StyleSheet } from 'react-native';
 
-/**
- * Main Tab Layout for the Staff dashboard.
- * Designed for operational efficiency with high-quality styling.
- */
 export default function StaffTabLayout() {
   return (
     <Tabs
