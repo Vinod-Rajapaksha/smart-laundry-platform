@@ -14,6 +14,7 @@ import {
 
 const router = Router();
 router.get('/public', controller.getApprovedFeedbacks);
+router.get('/public/summary', controller.getFeedbackSummary);
 
 router.post('/',auth,allowRoles(ROLES.CUSTOMER),validateCreateFeedback,controller.createFeedback,);
 
@@ -27,5 +28,6 @@ router.get('/stats',auth,allowRoles(ROLES.ADMIN),controller.getFeedbackStats,);
 router.get('/',auth,allowRoles(ROLES.ADMIN),validateGetFeedbacks, controller.getAllFeedbacks,);
 router.get('/:id',auth,allowRoles(ROLES.ADMIN),validateFeedbackId,controller.getFeedbackById,);
 router.patch('/:id/status',auth,allowRoles(ROLES.ADMIN),validateUpdateStatus,controller.updateFeedbackStatus,);
+router.delete('/:id', auth, allowRoles(ROLES.ADMIN), validateFeedbackId, controller.deleteFeedbackAdminController);
 
 export default router;
