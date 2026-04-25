@@ -1,0 +1,35 @@
+import type { Order } from "../orders/types";
+
+export const ORDER_STATUS = {
+  ORDER_PLACED: 'ORDER_PLACED',
+  PICKUP_ASSIGNED: 'PICKUP_ASSIGNED',
+  PICKUP_ON_THE_WAY: 'PICKUP_ON_THE_WAY',
+  PICKUP_ARRIVED: 'PICKUP_ARRIVED',
+  PICKED_UP: 'PICKED_UP',
+  HANDED_OVER: 'HANDED_OVER',
+  WASHING: 'WASHING',
+  DRYING: 'DRYING',
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  DELIVERY_ASSIGNED: 'DELIVERY_ASSIGNED',
+  DELIVERY_ON_THE_WAY: 'DELIVERY_ON_THE_WAY',
+  DELIVERY_ARRIVED: 'DELIVERY_ARRIVED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type OrderStatus = typeof ORDER_STATUS[keyof typeof ORDER_STATUS];
+
+export interface StatusUpdateOrder extends Omit<Order, 'status'> {
+  status: OrderStatus;
+  userId: any;
+}
+
+export const MANUAL_TRANSITIONS: Record<string, OrderStatus> = {
+  [ORDER_STATUS.HANDED_OVER]: ORDER_STATUS.WASHING,
+  [ORDER_STATUS.WASHING]: ORDER_STATUS.DRYING,
+  [ORDER_STATUS.DRYING]: ORDER_STATUS.PROCESSING,
+  [ORDER_STATUS.PROCESSING]: ORDER_STATUS.READY,
+};
+
+export type Tab = "All" | "In-Process" | "Completed" | "Cancelled";
