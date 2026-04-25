@@ -1,0 +1,76 @@
+import mongoose from 'mongoose';
+import ApiError from '../../core/apiError.js';
+import { getPagination } from '../../core/pagination.js';
+import Supplier from '../../database/models/Supplier.js';
+
+export const createSupplier = async (data: any) => {
+  return await Supplier.create(data);
+};
+
+export const getSuppliers = async (query: any) => {
+  const { page, limit, status, search } = query;
+  const { page: p, limit: l, skip } = getPagination(page, limit);
+
+  const filter: any = {};
+  if (status) filter.status = status;
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { contactPerson: { $regex: search, $options: 'i' } },
+      { category: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const [suppliers, total] = await Promise.all([
+    Supplier.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(l),
+    Supplier.countDocuments(filter),
+  ]);
+
+  return {
+    suppliers,
+    pagination: {
+      total,
+      page: p,
+      limit: l,
+      totalPages: Math.ceil(total / l),
+    },
+  };
+};
+
+export const getSupplierById = async (id: string) => {
+  if (!mongoose.isValidObjectId(id)) throw new ApiError(400, 'Invalid Supplier ID');
+  const supplier = await Supplier.findById(id);
+  if (!supplier) throw new ApiError(404, 'Supplier not found');
+  return supplier;
+};
+
+export const updateSupplier = async (id: string, data: any) => {
+  if (!mongoose.isValidObjectId(id)) throw new ApiError(400, 'Invalid Supplier ID');
+  const supplier = await Supplier.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!supplier) throw new ApiError(404, 'Supplier not found');
+  return supplier;
+};
+
+export const deleteSupplier = async (id: string) => {
+  if (!mongoose.isValidObjectId(id)) throw new ApiError(400, 'Invalid Supplier ID');
+  const supplier = await Supplier.findByIdAndDelete(id);
+  if (!supplier) throw new ApiError(404, 'Supplier not found');
+  return supplier;
+};
+
+export const getSupplierStats = async () => {
+  const [total, active, categories] = await Promise.all([
+    Supplier.countDocuments(),
+    Supplier.countDocuments({ status: 'ACTIVE' }),
+    Supplier.distinct('category'),
+  ]);
+
+  return {
+    totalSuppliers: total,
+    activeSuppliers: active,
+    totalCategories: categories.length,
+  };
+};
