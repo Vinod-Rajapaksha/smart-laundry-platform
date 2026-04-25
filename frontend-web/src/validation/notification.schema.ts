@@ -7,7 +7,7 @@ export const createNotificationSchema = z.object({
   type: z.enum(notificationTypes),
   title: z.string().min(1, "Title is required"),
   message: z.string().min(1, "Message is required"),
-  isRead: z.boolean().default(false),
+  isRead: z.boolean(),
 });
 
 export type CreateNotificationInput = z.infer<typeof createNotificationSchema>;

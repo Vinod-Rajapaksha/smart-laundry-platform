@@ -1,19 +1,9 @@
-import { useState, useEffect } from "react";
-import { X, Ticket, Save, Calendar, Percent, Banknote, Globe, Leaf } from "lucide-react";
-import type { Voucher, VoucherType, DiscountType } from "../types";
-
-type CreateVoucherForm = {
-  code: string;
-  voucherType: VoucherType;
-  discountType: DiscountType;
-  discountValue: number;
-  minOrderAmount: string;
-  maxDiscount: string;
-  usageLimitPerUser: string;
-  usageLimitTotal: string;
-  startDate: string;
-  endDate: string;
-};
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { X, Ticket, Save, Calendar, Percent, Banknote, Globe, Leaf, Loader2 } from "lucide-react";
+import type { Voucher, VoucherType } from "../types";
+import { createVoucherSchema, updateVoucherSchema } from "../../../validation/promotion.schema";
 
 interface VoucherModalProps {
   isOpen: boolean;
@@ -23,38 +13,14 @@ interface VoucherModalProps {
   loading?: boolean;
 }
 
-const toDateInput = (iso?: string) =>
-  iso ? new Date(iso).toISOString().split("T")[0] : "";
+const toDateInput = (iso?: string | Date) => {
+  if (!iso) return "";
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  return date.toISOString().split("T")[0];
+};
 
 const today = () => new Date().toISOString().split("T")[0];
-const nextWeek = () =>
-  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-const emptyForm = (): CreateVoucherForm => ({
-  code: "",
-  voucherType: "PUBLIC",
-  discountType: "PERCENTAGE",
-  discountValue: 10,
-  minOrderAmount: "",
-  maxDiscount: "",
-  usageLimitPerUser: "",
-  usageLimitTotal: "",
-  startDate: today(),
-  endDate: nextWeek(),
-});
-
-const voucherToForm = (v: Voucher): CreateVoucherForm => ({
-  code: v.code,
-  voucherType: v.voucherType,
-  discountType: v.discountType,
-  discountValue: v.discountValue,
-  minOrderAmount: v.minOrderAmount != null ? String(v.minOrderAmount) : "",
-  maxDiscount: v.maxDiscount != null ? String(v.maxDiscount) : "",
-  usageLimitPerUser: v.usageLimitPerUser != null ? String(v.usageLimitPerUser) : "",
-  usageLimitTotal: v.usageLimitTotal != null ? String(v.usageLimitTotal) : "",
-  startDate: toDateInput(v.startDate),
-  endDate: toDateInput(v.endDate),
-});
+const nextWeek = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
 export default function VoucherModal({
   isOpen,
@@ -65,38 +31,76 @@ export default function VoucherModal({
 }: VoucherModalProps) {
   const isEditMode = !!voucher;
 
-  const [formData, setFormData] = useState<CreateVoucherForm>(
-    voucher ? voucherToForm(voucher) : emptyForm()
-  );
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<any>({
+    resolver: zodResolver(isEditMode ? updateVoucherSchema : createVoucherSchema),
+    defaultValues: {
+      code: "",
+      voucherType: "PUBLIC",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      minOrderAmount: undefined,
+      maxDiscount: undefined,
+      usageLimitPerUser: undefined,
+      usageLimitTotal: undefined,
+      startDate: today(),
+      endDate: nextWeek(),
+    },
+  });
+
+  const selectedVoucherType = watch("voucherType");
+  const selectedDiscountType = watch("discountType");
 
   useEffect(() => {
-    if (isOpen) {
-      setFormData(voucher ? voucherToForm(voucher) : emptyForm());
+    if (voucher) {
+      reset({
+        code: voucher.code,
+        voucherType: voucher.voucherType,
+        discountType: voucher.discountType,
+        discountValue: voucher.discountValue,
+        minOrderAmount: voucher.minOrderAmount || undefined,
+        maxDiscount: voucher.maxDiscount || undefined,
+        usageLimitPerUser: voucher.usageLimitPerUser || undefined,
+        usageLimitTotal: voucher.usageLimitTotal || undefined,
+        startDate: toDateInput(voucher.startDate),
+        endDate: toDateInput(voucher.endDate),
+      });
+    } else {
+      reset({
+        code: "",
+        voucherType: "PUBLIC",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        minOrderAmount: undefined,
+        maxDiscount: undefined,
+        usageLimitPerUser: undefined,
+        usageLimitTotal: undefined,
+        startDate: today(),
+        endDate: nextWeek(),
+      });
     }
-  }, [isOpen, voucher]);
+  }, [voucher, isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const set = (field: keyof CreateVoucherForm, value: string | number) =>
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-  const handleSubmit = () => {
-    const payload: Record<string, unknown> = {
-      voucherType: formData.voucherType,
-      discountType: formData.discountType,
-      discountValue: formData.discountValue,
-      startDate: new Date(formData.startDate).toISOString(),
-      endDate: new Date(formData.endDate).toISOString(),
+  const handleFormSubmit = (data: any) => {
+    const payload: Record<string, any> = {
+      ...data,
+      startDate: new Date(data.startDate).toISOString(),
+      endDate: new Date(data.endDate).toISOString(),
     };
 
-    if (!isEditMode) payload.code = formData.code;
+    if (isEditMode) {
+      delete payload.code;
+    }
 
-    if (formData.minOrderAmount) payload.minOrderAmount = Number(formData.minOrderAmount);
-    if (formData.maxDiscount) payload.maxDiscount = Number(formData.maxDiscount);
-    if (formData.usageLimitPerUser) payload.usageLimitPerUser = Number(formData.usageLimitPerUser);
-    if (formData.usageLimitTotal) payload.usageLimitTotal = Number(formData.usageLimitTotal);
-
-    onSave(payload as Partial<Voucher>);
+    onSave(payload as any);
   };
 
   return (
@@ -106,7 +110,7 @@ export default function VoucherModal({
         onClick={onClose}
       />
       <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto font-poppins animate-in slide-in-from-right duration-300">
-        <div className="flex flex-col h-full">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
           {/* HEADER */}
           <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-indigo-50/30">
             <div className="flex items-center gap-4">
@@ -132,21 +136,18 @@ export default function VoucherModal({
           </div>
 
           {/* FORM */}
-          <div className="p-8 grid gap-7 flex-1 overflow-y-auto">
+          <div className="p-8 grid gap-7 flex-1 overflow-y-auto no-scrollbar">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 px-1">
                 Promo Code
               </label>
               <input
                 readOnly={isEditMode}
-                className={`w-full px-6 py-4 bg-slate-50 border-none rounded-3xl focus:ring-4 focus:ring-indigo-500/10 transition font-black text-xl text-slate-900 tracking-widest placeholder:text-slate-200 ${isEditMode ? "opacity-60 cursor-not-allowed" : ""
-                  }`}
-                value={formData.code}
-                onChange={(e) =>
-                  !isEditMode && set("code", e.target.value.toUpperCase())
-                }
+                className={`w-full px-6 py-4 bg-slate-50 border-none rounded-3xl focus:ring-4 focus:ring-indigo-500/10 transition font-black text-xl text-slate-900 tracking-widest placeholder:text-slate-200 ${isEditMode ? "opacity-60 cursor-not-allowed" : ""} ${errors.code ? 'ring-2 ring-red-500/50' : ''}`}
+                {...register("code")}
                 placeholder="E.G. SUMMER2026"
               />
+              {errors.code && <p className="text-[10px] text-red-500 mt-1 ml-1 font-bold">{errors.code.message as string}</p>}
             </div>
 
             {/* Voucher Audience */}
@@ -159,8 +160,8 @@ export default function VoucherModal({
                   <button
                     key={type}
                     type="button"
-                    onClick={() => set("voucherType", type)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${formData.voucherType === type
+                    onClick={() => setValue("voucherType", type)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${selectedVoucherType === type
                       ? "bg-white shadow-sm text-indigo-600"
                       : "text-slate-400"
                       }`}
@@ -181,8 +182,8 @@ export default function VoucherModal({
                 <div className="flex bg-slate-100 p-1.5 rounded-2xl">
                   <button
                     type="button"
-                    onClick={() => set("discountType", "PERCENTAGE")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${formData.discountType === "PERCENTAGE"
+                    onClick={() => setValue("discountType", "PERCENTAGE")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${selectedDiscountType === "PERCENTAGE"
                       ? "bg-white shadow-sm text-indigo-600"
                       : "text-slate-400"
                       }`}
@@ -192,8 +193,8 @@ export default function VoucherModal({
                   </button>
                   <button
                     type="button"
-                    onClick={() => set("discountType", "FIXED")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${formData.discountType === "FIXED"
+                    onClick={() => setValue("discountType", "FIXED")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${selectedDiscountType === "FIXED"
                       ? "bg-white shadow-sm text-indigo-600"
                       : "text-slate-400"
                       }`}
@@ -209,11 +210,10 @@ export default function VoucherModal({
                 </label>
                 <input
                   type="number"
-                  min={0}
-                  className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700"
-                  value={formData.discountValue}
-                  onChange={(e) => set("discountValue", Number(e.target.value))}
+                  className={`w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 ${errors.discountValue ? 'ring-2 ring-red-500/50' : ''}`}
+                  {...register("discountValue", { valueAsNumber: true })}
                 />
+                {errors.discountValue && <p className="text-[10px] text-red-500 mt-1 ml-1 font-bold">{errors.discountValue.message as string}</p>}
               </div>
             </div>
 
@@ -230,9 +230,8 @@ export default function VoucherModal({
                   />
                   <input
                     type="date"
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 text-sm"
-                    value={formData.startDate}
-                    onChange={(e) => set("startDate", e.target.value)}
+                    className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 text-sm ${errors.startDate ? 'ring-2 ring-red-500/50' : ''}`}
+                    {...register("startDate")}
                   />
                 </div>
               </div>
@@ -247,12 +246,16 @@ export default function VoucherModal({
                   />
                   <input
                     type="date"
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 text-sm"
-                    value={formData.endDate}
-                    onChange={(e) => set("endDate", e.target.value)}
+                    className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 text-sm ${errors.endDate ? 'ring-2 ring-red-500/50' : ''}`}
+                    {...register("endDate")}
                   />
                 </div>
               </div>
+              {(errors.startDate || errors.endDate) && (
+                <p className="col-span-2 text-[10px] text-red-500 mt-1 ml-1 font-bold">
+                  {errors.startDate?.message as string || errors.endDate?.message as string}
+                </p>
+              )}
             </div>
 
             {/* Optional limits */}
@@ -263,11 +266,9 @@ export default function VoucherModal({
                 </label>
                 <input
                   type="number"
-                  min={0}
                   placeholder="—"
                   className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 placeholder:text-slate-300"
-                  value={formData.minOrderAmount}
-                  onChange={(e) => set("minOrderAmount", e.target.value)}
+                  {...register("minOrderAmount", { valueAsNumber: true })}
                 />
               </div>
               <div>
@@ -276,11 +277,9 @@ export default function VoucherModal({
                 </label>
                 <input
                   type="number"
-                  min={0}
                   placeholder="—"
                   className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 placeholder:text-slate-300"
-                  value={formData.maxDiscount}
-                  onChange={(e) => set("maxDiscount", e.target.value)}
+                  {...register("maxDiscount", { valueAsNumber: true })}
                 />
               </div>
             </div>
@@ -292,11 +291,9 @@ export default function VoucherModal({
                 </label>
                 <input
                   type="number"
-                  min={1}
                   placeholder="Unlimited"
                   className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 placeholder:text-slate-300"
-                  value={formData.usageLimitPerUser}
-                  onChange={(e) => set("usageLimitPerUser", e.target.value)}
+                  {...register("usageLimitPerUser", { valueAsNumber: true })}
                 />
               </div>
               <div>
@@ -305,11 +302,9 @@ export default function VoucherModal({
                 </label>
                 <input
                   type="number"
-                  min={1}
                   placeholder="Unlimited"
                   className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 transition font-bold text-slate-700 placeholder:text-slate-300"
-                  value={formData.usageLimitTotal}
-                  onChange={(e) => set("usageLimitTotal", e.target.value)}
+                  {...register("usageLimitTotal", { valueAsNumber: true })}
                 />
               </div>
             </div>
@@ -325,16 +320,15 @@ export default function VoucherModal({
               Discard
             </button>
             <button
-              type="button"
-              disabled={loading || (!isEditMode && !formData.code)}
-              onClick={handleSubmit}
+              type="submit"
+              disabled={loading}
               className="flex-[2] px-8 py-4 bg-slate-900 text-white font-bold rounded-[1.5rem] hover:bg-slate-800 transition shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
             >
-              <Save size={20} />
-              {loading ? "Saving…" : isEditMode ? "Save Changes" : "Set Promo Active"}
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+              {isEditMode ? "Save Changes" : "Set Promo Active"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </>
   );

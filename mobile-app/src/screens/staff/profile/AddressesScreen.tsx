@@ -12,6 +12,7 @@ import profileService from '../../../services/customer/profileService';
 import { osmService } from '../../../services/maps/osmService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { updateUser } from '../../../store/slices/auth.slice';
+import { addressSchema } from '../../../validation/address.schema';
 
 const StaffAddressesScreen = () => {
   const router = useRouter();
@@ -21,8 +22,10 @@ const StaffAddressesScreen = () => {
   const initialAddress = params.address as string || '';
 
   const [address, setAddress] = useState(initialAddress);
+  const [label, setLabel] = useState('Home');
   const [saving, setSaving] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState({
@@ -66,6 +69,7 @@ const StaffAddressesScreen = () => {
     try {
       const result = await osmService.reverseGeocode(lat, lng);
       setAddress(result);
+      if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
     } catch (error) {
       console.error("Reverse geocode failed", error);
     } finally {
@@ -84,19 +88,23 @@ const StaffAddressesScreen = () => {
   };
 
   const handleSave = async () => {
-    if (!address.trim()) {
-      Alert.alert('Validation Error', 'Address cannot be empty.');
+    const validation = addressSchema.safeParse({ label, address, isDefault: true });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setSaving(true);
     try {
       const updatedProfile = await profileService.updateProfile({ address });
 
-      // Update global state
       dispatch(updateUser(updatedProfile));
 
-      // Update persistence
       if (user) {
         await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
       }
@@ -155,15 +163,34 @@ const StaffAddressesScreen = () => {
         </View>
 
         <View style={styles.inputGroup}>
+          <Text style={styles.label}>Location Label (e.g. Primary, Work)</Text>
+          <TextInput
+            style={[styles.input, errors.label && { borderColor: COLORS.ERROR }]}
+            value={label}
+            onChangeText={(val) => {
+              setLabel(val);
+              if (errors.label) setErrors(prev => ({ ...prev, label: '' }));
+            }}
+            placeholder="Primary"
+            placeholderTextColor={COLORS.TEXT_MUTED}
+          />
+          {errors.label && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.label}</Text>}
+        </View>
+
+        <View style={styles.inputGroup}>
           <Text style={styles.label}>Primary Address</Text>
           <TextInput
-            style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 16 }]}
+            style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 16 }, errors.address && { borderColor: COLORS.ERROR }]}
             value={address}
-            onChangeText={setAddress}
+            onChangeText={(val) => {
+              setAddress(val);
+              if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
+            }}
             placeholder="House, Street, City..."
             placeholderTextColor={COLORS.TEXT_MUTED}
             multiline
           />
+          {errors.address && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.address}</Text>}
         </View>
 
         <TouchableOpacity

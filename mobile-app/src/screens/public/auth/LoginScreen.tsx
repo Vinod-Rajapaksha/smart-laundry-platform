@@ -23,7 +23,7 @@ import { COLORS } from "../../../../src/theme/colors";
 import AuthHeader from "./components/AuthHeader";
 import { authSharedStyles } from "./styles/auth.shared.styles";
 import { loginStyles } from "./styles/login.styles";
-import { validateLoginForm } from "./validation/login.validation";
+import { loginSchema } from "../../../validation/auth.schema";
 
 
 
@@ -37,7 +37,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [localError, setLocalError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const normalizedRole = useMemo(() => {
     if (!user?.role) return null;
@@ -66,13 +66,16 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     dispatch(clearAuthError());
 
-    const validationError = validateLoginForm(email, password);
-    if (validationError) {
-      setLocalError(validationError);
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
-
-    setLocalError("");
+    setErrors({});
 
     const resultAction = await dispatch(
       loginUser({
@@ -85,8 +88,6 @@ export default function LoginScreen() {
       return;
     }
   };
-
-  const displayError = localError || error || "";
 
   return (
     <SafeAreaView style={authSharedStyles.safeArea}>
@@ -110,7 +111,7 @@ export default function LoginScreen() {
             <View style={authSharedStyles.form}>
               <View style={authSharedStyles.inputGroup}>
                 <Text style={authSharedStyles.label}>Email</Text>
-                <View style={authSharedStyles.inputWrapper}>
+                <View style={[authSharedStyles.inputWrapper, errors.email && { borderColor: COLORS.ERROR }]}>
                   <Ionicons
                     name="mail-outline"
                     size={20}
@@ -119,7 +120,10 @@ export default function LoginScreen() {
                   />
                   <TextInput
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(val) => {
+                      setEmail(val);
+                      if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                    }}
                     placeholder="name@gmail.com"
                     placeholderTextColor={COLORS.TEXT_MUTED}
                     keyboardType="email-address"
@@ -129,6 +133,7 @@ export default function LoginScreen() {
                     style={authSharedStyles.input}
                   />
                 </View>
+                {errors.email && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.email}</Text>}
               </View>
 
               <View style={authSharedStyles.inputGroup}>
@@ -139,7 +144,7 @@ export default function LoginScreen() {
                   </Pressable>
                 </View>
 
-                <View style={authSharedStyles.inputWrapper}>
+                <View style={[authSharedStyles.inputWrapper, errors.password && { borderColor: COLORS.ERROR }]}>
                   <Feather
                     name="lock"
                     size={20}
@@ -148,7 +153,10 @@ export default function LoginScreen() {
                   />
                   <TextInput
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(val) => {
+                      setPassword(val);
+                      if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+                    }}
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.TEXT_MUTED}
                     secureTextEntry={!showPassword}
@@ -168,9 +176,10 @@ export default function LoginScreen() {
                     />
                   </Pressable>
                 </View>
+                {errors.password && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4, marginLeft: 16 }}>{errors.password}</Text>}
               </View>
 
-              {!!displayError && (
+              {!!error && (
                 <View
                   style={[authSharedStyles.messageBox, authSharedStyles.errorBox]}
                 >
@@ -179,7 +188,7 @@ export default function LoginScreen() {
                     size={18}
                     color={COLORS.ERROR_TEXT}
                   />
-                  <Text style={authSharedStyles.errorText}>{displayError}</Text>
+                  <Text style={authSharedStyles.errorText}>{error}</Text>
                 </View>
               )}
 
@@ -234,4 +243,4 @@ export default function LoginScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-} ``
+}

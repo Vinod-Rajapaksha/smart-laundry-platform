@@ -16,6 +16,7 @@ import { COLORS } from '../../../theme/colors';
 import { TYPOGRAPHY } from '../../../theme/typography';
 import styles from './styles/Checkout.styles';
 import { paymentService } from '../../../services/customer/paymentService';
+import { bankTransferSchema } from '../../../validation/checkout.schema';
 
 const BankTransferScreen = () => {
   const router = useRouter();
@@ -58,8 +59,16 @@ const BankTransferScreen = () => {
   };
 
   const handleConfirm = async () => {
-    if (!slipImage) {
-      Alert.alert('Missing Info', 'Please upload your payment transfer slip.');
+    const validation = bankTransferSchema.safeParse({
+      bankName: bankInfo?.bank?.bankName || 'Commercial Bank',
+      accountName: bankInfo?.bank?.accountName || 'B & W Laundry Services Ltd.',
+      referenceNo: bankInfo?.bank?.reference || '',
+      amount: Number(total),
+      slipUrl: slipImage || '',
+    });
+
+    if (!validation.success) {
+      Alert.alert('Validation Error', validation.error.issues[0].message);
       return;
     }
 
@@ -70,7 +79,7 @@ const BankTransferScreen = () => {
         bankInfo?.bank?.bankName,
         bankInfo?.bank?.reference,
         bankInfo?.bank?.accountNo,
-        slipImage
+        slipImage!
       );
 
       router.push({

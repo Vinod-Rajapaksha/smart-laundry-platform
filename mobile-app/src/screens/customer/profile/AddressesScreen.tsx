@@ -12,6 +12,7 @@ import profileService from '../../../services/customer/profileService';
 import { osmService } from '../../../services/maps/osmService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { updateUser } from '../../../store/slices/auth.slice';
+import { addressSchema } from '../../../validation/address.schema';
 
 const AddressesScreen = () => {
   const router = useRouter();
@@ -21,12 +22,14 @@ const AddressesScreen = () => {
   const initialAddress = params.address as string || '';
 
   const [address, setAddress] = useState(initialAddress);
+  const [label, setLabel] = useState('Home');
   const [saving, setSaving] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState({
-    latitude: 6.9271, // Colombo default
+    latitude: 6.9271,
     longitude: 79.8612,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
@@ -44,14 +47,13 @@ const AddressesScreen = () => {
 
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      
+
       setRegion(prev => ({ ...prev, latitude, longitude }));
       mapRef.current?.animateToRegion({
         latitude, longitude,
         latitudeDelta: 0.01, longitudeDelta: 0.01
       });
 
-      // Auto-fill if it's empty, or if the user explicitly clicked the auto-fill button
       if (!initialAddress || !address || forceUpdate) {
         reverseGeocode(latitude, longitude);
       }
@@ -67,6 +69,7 @@ const AddressesScreen = () => {
     try {
       const result = await osmService.reverseGeocode(lat, lng);
       setAddress(result);
+      if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
     } catch (error) {
       console.error("Reverse geocode failed", error);
     } finally {
@@ -85,19 +88,23 @@ const AddressesScreen = () => {
   };
 
   const handleSave = async () => {
-    if (!address.trim()) {
-      Alert.alert('Validation Error', 'Address cannot be empty.');
+    const validation = addressSchema.safeParse({ label, address, isDefault: true });
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        newErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setSaving(true);
     try {
       const updatedProfile = await profileService.updateProfile({ address });
-      
-      // Update global state
+
       dispatch(updateUser(updatedProfile));
-      
-      // Update persistence
+
       if (user) {
         await AsyncStorage.setItem("user", JSON.stringify({ ...user, ...updatedProfile }));
       }
@@ -144,7 +151,7 @@ const AddressesScreen = () => {
                 maximumZ={19}
                 flipY={false}
               />
-              <Marker 
+              <Marker
                 coordinate={{ latitude: region.latitude, longitude: region.longitude }}
                 draggable
                 onDragEnd={handleMapPress}
@@ -152,7 +159,7 @@ const AddressesScreen = () => {
               />
             </MapView>
             <TouchableOpacity style={localStyles.locateBtn} onPress={() => getCurrentLocation()}>
-               <LocateFixed size={20} color={COLORS.PRIMARY} />
+              <LocateFixed size={20} color={COLORS.PRIMARY} />
             </TouchableOpacity>
           </View>
           <View style={localStyles.mapInstruction}>
@@ -162,12 +169,27 @@ const AddressesScreen = () => {
         </View>
 
         <View style={styles.inputGroup}>
+          <Text style={styles.label}>Address Label (e.g. Home, Office)</Text>
+          <TextInput
+            style={[styles.input, errors.label && { borderColor: COLORS.ERROR }]}
+            value={label}
+            onChangeText={(val) => {
+              setLabel(val);
+              if (errors.label) setErrors(prev => ({ ...prev, label: '' }));
+            }}
+            placeholder="Home"
+            placeholderTextColor={COLORS.TEXT_MUTED}
+          />
+          {errors.label && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.label}</Text>}
+        </View>
+
+        <View style={styles.inputGroup}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <Text style={styles.label}>Primary Delivery Address</Text>
             {loadingLocation && <ActivityIndicator size="small" color={COLORS.PRIMARY} />}
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={localStyles.autoFillBtn}
             onPress={() => getCurrentLocation(true)}
           >
@@ -176,16 +198,20 @@ const AddressesScreen = () => {
           </TouchableOpacity>
 
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, errors.address && { borderColor: COLORS.ERROR }]}
             value={address}
-            onChangeText={setAddress}
+            onChangeText={(val) => {
+              setAddress(val);
+              if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
+            }}
             placeholder="House, Street, City..."
             placeholderTextColor={COLORS.TEXT_MUTED}
             multiline
           />
+          {errors.address && <Text style={{ color: COLORS.ERROR, fontSize: 10, marginTop: 4 }}>{errors.address}</Text>}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.submitButton, saving && styles.submitButtonDisabled]}
           onPress={handleSave}
           disabled={saving}
