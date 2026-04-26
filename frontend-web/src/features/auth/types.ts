@@ -1,4 +1,4 @@
-import type { ROLES } from "../../types/enums";
+import type { ROLES } from "../../app/config/constants";
 
 export interface AuthUser {
   _id: string;
