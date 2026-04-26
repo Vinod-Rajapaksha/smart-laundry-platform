@@ -1,0 +1,40 @@
+import { Router } from "express";
+import statusRoute from "./status.route.js";
+import analyticsRoutes from '../modules/analytics/routes.js';
+import authRoutes from '../modules/auth/routes.js';
+import notificationRoutes from '../modules/notification/routes.js';
+import voucherRoutes from '../modules/voucher/routes.js';
+import paymentRoutes from '../modules/payment/routes/payments.js';
+import feedbackRoutes from '../modules/feedback/routes.js';
+import inventoryRoutes from '../modules/inventory/routes.js';
+import orderRoutes from '../modules/order/routes.js';
+import serviceRoutes from '../modules/service/routes.js';
+import userRoutes from '../modules/user/routes.js';
+import loyaltyRoutes from '../modules/loyalty/loyalty.routes.js';
+import scanRoutes from '../modules/scan/routes.js';
+import supplierRoutes from '../modules/supplier/routes.js';
+import settingsRoutes from '../modules/settings/routes.js';
+import categoryRoutes from '../modules/service-category/routes.js';
+import inventoryCategoryRoutes from '../modules/inventory-category/routes.js';
+
+const router = Router();
+
+router.use("/status", statusRoute);
+router.use('/analytics', analyticsRoutes);
+router.use('/auth', authRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/promotions', voucherRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/feedback', feedbackRoutes);
+router.use('/inventory', inventoryRoutes);
+router.use('/orders', orderRoutes);
+router.use('/services', serviceRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/inventory-categories', inventoryCategoryRoutes);
+router.use('/users', userRoutes);
+router.use('/loyalty', loyaltyRoutes);
+router.use('/scan', scanRoutes);
+router.use('/suppliers', supplierRoutes);
+router.use('/settings', settingsRoutes);
+
+export default router;

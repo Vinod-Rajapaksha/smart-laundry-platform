@@ -1,0 +1,130 @@
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Clock, MapPin } from 'lucide-react-native';
+import { COLORS } from '../../theme/colors';
+import { Order } from '../../types/order.types';
+import styles from './styles/OrderCard.styles';
+
+interface OrderCardProps {
+  order: Order;
+  onPress: (order: Order) => void;
+  onReviewPress?: (order: Order) => void;
+  onViewReviewPress?: (order: Order) => void;
+  onPayPress?: (order: Order) => void;
+  onCancelPress?: (order: Order) => void;
+}
+
+const OrderCard: React.FC<OrderCardProps> = ({
+  order,
+  onPress,
+  onReviewPress,
+  onViewReviewPress,
+  onPayPress,
+  onCancelPress
+}) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return { bg: '#F0FDF4', text: '#16A34A' };
+      case 'CANCELLED': return { bg: '#FEF2F2', text: '#DC2626' };
+      case 'IN_WASH': return { bg: '#EFF6FF', text: '#2563EB' };
+      default: return { bg: '#FEF9C3', text: '#CA8A04' };
+    }
+  };
+
+  const statusColors = getStatusColor(order.status);
+  const canReview = order.status === 'DELIVERED' && !order.isReviewed;
+  const hasReviewed = order.isReviewed;
+  const isBankPending = order.paidAt && order.bankVerificationStatus === 'PENDING';
+  const isBankRejected = order.paidAt && order.bankVerificationStatus === 'REJECTED';
+
+  const canPay = (order.paymentMethod === 'NONE' || (['PENDING', 'FAILED'].includes(order.paymentStatus) && order.paymentMethod !== 'COD')) &&
+    order.status !== 'CANCELLED' && order.status !== 'DELIVERED' &&
+    (!order.paidAt || order.bankVerificationStatus === 'REJECTED');
+
+  const canCancel = (order.paymentStatus === 'PENDING' && order.paymentMethod !== 'COD' && order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && !order.paidAt) ||
+    (order.paymentMethod === 'COD' && order.status === 'ORDER_PLACED');
+
+  return (
+    <View style={styles.orderCard}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.orderId}>Order #{order.orderNo}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
+          <Text style={[styles.statusText, { color: statusColors.text }]}>
+            {order.status.replace(/_/g, ' ')}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.detailRow}>
+        <Clock size={16} color={COLORS.TEXT_SECONDARY} />
+        <Text style={styles.detailText}>{new Date(order.createdAt).toLocaleDateString()}</Text>
+      </View>
+      <View style={styles.detailRow}>
+        <MapPin size={16} color={COLORS.TEXT_SECONDARY} />
+        <Text style={styles.detailText} numberOfLines={1}>
+          {order.pickupAddress || 'Self Service'}
+        </Text>
+      </View>
+
+      <View style={styles.cardFooter}>
+        <Text style={styles.priceText}>Rs.{order.totalAmount.toFixed(2)}</Text>
+        <View style={styles.actions}>
+          {canPay && onPayPress && (
+            <TouchableOpacity
+              style={styles.payButton}
+              onPress={() => onPayPress(order)}
+            >
+              <Text style={styles.payButtonText}>{isBankRejected ? 'Pay Again' : 'Pay'}</Text>
+            </TouchableOpacity>
+          )}
+          {canCancel && onCancelPress && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => onCancelPress(order)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+          {canReview && onReviewPress && (
+            <TouchableOpacity
+              style={styles.reviewButton}
+              onPress={() => onReviewPress(order)}
+            >
+              <Text style={styles.reviewButtonText}>Add Review</Text>
+            </TouchableOpacity>
+          )}
+          {hasReviewed && onViewReviewPress && (
+            <TouchableOpacity
+              style={styles.viewReviewButton}
+              onPress={() => onViewReviewPress(order)}
+            >
+              <Text style={styles.viewReviewButtonText}>View Review</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => onPress(order)}
+          >
+            <Text style={styles.trackButtonText}>Details</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {isBankPending && (
+        <View style={{ backgroundColor: '#FFFBEB', padding: 8, marginTop: 12, borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F59E0B' }}>
+          <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '500' }}>
+            Please wait, your payment is being verified by laundry staff.
+          </Text>
+        </View>
+      )}
+      {isBankRejected && (
+        <View style={{ backgroundColor: '#FEF2F2', padding: 8, marginTop: 12, borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#EF4444' }}>
+          <Text style={{ fontSize: 12, color: '#991B1B', fontWeight: '500' }}>
+            Payment verification rejected. Still wait, laundry staff will contact you for verify payment.
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+export default OrderCard;
