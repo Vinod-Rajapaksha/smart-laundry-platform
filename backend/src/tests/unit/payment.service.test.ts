@@ -1,32 +1,33 @@
 import { jest } from "@jest/globals";
-import mongoose from "mongoose";
-import BankTransfer from "../../database/models/BankTransfer.js";
-import Order from "../../database/models/Order.js";
-import Payment from "../../database/models/Payment.js";
-import User from "../../database/models/User.js";
-import Service from "../../database/models/Service.js";
-import { connectTestDB, disconnectTestDB, clearTestDB } from "../testHelpers.js";
-import { submitBankTransfer, verifyTransfer } from "../../modules/payment/service/bankTransfer.service.js";
 
-jest.mock("../../modules/notification/service.js", () => ({
+jest.unstable_mockModule("../../modules/notification/service.js", () => ({
   createNotification: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock("../../modules/loyalty/loyalty.service.js", () => ({
+jest.unstable_mockModule("../../modules/loyalty/loyalty.service.js", () => ({
   awardLoyaltyPoints: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock("../../utils/cloudinary.js", () => ({
+jest.unstable_mockModule("../../utils/cloudinary.js", () => ({
   uploadToCloudinary: jest.fn(() => Promise.resolve("https://cdn.example.com/slip.jpg")),
 }));
 
-jest.mock("../../utils/ocrService.js", () => ({
+jest.unstable_mockModule("../../utils/ocrService.js", () => ({
   processSlipOCR: jest.fn(() => Promise.resolve({
     text: "BANK SLIP",
     confidence: 95,
     isMatch: true,
   })),
 }));
+
+const mongoose = (await import("mongoose")).default;
+const BankTransfer = (await import("../../database/models/BankTransfer.js")).default;
+const Order = (await import("../../database/models/Order.js")).default;
+const Payment = (await import("../../database/models/Payment.js")).default;
+const User = (await import("../../database/models/User.js")).default;
+const Service = (await import("../../database/models/Service.js")).default;
+const { connectTestDB, disconnectTestDB, clearTestDB } = await import("../testHelpers.js");
+const { submitBankTransfer, verifyTransfer } = await import("../../modules/payment/service/bankTransfer.service.js");
 
 describe("Bank Transfer Payment Service", () => {
   let userId: string;

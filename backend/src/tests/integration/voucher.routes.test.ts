@@ -15,7 +15,7 @@ describe("Voucher Integration Tests", () => {
     it("should create a new voucher", async () => {
       const { token: adminToken } = await createTestUser("ADMIN");
       const res = await request(app)
-        .post("/api/vouchers")
+        .post("/api/promotions")
         .set(getAuthHeader(adminToken))
         .send({
           code: "SAVE10",
@@ -47,7 +47,7 @@ describe("Voucher Integration Tests", () => {
       });
 
       const res = await request(app)
-        .post("/api/vouchers/validate")
+        .post("/api/promotions/validate")
         .set(getAuthHeader(token))
         .send({ code: "VALID10", orderAmount: 100 });
 

@@ -7,7 +7,7 @@ import LoginPage from "../../pages/LoginPage";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
 
-import { ADMIN_PORTAL_ROLES } from "../config/constants";
+import { ADMIN_PORTAL_ROLES } from "../../types/enums";
 
 import AdminLayout from "../../layouts/AdminLayout";
 

@@ -5,7 +5,7 @@ import { tokenStorage } from "../../../services/storage/tokenStorage";
 import { userStorage } from "../../../services/storage/userStorage";
 import { useAppDispatch } from "../../../store/hooks";
 import { loginStart, loginSuccess, loginFail, logout } from "../../../store/slices/auth.slice";
-import { ADMIN_PORTAL_ROLES } from "../../../app/config/constants";
+import { ADMIN_PORTAL_ROLES } from "../../../types/enums";
 import type { LoginRequest } from "../types";
 import toast from "react-hot-toast";
 

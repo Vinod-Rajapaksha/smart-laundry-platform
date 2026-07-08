@@ -511,7 +511,7 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
     doc
       .fillColor('#444444')
       .fontSize(25)
-      .text('B & W Laundry', 50, 50, { align: 'center' })
+      .text('EcoShine', 50, 50, { align: 'center' })
       .fontSize(10)
       .text('Premium Laundry Solutions', { align: 'center' })
       .moveDown();
@@ -618,7 +618,7 @@ export const generateReceiptPdf = async (id: string): Promise<Buffer> => {
     doc
       .font('Helvetica')
       .fontSize(10)
-      .text('Thank you for choosing B & W Laundry!', 50, 700, { align: 'center', width: 500 });
+      .text('Thank you for choosing EcoShine!', 50, 700, { align: 'center', width: 500 });
 
     doc.end();
   });

@@ -1,12 +1,18 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { WashingMachine } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Onboarding.styles';
 
 const WelcomeScreen = () => {
   const router = useRouter();
+
+  const handleSignIn = async () => {
+    await AsyncStorage.setItem('onboardingDone', 'true');
+    router.push('/(public)/auth/login');
+  };
 
   return (
     <ScreenWrapper style={styles.container} scroll={false}>
@@ -15,21 +21,21 @@ const WelcomeScreen = () => {
           <WashingMachine size={120} color={COLORS.PRIMARY} />
         </View>
 
-        <Text style={styles.title}>Smart Laundry,{'\n'}Smater Living</Text>
+        <Text style={styles.title}>EcoShine,{'\n'}Smater Living</Text>
         <Text style={styles.subtitle}>
           Premium laundry services at your doorstep. Clean, fresh, and delivered on time.
         </Text>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/(public)/onboarding/onboarding')}
+          onPress={() => router.push('/(public)/onboarding')}
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => router.push('/(public)/auth/login')}
+          onPress={handleSignIn}
         >
           <Text style={styles.secondaryButtonText}>Sign In</Text>
         </TouchableOpacity>

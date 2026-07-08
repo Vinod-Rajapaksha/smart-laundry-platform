@@ -154,7 +154,7 @@ export default function AsideSidebar() {
 
           <div>
             <h1 className="text-sm font-bold text-slate-900 tracking-wide">
-              B & W LAUNDRY
+              ECOSHINE
             </h1>
             <p className="text-xs text-slate-500">Admin Portal</p>
           </div>

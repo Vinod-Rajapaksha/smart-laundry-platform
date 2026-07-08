@@ -1,10 +1,15 @@
 import { jest } from '@jest/globals';
-import * as inventoryService from '../../modules/inventory/service.js';
-import Inventory from '../../database/models/Inventory.js';
-import Supplier from '../../database/models/Supplier.js';
-import StockMovement from '../../database/models/StockMovement.js';
-import { connectTestDB, disconnectTestDB, clearTestDB } from '../testHelpers.js';
-import * as mailService from '../../utils/mailService.js';
+
+jest.unstable_mockModule('../../utils/mailService.js', () => ({
+  sendEmail: jest.fn(() => Promise.resolve()),
+}));
+
+const inventoryService = await import('../../modules/inventory/service.js');
+const Inventory = (await import('../../database/models/Inventory.js')).default;
+const Supplier = (await import('../../database/models/Supplier.js')).default;
+const StockMovement = (await import('../../database/models/StockMovement.js')).default;
+const { connectTestDB, disconnectTestDB, clearTestDB } = await import('../testHelpers.js');
+const mailService = await import('../../utils/mailService.js');
 
 describe('Inventory Service', () => {
   let supplierId: string;
@@ -19,7 +24,6 @@ describe('Inventory Service', () => {
 
   beforeEach(async () => {
     await clearTestDB();
-    jest.spyOn(mailService, 'sendEmail').mockResolvedValue(undefined as any);
     const supplier = await Supplier.create({
       name: 'Vendor 1',
       email: 'v1@example.com',

@@ -15,7 +15,7 @@ describe("Service Category Integration Tests", () => {
     it("should create a new service category", async () => {
       const { token: adminToken } = await createTestUser("ADMIN");
       const res = await request(app)
-        .post("/api/service-categories")
+        .post("/api/categories")
         .set(getAuthHeader(adminToken))
         .send({
           name: "Laundry",
@@ -33,7 +33,7 @@ describe("Service Category Integration Tests", () => {
       await ServiceCategory.create({ name: "Dry Cleaning" });
 
       const res = await request(app)
-        .get("/api/service-categories")
+        .get("/api/categories")
         .set(getAuthHeader(staffToken));
 
       expect(res.status).toBe(200);

@@ -9,6 +9,7 @@ import Inventory from '../../database/models/Inventory.js';
 import Service from '../../database/models/Service.js';
 import Voucher from '../../database/models/Voucher.js';
 import { ORDER_STATUS, ROLES, ANALYTICS_DATE_RANGES, PAYMENT_METHODS } from '../../core/constants.js';
+import { generateReportCode } from '../../utils/reference.js';
 import { Response } from 'express';
 
 export const getDashboardKPIs = async (range: string = 'today') => {
@@ -209,8 +210,33 @@ export const previewReport = async (periodFrom: Date, periodTo: Date, sections: 
 };
 
 export const saveReport = async (periodFrom: Date, periodTo: Date, reportType: string, generatedBy: string) => {
-  const count = await Report.countDocuments();
-  const reportCode = `REP-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+  const currentYear = new Date().getFullYear();
+  
+  // Find the highest report code for the current year to ensure sequential numbering
+  const lastReport = await Report.findOne({
+    reportCode: new RegExp(`^REP-${currentYear}-`)
+  }).sort({ reportCode: -1 });
+
+  let nextSequence = 1;
+  if (lastReport) {
+    const lastCode = lastReport.reportCode;
+    const parts = lastCode.split('-');
+    const lastNum = parseInt(parts[2]);
+    if (!isNaN(lastNum)) {
+      nextSequence = lastNum + 1;
+    }
+  }
+
+  let reportCode = generateReportCode(currentYear, nextSequence);
+
+  // Safety check loop to prevent race conditions or manual entry conflicts
+  let exists = await Report.exists({ reportCode });
+  while (exists) {
+    nextSequence++;
+    reportCode = generateReportCode(currentYear, nextSequence);
+    exists = await Report.exists({ reportCode });
+  }
+
   return Report.create({ reportCode, periodFrom, periodTo, reportType, generatedBy });
 };
 
@@ -250,7 +276,7 @@ export const downloadReport = async (reportId: string, res: Response) => {
   doc.pipe(res);
 
   doc.rect(0, 0, 600, 100).fill('#1e293b');
-  doc.fillColor('#ffffff').fontSize(28).font('Helvetica-Bold').text('B & W Laundry', 50, 35);
+  doc.fillColor('#ffffff').fontSize(28).font('Helvetica-Bold').text('EcoShine', 50, 35);
   doc.fontSize(10).font('Helvetica').text('Intelligent Operations Command Center', 50, 65);
 
   doc.moveDown(4);
@@ -305,7 +331,7 @@ export const downloadReport = async (reportId: string, res: Response) => {
   }
 
   const pageHeight = doc.page.height;
-  doc.font('Helvetica').fontSize(9).fillColor('#94a3b8').text('CONFIDENTIAL - Smart Laundry Platform Automated Intelligence Report', 50, pageHeight - 50, { align: 'center' });
+  doc.font('Helvetica').fontSize(9).fillColor('#94a3b8').text('CONFIDENTIAL - EcoShine Platform Automated Intelligence Report', 50, pageHeight - 50, { align: 'center' });
 
   doc.end();
 };

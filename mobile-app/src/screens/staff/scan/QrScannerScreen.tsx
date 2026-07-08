@@ -105,7 +105,7 @@ const QrScannerScreen = () => {
           <View style={s.header}>
             <View style={{ width: 44 }} />
             <View style={s.headerInfo}>
-              <Text style={s.brandTitle}>B & W Laundry</Text>
+              <Text style={s.brandTitle}>EcoShine</Text>
               <Text style={s.brandSub}>ORDER VERIFICATION</Text>
             </View>
             <TouchableOpacity style={s.iconCircle} onPress={() => setTorch(!torch)}>

@@ -8,7 +8,7 @@ type PageFooterProps = {
 
 export default function PageFooter({
   className = "",
-  companyName = "B & W Laundry Services",
+  companyName = "EcoShine Services",
   year = new Date().getFullYear(),
 }: PageFooterProps): JSX.Element {
   return (

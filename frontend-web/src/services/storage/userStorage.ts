@@ -1,6 +1,6 @@
 import type { AuthUser } from "../../features/auth/types";
 
-const USER_KEY = "b&w_user";
+const USER_KEY = "ecoshine_user";
 
 export const userStorage = {
   get(): AuthUser | null {

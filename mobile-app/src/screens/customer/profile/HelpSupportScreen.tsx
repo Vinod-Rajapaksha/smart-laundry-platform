@@ -36,7 +36,7 @@ const HelpSupportScreen = () => {
   const contactOptions = [
     { icon: <MessageSquare size={20} color={COLORS.PRIMARY} />, label: 'Live Chat', value: 'Start conversation' },
     { icon: <Phone size={20} color={COLORS.SUCCESS} />, label: 'Phone Support', value: '+94 11 234 5678' },
-    { icon: <Mail size={20} color="#EF4444" />, label: 'Email Us', value: 'support@smartlaundry.lk' }
+    { icon: <Mail size={20} color="#EF4444" />, label: 'Email Us', value: 'support@ecoshine.lk' }
   ];
 
   const header = (

@@ -1,6 +1,6 @@
 import { useAppSelector } from "../../../store/hooks";
 import type { AuthUser } from "../types";
-import type { ROLES } from "../../../app/config/constants";
+import type { ROLES } from "../../../types/enums";
 
 export function useAuth(): {
   isAuthenticated: boolean;

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "B & W Laundry",
+    "name": "EcoShine",
     "slug": "bnw-laundry",
     "version": "1.0.0",
     "scheme": "bnw-laundry",
@@ -22,7 +22,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.vinodrajapaksha.bnwlaundry",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/logo.png"

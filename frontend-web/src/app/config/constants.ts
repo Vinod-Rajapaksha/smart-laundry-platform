@@ -1,5 +1,5 @@
 // Application Constants
-export const APP_NAME = "B & W Laundry";
+export const APP_NAME = "EcoShine";
 
 // USER ROLES
 export const ROLES = {
@@ -9,10 +9,6 @@ export const ROLES = {
 } as const;
 
 export type Role = typeof ROLES[keyof typeof ROLES];
-export type ROLES = Role;
-
-// ADMIN PORTAL ROLES
-export const ADMIN_PORTAL_ROLES: Role[] = ["ADMIN", "STAFF"];
 
 // Payment Methods
 export const PAYMENT_METHODS = {

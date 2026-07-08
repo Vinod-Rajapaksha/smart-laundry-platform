@@ -119,8 +119,8 @@ const SettingsScreen = () => {
       </View>
 
       <View style={settingStyles.footer}>
-        <Text style={settingStyles.versionText}>Smart Laundry v1.0.4 (Build 2240)</Text>
-        <Text style={settingStyles.copyrightText}>© 2024 B & W Laundry Services</Text>
+        <Text style={settingStyles.versionText}>EcoShine v1.0.4 (Build 2240)</Text>
+        <Text style={settingStyles.copyrightText}>© 2024 EcoShine Services</Text>
       </View>
     </ScreenWrapper>
   );
