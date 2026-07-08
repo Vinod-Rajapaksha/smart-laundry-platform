@@ -29,6 +29,9 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
