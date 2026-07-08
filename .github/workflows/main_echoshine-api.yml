@@ -33,7 +33,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
           PAYHERE_MERCHANT_ID: ${{ secrets.PAYHERE_MERCHANT_ID }}
-          PAYHERE_MERCHANT_SECRET: ${{ secrets.PAYHERE_MERCHANT_SECRET }}
+          PAYHERE_SECRET: ${{ secrets.PAYHERE_MERCHANT_SECRET }}
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
