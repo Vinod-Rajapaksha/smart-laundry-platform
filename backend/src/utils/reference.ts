@@ -26,6 +26,10 @@ export function generateInventoryId(): string {
   return `INV-${randomPart}`;
 }
 
+export function generateReportCode(year: number, sequence: number): string {
+  return `REP-${year}-${sequence.toString().padStart(4, '0')}`;
+}
+
 function randomUppercase(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let out = '';

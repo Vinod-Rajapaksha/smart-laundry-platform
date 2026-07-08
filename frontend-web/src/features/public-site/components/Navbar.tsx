@@ -31,9 +31,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="B & W Laundry Logo" className="w-12 h-12 object-contain" />
+            <img src="/logo.png" alt="EcoShine Logo" className="w-12 h-12 object-contain" />
             <span className={`text-2xl font-extrabold tracking-tight ${isScrolled ? "text-slate-900" : "text-slate-900"}`}>
-              B & W <span className="text-blue-600">Laundry</span>
+              EcoShine <span className="text-blue-600">Laundry</span>
             </span>
           </div>
 

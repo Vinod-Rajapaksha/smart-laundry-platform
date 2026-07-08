@@ -87,12 +87,18 @@ export const restoreSession = createAsyncThunk(
       const userJson = await AsyncStorage.getItem("user");
 
       if (accessToken && userJson) {
-        return {
-          user: JSON.parse(userJson),
-          accessToken,
-          refreshToken,
-        };
+        try {
+          return {
+            user: JSON.parse(userJson),
+            accessToken,
+            refreshToken,
+          };
+        } catch (e) {
+          console.error("Failed to parse user session data", e);
+          return thunkAPI.rejectWithValue("Invalid session data");
+        }
       }
+
       return thunkAPI.rejectWithValue("No session found");
     } catch (err: any) {
       return thunkAPI.rejectWithValue("Failed to restore session");

@@ -72,7 +72,7 @@ const CashOnDeliveryScreen = () => {
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
           <Text style={styles.statusTitle}>Cash on Delivery</Text>
           <Text style={[styles.statusMessage, { marginBottom: 0 }]}>
-            Your order for <Text style={{ fontWeight: 'bold' }}>B & W Laundry</Text> is ready to be processed.
+            Your order for <Text style={{ fontWeight: 'bold' }}>EcoShine</Text> is ready to be processed.
           </Text>
         </View>
 

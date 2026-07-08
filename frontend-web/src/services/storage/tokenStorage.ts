@@ -1,5 +1,5 @@
-const ACCESS_KEY = "b&w_access_token";
-const REFRESH_KEY = "b&w_refresh_token";
+const ACCESS_KEY = "ecoshine_access_token";
+const REFRESH_KEY = "ecoshine_refresh_token";
 
 export const tokenStorage = {
   getAccess(): string | null {

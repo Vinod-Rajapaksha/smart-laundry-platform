@@ -1,11 +1,6 @@
 import { jest } from '@jest/globals';
-import * as notificationService from '../../modules/notification/service.js';
-import * as expoModule from '../../core/expo.js';
-import Notification from '../../database/models/Notification.js';
-import User from '../../database/models/User.js';
-import { connectTestDB, disconnectTestDB, clearTestDB } from '../testHelpers.js';
 
-jest.mock('../../core/socket.js', () => ({
+jest.unstable_mockModule('../../core/socket.js', () => ({
   getIO: jest.fn(() => ({
     to: jest.fn(() => ({
       emit: jest.fn()
@@ -13,9 +8,15 @@ jest.mock('../../core/socket.js', () => ({
   }))
 }));
 
-jest.mock('../../core/expo.js', () => ({
+jest.unstable_mockModule('../../core/expo.js', () => ({
   sendPushNotification: jest.fn(() => Promise.resolve()),
 }));
+
+const notificationService = await import('../../modules/notification/service.js');
+const expoModule = await import('../../core/expo.js');
+const Notification = (await import('../../database/models/Notification.js')).default;
+const User = (await import('../../database/models/User.js')).default;
+const { connectTestDB, disconnectTestDB, clearTestDB } = await import('../testHelpers.js');
 
 describe('Notification Service', () => {
   let userId: string;

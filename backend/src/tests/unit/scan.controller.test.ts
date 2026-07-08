@@ -1,19 +1,17 @@
 import { jest } from '@jest/globals';
-import * as scanController from '../../modules/scan/controller.js';
-import { Request, Response } from 'express';
-import { Jimp } from 'jimp';
-import jsQR from 'jsqr';
 
-
-
-jest.mock('jsqr', () => ({
+jest.unstable_mockModule('jsqr', () => ({
   __esModule: true,
-  default: jest.fn()
+  default: jest.fn(),
 }));
 
+const scanController = await import('../../modules/scan/controller.js');
+const { Jimp } = await import('jimp');
+const { default: jsQR } = await import('jsqr');
+
 describe('Scan Controller', () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
+  let req: any;
+  let res: any;
 
   beforeEach(() => {
     req = { file: { buffer: Buffer.from('fake-image') } as any };
@@ -28,7 +26,7 @@ describe('Scan Controller', () => {
     req.file = undefined;
 
     await expect(
-      scanController.decodeQrCode(req as Request, res as Response)
+      scanController.decodeQrCode(req, res)
     ).rejects.toThrow('Please upload an image');
   });
 
@@ -39,7 +37,7 @@ describe('Scan Controller', () => {
 
     (jsQR as any).mockReturnValue({ data: 'qr-data' });
 
-    await scanController.decodeQrCode(req as Request, res as Response);
+    await scanController.decodeQrCode(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -56,7 +54,7 @@ describe('Scan Controller', () => {
     (jsQR as any).mockReturnValue(null);
 
     await expect(
-      scanController.decodeQrCode(req as Request, res as Response)
+      scanController.decodeQrCode(req, res)
     ).rejects.toThrow('No QR code found in the image');
   });
 });

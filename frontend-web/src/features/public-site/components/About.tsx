@@ -29,7 +29,7 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-4xl font-extrabold text-slate-900 mb-4"
           >
-            The B & W Story
+            The EcoShine Story
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,5 @@
 // Application Constants
-export const APP_NAME = "B & W Laundry";
+export const APP_NAME = "EcoShine";
 
 // USER ROLES
 export const ROLES = {

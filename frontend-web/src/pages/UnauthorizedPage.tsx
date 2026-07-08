@@ -42,7 +42,7 @@ export default function UnauthorizedPage() {
       </div>
 
       <p className="absolute bottom-8 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-        B & W Laundry Administrative Control
+        EcoShine Administrative Control
       </p>
     </div>
   );

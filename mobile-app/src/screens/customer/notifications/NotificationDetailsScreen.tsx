@@ -17,7 +17,7 @@ const NotificationDetailsScreen = () => {
   const notification = {
     _id: notificationId,
     title: 'Order Delivered!',
-    message: 'Your order #ORD-1234 has been delivered successfully. Your clothes are fresh, clean, and ready for you. Thank you for choosing Smart Laundry Platform!\n\nIf you have any issues with your delivery or the quality of our service, please contact our support team immediately.',
+    message: 'Your order #ORD-1234 has been delivered successfully. Your clothes are fresh, clean, and ready for you. Thank you for choosing EcoShine Platform!\n\nIf you have any issues with your delivery or the quality of our service, please contact our support team immediately.',
     type: 'ORDER_UPDATE',
     createdAt: new Date().toISOString()
   };

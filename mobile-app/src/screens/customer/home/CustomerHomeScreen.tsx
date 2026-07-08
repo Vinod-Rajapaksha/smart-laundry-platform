@@ -126,14 +126,14 @@ const CustomerHomeScreen = () => {
             <View style={styles.trackingHeader}>
               <View>
                 <Badge
-                  label={`In Progress - ${activeOrder.status.replace(/_/g, ' ')}`}
+                  label={`In Progress - ${(activeOrder.status ?? 'UNKNOWN').replace(/_/g, ' ')}`}
                   variant="primary"
                 />
                 <Text style={[styles.trackingTitle, { marginTop: 12 }]}>
                   Order ID: #{activeOrder.orderNo}
                 </Text>
                 <Text style={styles.trackingSubtitle}>
-                  Last Update: {new Date(activeOrder.updatedAt).toLocaleString()}
+                  Last Update: {activeOrder.updatedAt ? new Date(activeOrder.updatedAt).toLocaleString() : 'N/A'}
                 </Text>
               </View>
               <View style={[styles.serviceIconContainer, { backgroundColor: COLORS.PRIMARY_SOFT, marginBottom: 0 }]}>
@@ -150,7 +150,7 @@ const CustomerHomeScreen = () => {
                 })}
                 style={styles.trackButton}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.infoButton}
                 onPress={() => router.push(`/(protected)/(customer)/orders/${activeOrder._id}`)}
               >
