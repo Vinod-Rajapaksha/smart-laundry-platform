@@ -62,7 +62,7 @@ const BankTransferScreen = () => {
   const handleConfirm = async () => {
     const validation = bankTransferSchema.safeParse({
       bankName: bankInfo?.bank?.bankName || 'Commercial Bank',
-      accountName: bankInfo?.bank?.accountName || 'B & W Laundry Services Ltd.',
+      accountName: bankInfo?.bank?.accountName || 'EcoShine Services Ltd.',
       referenceNo: bankInfo?.bank?.reference || '',
       amount: Number(total),
       slipUrl: slipImage || '',
@@ -155,7 +155,7 @@ const BankTransferScreen = () => {
 
           <View style={{ marginBottom: 16 }}>
             <Text style={styles.detailLabel}>Account Name</Text>
-            <Text style={styles.detailValue}>{bankInfo?.bank?.accountName || 'B & W Laundry Services Ltd.'}</Text>
+            <Text style={styles.detailValue}>{bankInfo?.bank?.accountName || 'EcoShine Services Ltd.'}</Text>
           </View>
 
           <View style={{ marginBottom: 8 }}>

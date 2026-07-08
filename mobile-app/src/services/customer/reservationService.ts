@@ -8,7 +8,9 @@ export const reservationService = {
   getServices: async (): Promise<Service[]> => {
     const response = await api.get('/services');
     if (response.data.success) {
-      return response.data.data;
+      // Backend returns a paginated response: { items: [...], pagination: {...} }
+      const data = response.data.data;
+      return Array.isArray(data) ? data : (data?.items ?? []);
     }
     throw new Error(response.data.message || 'Failed to fetch services');
   },

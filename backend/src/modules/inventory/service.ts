@@ -132,7 +132,7 @@ export const markAsOrdered = async (id: string, qty: number) => {
   if (!item) throw new ApiError(404, 'Item not found');
 
   const supplier = item.supplierId as any;
-  const managementName = process.env.MANAGEMENT_NAME || 'B & W Laundry Management';
+  const managementName = process.env.MANAGEMENT_NAME || 'EcoShine Management';
 
   const subject = `Restock Order: ${item.name} - ${managementName}`;
   const body = `Dear ${supplier?.name || 'Vendor'},\n\n` +

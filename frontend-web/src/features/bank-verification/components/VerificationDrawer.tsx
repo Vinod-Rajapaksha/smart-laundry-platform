@@ -69,7 +69,7 @@ export const VerificationDrawer: React.FC<DrawerProps> = ({ isOpen, onClose, tra
           <div className="flex-1">
             <h2 className="text-xl font-bold text-[#1e293b]">Verification Detail</h2>
             <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-              B & W LAUNDRY • BANK VERIFICATION
+              ECOSHINE • BANK VERIFICATION
             </p>
           </div>
           <button

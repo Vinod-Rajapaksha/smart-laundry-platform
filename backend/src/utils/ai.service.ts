@@ -17,7 +17,7 @@ export const generateReviewSummary = async (reviews: string[]): Promise<string> 
     const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `
-      You are a premium branding assistant for "B & W Laundry", a high-end smart laundry service.
+      You are a premium branding assistant for "EcoShine", a high-end smart laundry service.
       Below is a list of customer reviews. Summarize them into a single, punchy, and professional "Community Verdict" 
       that is exactly 2 sentences long. 
       Focus on what customers love most (e.g., speed, care, convenience).

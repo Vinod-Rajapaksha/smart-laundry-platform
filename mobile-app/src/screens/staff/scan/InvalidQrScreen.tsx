@@ -12,7 +12,7 @@ const InvalidQrScreen = () => {
        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
           <ArrowLeft size={24} color={COLORS.TEXT_PRIMARY} />
        </TouchableOpacity>
-       <Text style={s.headerTitle}>B & W Laundry</Text>
+       <Text style={s.headerTitle}>EcoShine</Text>
        <View style={{ width: 44 }} />
     </View>
   );

@@ -60,7 +60,7 @@ const PaymentMethodScreen = () => {
             size="lg"
           />
           <Text style={{ textAlign: 'center', fontSize: 10, color: COLORS.TEXT_MUTED, marginTop: 12 }}>
-            By tapping continue, you agree to B & W Laundry's{'\n'}
+            By tapping continue, you agree to EcoShine's{'\n'}
             Terms of Service and Privacy Policy.
           </Text>
         </View>

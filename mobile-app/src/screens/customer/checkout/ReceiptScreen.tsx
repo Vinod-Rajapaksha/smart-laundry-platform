@@ -38,7 +38,7 @@ const ReceiptScreen = () => {
         <View style={styles.receipt}>
           {/* Header */}
           <View style={styles.receiptHeader}>
-            <Text style={styles.brand}>B & W Laundry</Text>
+            <Text style={styles.brand}>EcoShine</Text>
             <Text style={styles.regNo}>Reg No: BW-L-2024-001</Text>
           </View>
 
@@ -78,7 +78,7 @@ const ReceiptScreen = () => {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.thankYou}>Thank you for choosing B & W Laundry!</Text>
+            <Text style={styles.thankYou}>Thank you for choosing EcoShine!</Text>
             <Text style={styles.footerNote}>This is a computer-generated receipt.</Text>
           </View>
         </View>

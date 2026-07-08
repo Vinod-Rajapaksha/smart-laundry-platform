@@ -158,7 +158,7 @@ export default function Reviews() {
                     </div>
 
                     <p className="text-lg text-slate-800 leading-relaxed font-medium italic relative z-10 line-clamp-5">
-                      "{item.comment || "B&W Laundry provides the most professional and timely service I've ever used. My clothes are always fresh and perfectly folded."}"
+                      "{item.comment || "EcoShine provides the most professional and timely service I've ever used. My clothes are always fresh and perfectly folded."}"
                     </p>
                   </div>
 

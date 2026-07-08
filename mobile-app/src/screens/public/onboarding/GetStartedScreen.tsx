@@ -1,12 +1,23 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Rocket } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { COLORS } from '../../../theme/colors';
 import styles from './styles/Onboarding.styles';
 
 const GetStartedScreen = () => {
   const router = useRouter();
+
+  const handleCreateAccount = async () => {
+    await AsyncStorage.setItem('onboardingDone', 'true');
+    router.push('/(public)/auth/register');
+  };
+
+  const handleSignIn = async () => {
+    await AsyncStorage.setItem('onboardingDone', 'true');
+    router.push('/(public)/auth/login');
+  };
 
   return (
     <ScreenWrapper style={styles.container} scroll={false}>
@@ -22,14 +33,14 @@ const GetStartedScreen = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/(public)/auth/register')}
+          onPress={handleCreateAccount}
         >
           <Text style={styles.buttonText}>Create Account</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => router.push('/(public)/auth/login')}
+          onPress={handleSignIn}
         >
           <Text style={styles.secondaryButtonText}>Already have an account? Sign In</Text>
         </TouchableOpacity>

@@ -98,8 +98,9 @@ const OrderTrackingScreen = () => {
   };
 
   const getStepTime = (stepStatuses: string[]) => {
-    if (!order || !order.trackingLogs) return null;
-    const log = order.trackingLogs.find(l => stepStatuses.includes(l.status));
+    if (!order) return null;
+    const logs = order.trackingLogs ?? [];
+    const log = logs.find(l => stepStatuses.includes(l.status));
     if (!log) return null;
     return new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -152,7 +153,7 @@ const OrderTrackingScreen = () => {
           <View style={{ flex: 1, marginLeft: 16 }}>
             <Text style={trackingStyles.statusLabel}>Current Status</Text>
             <Text style={[trackingStyles.statusValue, order.status === 'CANCELLED' && { color: COLORS.ERROR }]}>
-              {order.status.replace(/_/g, ' ')}
+              {(order.status ?? 'UNKNOWN').replace(/_/g, ' ')}
             </Text>
           </View>
         </View>
@@ -413,7 +414,7 @@ const trackingStyles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY_LIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: -4, // Center against the 24px container
+    marginLeft: -4,
   },
   line: {
     width: 2,

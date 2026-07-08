@@ -75,7 +75,7 @@ export const ConsolidatedLedgerDrawer = ({ payment, onClose }: ConsolidatedLedge
 
           <div className="p-8 border-t border-slate-100 bg-slate-50/50">
             <p className="text-[9px] text-center text-slate-400 leading-relaxed uppercase font-bold tracking-[0.2em]">
-              Secure Payment Verification Node • Smart Laundry Platform
+              Secure Payment Verification Node • EcoShine Platform
             </p>
           </div>
         </div>

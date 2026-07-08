@@ -18,7 +18,7 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-center text-2xl font-bold tracking-[-0.6px] text-slate-900">
-            B &amp; W Laundry
+            EcoShine
           </h1>
 
           <p className="pt-1 text-center text-sm text-slate-500">
@@ -31,7 +31,7 @@ export default function LoginPage() {
             <div className="relative flex h-28 items-center justify-center overflow-hidden bg-slate-100">
               <img
                 src={logo}
-                alt="B & W Laundry Logo"
+                alt="EcoShine Logo"
                 className="h-28 w-28 object-contain"
               />
             </div>

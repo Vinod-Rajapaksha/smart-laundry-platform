@@ -12,9 +12,9 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="space-y-6">
             <div className="flex items-center gap-2 text-white">
-              <img src="/logo.png" alt="B & W Laundry Logo" className="w-12 h-12 object-contain" />
+              <img src="/logo.png" alt="EcoShine Logo" className="w-12 h-12 object-contain" />
               <span className="text-2xl font-extrabold tracking-tight">
-                B & W <span className="text-blue-500">Laundry</span>
+                EcoShine <span className="text-blue-500">Laundry</span>
               </span>
             </div>
             <p className="leading-relaxed">
@@ -85,7 +85,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-10 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p>© 2026 B & W Laundry. All rights reserved.</p>
+          <p>© 2026 EcoShine. All rights reserved.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-blue-500 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-blue-500 transition-colors">Terms of Service</a>

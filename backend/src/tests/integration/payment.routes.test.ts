@@ -1,13 +1,31 @@
 import { jest } from "@jest/globals";
-import mongoose from "mongoose";
 
-jest.mock("../../core/expo.js", () => ({
+jest.unstable_mockModule("../../core/expo.js", () => ({
   sendPushNotification: jest.fn(() => Promise.resolve()),
   default: {
     chunkPushNotifications: jest.fn(() => []),
     sendPushNotificationsAsync: jest.fn(() => Promise.resolve([])),
   }
-} as any));
+}));
+
+jest.unstable_mockModule("../../utils/ocrService.js", () => ({
+  processSlipOCR: jest.fn(() => Promise.resolve({
+    text: "SAMPLE BANK SLIP",
+    confidence: 90,
+    isMatch: true,
+    extractedAmount: 1500,
+    extractedDate: "2024-01-01",
+    extractedRef: "REF-001",
+    extractedBank: "Sampath Bank",
+    extractedAccount: "12345678"
+  })),
+}));
+
+jest.unstable_mockModule("../../utils/cloudinary.js", () => ({
+  uploadToCloudinary: jest.fn(() => Promise.resolve("https://cdn.example.com/slip.jpg")),
+}));
+
+import mongoose from "mongoose";
 
 let request: any;
 let app: any;
@@ -16,8 +34,6 @@ let User: any;
 let Order: any;
 let Payment: any;
 let BankTransfer: any;
-let ocrMock: any;
-let cloudinaryMock: any;
 let hashPassword: any;
 let generateAccessToken: any;
 
@@ -93,29 +109,11 @@ describe("Payment Integration Tests", () => {
     hashPassword = (await import("../../utils/password.js")).hashPassword;
     generateAccessToken = (await import("../../utils/jwt.js")).generateAccessToken;
 
-    const ocrModule = await import("../../utils/ocrService.js");
-    const cloudinaryModule = await import("../../utils/cloudinary.js");
-
-    ocrMock = jest.spyOn(ocrModule, "processSlipOCR").mockResolvedValue({
-      text: "SAMPLE BANK SLIP",
-      confidence: 90,
-      isMatch: true,
-      extractedAmount: 1500,
-      extractedDate: "2024-01-01",
-      extractedRef: "REF-001",
-      extractedBank: "Sampath Bank",
-      extractedAccount: "12345678"
-    } as any);
-
-    cloudinaryMock = jest.spyOn(cloudinaryModule, "uploadToCloudinary").mockResolvedValue("https://cdn.example.com/slip.jpg" as any);
-
     await testHelpers.connectTestDB();
   });
 
   afterAll(async () => {
     if (testHelpers) await testHelpers.disconnectTestDB();
-    if (ocrMock) ocrMock.mockRestore();
-    if (cloudinaryMock) cloudinaryMock.mockRestore();
   });
 
   afterEach(async () => {

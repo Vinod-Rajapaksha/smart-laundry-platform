@@ -95,7 +95,7 @@ const OrderSummaryScreen = () => {
                         <WashingMachine color={COLORS.PRIMARY} size={24} />
                     </View>
                     <View>
-                        <Text style={styles.vendorName}>B & W Laundry</Text>
+                        <Text style={styles.vendorName}>EcoShine</Text>
                         <Text style={styles.vendorSubtitle}>Professional Care • {order.serviceMode?.replace('_', ' ') || ''}</Text>
                     </View>
                 </View>

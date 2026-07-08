@@ -1,7 +1,7 @@
-# 🧺 Smart Laundry Platform  
+# 🧺 EcoShine Platform  
 ### 🚀 Secure & Scalable Full-Stack Laundry Management System
 
-The **Smart Laundry Platform** is a modern, secure, and performance-optimized full-stack system designed to digitize and streamline laundry operations.
+The **EcoShine Platform** is a modern, secure, and performance-optimized full-stack system designed to digitize and streamline laundry operations.
 
 It supports:
 

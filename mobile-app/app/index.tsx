@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppDispatch, useAppSelector } from "../src/store/hooks";
 import { restoreSession } from "../src/store/slices/auth.slice";
 
@@ -8,11 +9,22 @@ export default function Index() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [isReady, setIsReady] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
   useEffect(() => {
-    dispatch(restoreSession()).finally(() => {
-      setIsReady(true);
-    });
+    const prepareApp = async () => {
+      try {
+        const done = await AsyncStorage.getItem("onboardingDone");
+        setOnboardingDone(done === "true");
+        await dispatch(restoreSession());
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    prepareApp();
   }, [dispatch]);
 
   if (!isReady) {
@@ -21,6 +33,10 @@ export default function Index() {
         <ActivityIndicator size="large" color="#4F46E5" />
       </View>
     );
+  }
+
+  if (onboardingDone === false) {
+    return <Redirect href="/(public)/onboarding/welcome" />;
   }
 
   if (isAuthenticated && user) {

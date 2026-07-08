@@ -45,7 +45,7 @@ const OrderQrCodeScreen = () => {
   const onShare = async () => {
     try {
       await Share.share({
-        message: `B&W Laundry Order QR Code for Order #${order?.orderNo || order?._id.substring(0, 8).toUpperCase()}`,
+        message: `EcoShine Order QR Code for Order #${order?.orderNo || order?._id.substring(0, 8).toUpperCase()}`,
       });
     } catch (error) {
       console.error(error);
@@ -141,7 +141,7 @@ const OrderQrCodeScreen = () => {
           <View style={qrStyles.logoCircle}>
             <WashingMachine size={32} color={COLORS.PRIMARY} />
           </View>
-          <Text style={qrStyles.brandName}>B & W Laundry</Text>
+          <Text style={qrStyles.brandName}>EcoShine</Text>
           <Text style={qrStyles.brandStatus}>Order processed successfully</Text>
         </View>
 

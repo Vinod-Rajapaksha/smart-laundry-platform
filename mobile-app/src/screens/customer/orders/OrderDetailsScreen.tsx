@@ -95,7 +95,7 @@ const OrderDetailsScreen = () => {
             <View>
               <Text style={detailStyles.orderLabel}>Order Status</Text>
               <Text style={[detailStyles.orderValue, { color: statusColors.text }]}>
-                {order.status.replace(/_/g, ' ')}
+                {(order.status ?? 'UNKNOWN').replace(/_/g, ' ')}
               </Text>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
@@ -106,13 +106,13 @@ const OrderDetailsScreen = () => {
           <View style={detailStyles.iconRow}>
             <Clock size={16} color={COLORS.TEXT_SECONDARY} />
             <Text style={detailStyles.infoText}>
-              Placed on {new Date(order.createdAt).toLocaleDateString('en-GB', {
+              Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
-              })}
+              }) : 'N/A'}
             </Text>
           </View>
         </View>
@@ -126,7 +126,7 @@ const OrderDetailsScreen = () => {
               <Text style={detailStyles.quantityText}>{order.weightKg || 1}x</Text>
             </View>
             <Text style={detailStyles.itemName}>{(order.serviceId as any)?.name || 'Laundry Service'}</Text>
-            <Text style={detailStyles.itemPrice}>LKR {order.subtotal.toFixed(2)}</Text>
+            <Text style={detailStyles.itemPrice}>LKR {(order.subtotal ?? 0).toFixed(2)}</Text>
           </View>
 
           {/* Options */}
@@ -136,17 +136,17 @@ const OrderDetailsScreen = () => {
                 <Text style={detailStyles.quantityText}>1x</Text>
               </View>
               <Text style={detailStyles.itemName}>{option.name}</Text>
-              <Text style={detailStyles.itemPrice}>LKR {option.price.toFixed(2)}</Text>
+              <Text style={detailStyles.itemPrice}>LKR {(option.price ?? 0).toFixed(2)}</Text>
             </View>
           ))}
           
-          {order.extraFee > 0 && !order.options?.length && (
+          {(order.extraFee ?? 0) > 0 && !order.options?.length && (
             <View style={detailStyles.itemRow}>
               <View style={detailStyles.itemQuantity}>
                 <Text style={detailStyles.quantityText}>1x</Text>
               </View>
               <Text style={detailStyles.itemName}>Extra Charges</Text>
-              <Text style={detailStyles.itemPrice}>LKR {order.extraFee.toFixed(2)}</Text>
+              <Text style={detailStyles.itemPrice}>LKR {(order.extraFee ?? 0).toFixed(2)}</Text>
             </View>
           )}
         </View>
@@ -169,7 +169,7 @@ const OrderDetailsScreen = () => {
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={detailStyles.labelSmall}>Payment Method</Text>
               <Text style={detailStyles.infoText}>
-                {order.paymentMethod.replace(/_/g, ' ')} ({order.paymentStatus})
+                {(order.paymentMethod ?? 'N/A').replace(/_/g, ' ')} ({order.paymentStatus ?? 'N/A'})
               </Text>
             </View>
           </View>
@@ -179,28 +179,29 @@ const OrderDetailsScreen = () => {
         <View style={[detailStyles.sectionCard, { marginTop: 10, backgroundColor: COLORS.PRIMARY }]}>
           <View style={detailStyles.summaryRow}>
             <Text style={detailStyles.summaryLabel}>Subtotal</Text>
-            <Text style={detailStyles.summaryValue}>LKR {order.subtotal.toFixed(2)}</Text>
+            <Text style={detailStyles.summaryValue}>LKR {(order.subtotal ?? 0).toFixed(2)}</Text>
           </View>
           <View style={detailStyles.summaryRow}>
             <Text style={detailStyles.summaryLabel}>Extra Charges</Text>
-            <Text style={detailStyles.summaryValue}>LKR {order.extraFee.toFixed(2)}</Text>
+            <Text style={detailStyles.summaryValue}>LKR {(order.extraFee ?? 0).toFixed(2)}</Text>
           </View>
           <View style={detailStyles.summaryRow}>
             <Text style={detailStyles.summaryLabel}>Delivery Fee</Text>
-            <Text style={detailStyles.summaryValue}>LKR {order.deliveryFee.toFixed(2)}</Text>
+            <Text style={detailStyles.summaryValue}>LKR {(order.deliveryFee ?? 0).toFixed(2)}</Text>
           </View>
           {(order.discountTotal || 0) > 0 && (
             <View style={detailStyles.summaryRow}>
               <Text style={detailStyles.summaryLabel}>Voucher Discount</Text>
-              <Text style={[detailStyles.summaryValue, { color: '#BBF7D0' }]}>- LKR {order.discountTotal?.toFixed(2)}</Text>
+              <Text style={[detailStyles.summaryValue, { color: '#BBF7D0' }]}>- LKR {(order.discountTotal ?? 0).toFixed(2)}</Text>
             </View>
           )}
           <View style={[detailStyles.divider, { backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 16 }]} />
           <View style={detailStyles.summaryRow}>
             <Text style={[detailStyles.summaryLabel, { fontSize: 20, color: COLORS.WHITE }]}>Total Amount</Text>
-            <Text style={[detailStyles.summaryValue, { fontSize: 24, color: COLORS.WHITE }]}>LKR {order.totalAmount.toFixed(2)}</Text>
+            <Text style={[detailStyles.summaryValue, { fontSize: 24, color: COLORS.WHITE }]}>LKR {(order.totalAmount ?? 0).toFixed(2)}</Text>
           </View>
         </View>
+
 
         <TouchableOpacity 
           style={detailStyles.qrButtonLarge}

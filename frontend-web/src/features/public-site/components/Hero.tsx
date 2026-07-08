@@ -23,7 +23,7 @@ export default function Hero() {
             </div>
 
             <h1 className="text-6xl sm:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-6">
-              Smart Laundry. <br />
+              EcoShine. <br />
               <span className="text-blue-600">Delivered Fresh.</span>
             </h1>
 

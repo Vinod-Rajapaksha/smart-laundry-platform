@@ -1,7 +1,7 @@
 import { mapCache } from '../../utils/mapCache';
 
 const HEADERS = {
-  'User-Agent': 'SmartLaundryPlatformApp/1.0',
+  'User-Agent': 'EcoShinePlatformApp/1.0',
   'Accept': 'application/json',
 };
 

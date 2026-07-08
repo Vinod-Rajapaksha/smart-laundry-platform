@@ -36,15 +36,20 @@ const AddressesScreen = () => {
     longitudeDelta: 0.01,
   });
 
+  const [mapReady, setMapReady] = useState(false);
+
   useEffect(() => {
-    getCurrentLocation();
+    getCurrentLocation().finally(() => setMapReady(true));
   }, []);
 
   const getCurrentLocation = async (forceUpdate = false) => {
     try {
       setLoadingLocation(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== 'granted') {
+        notify.error('Permission Denied', 'Location permission is required to use the map.');
+        return;
+      }
 
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
@@ -60,6 +65,7 @@ const AddressesScreen = () => {
       }
     } catch (error) {
       console.error('Get Current Location failed', error);
+      notify.error('Error', 'Could not get your current location.');
     } finally {
       setLoadingLocation(false);
     }
@@ -138,29 +144,39 @@ const AddressesScreen = () => {
         {/* Map View Integration */}
         <View style={localStyles.mapCard}>
           <View style={localStyles.mapWrapper}>
-            <MapView
-              ref={mapRef}
-              style={localStyles.map}
-              initialRegion={region}
-              onPress={handleMapPress}
-              mapType="none"
-            >
-              <UrlTile
-                urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-                maximumZ={19}
-                flipY={false}
-              />
-              <Marker
-                coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-                draggable
-                onDragEnd={handleMapPress}
-                title="Your Location"
-              />
-            </MapView>
-            <TouchableOpacity style={localStyles.locateBtn} onPress={() => getCurrentLocation()}>
-              <LocateFixed size={20} color={COLORS.PRIMARY} />
-            </TouchableOpacity>
+            {!mapReady ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+                <Text style={{ marginTop: 12, color: COLORS.TEXT_SECONDARY }}>Initializing Map...</Text>
+              </View>
+            ) : (
+              <>
+                <MapView
+                  ref={mapRef}
+                  style={localStyles.map}
+                  initialRegion={region}
+                  onPress={handleMapPress}
+                  mapType="none"
+                >
+                  <UrlTile
+                    urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                    maximumZ={19}
+                    flipY={false}
+                  />
+                  <Marker
+                    coordinate={{ latitude: region.latitude, longitude: region.longitude }}
+                    draggable
+                    onDragEnd={handleMapPress}
+                    title="Your Location"
+                  />
+                </MapView>
+                <TouchableOpacity style={localStyles.locateBtn} onPress={() => getCurrentLocation()}>
+                  <LocateFixed size={20} color={COLORS.PRIMARY} />
+                </TouchableOpacity>
+              </>
+            )}
           </View>
+
           <View style={localStyles.mapInstruction}>
             <MapPin size={16} color={COLORS.TEXT_MUTED} />
             <Text style={localStyles.instructionText}>Tap or drag the pin to set your location</Text>

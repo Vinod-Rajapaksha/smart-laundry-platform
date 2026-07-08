@@ -94,9 +94,13 @@ const AddressScreen = () => {
     }
   };
 
+  const [mapReady, setMapReady] = useState(!!pickupLat && !!pickupLng);
+
   useEffect(() => {
     if (!pickupLat && !pickupLng) {
-      getCurrentLocation();
+      getCurrentLocation().then(() => setMapReady(true));
+    } else {
+      setMapReady(true);
     }
   }, []);
 
@@ -208,30 +212,40 @@ const AddressScreen = () => {
 
         <View style={[styles.mapCard, { marginTop: 16, zIndex: -1 }]}>
            <View style={styles.mapWrapper}>
-              <MapView
-                ref={mapRef}
-                style={styles.map}
-                initialRegion={region}
-                onPress={handleMapPress}
-                mapType="none"
-              >
-                <UrlTile
-                  urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-                  maximumZ={19}
-                  flipY={false}
-                />
-                <Marker 
-                  coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-                  draggable
-                  onDragEnd={handleMapPress}
-                  title="Pickup Location"
-                />
-              </MapView>
-              <TouchableOpacity style={styles.locateBtn} onPress={getCurrentLocation}>
-                 <LocateFixed size={20} color={COLORS.PRIMARY} />
-              </TouchableOpacity>
+              {!mapReady ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+                  <Text style={{ marginTop: 12, color: COLORS.TEXT_SECONDARY }}>Initializing Map...</Text>
+                </View>
+              ) : (
+                <>
+                  <MapView
+                    ref={mapRef}
+                    style={styles.map}
+                    initialRegion={region}
+                    onPress={handleMapPress}
+                    mapType="none"
+                  >
+                    <UrlTile
+                      urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                      maximumZ={19}
+                      flipY={false}
+                    />
+                    <Marker 
+                      coordinate={{ latitude: region.latitude, longitude: region.longitude }}
+                      draggable
+                      onDragEnd={handleMapPress}
+                      title="Pickup Location"
+                    />
+                  </MapView>
+                  <TouchableOpacity style={styles.locateBtn} onPress={getCurrentLocation}>
+                    <LocateFixed size={20} color={COLORS.PRIMARY} />
+                  </TouchableOpacity>
+                </>
+              )}
            </View>
         </View>
+
 
         <View style={[styles.scrollContent, { zIndex: -1 }]}>
           <View style={styles.section}>
